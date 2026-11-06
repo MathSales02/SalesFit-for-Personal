@@ -64,3 +64,19 @@ export const IconChat = () => (
     <path d="M16 9h4v9.5L16.5 16H10v-2" />
   </svg>
 );
+export const IconBell = () => (
+  <svg {...base}>
+    <path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z" />
+    <path d="M10 20.5a2.2 2.2 0 0 0 4 0" />
+  </svg>
+);
+export const IconMessage = () => (
+  <svg {...base}>
+    <path d="M4 5h16v11H9l-5 4V5Z" />
+  </svg>
+);
+export const IconMenu = () => (
+  <svg {...base}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);

@@ -33,7 +33,7 @@ As fases:
 | 1 | Fundação: arquitetura, banco, autenticação, RBAC, isolamento, design system | ✅ |
 | 2 | Gestão do treinador: alunos, exercícios, vídeos, montagem de treinos | ✅ |
 | 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | ✅ (3A e 3C). A 3B (IA) foi adiada pelo usuário |
-| 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | **4A feita** (feed, curtidas, comentários, perfis, seguir, bloquear, denunciar, moderação, filtro NSFW); 4B (mensagens e notificações) a seguir |
+| 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | ✅ (4A comunidade e 4B mensagens e notificações) |
 | 5 | Gamificação: pontos, desafios, rankings, conquistas, recompensas | — |
 | 6 | Administração e SaaS: planos, limites, pagamentos, webhooks | — |
 | 7 | Segurança e otimização: auditoria, MFA, E2E, acessibilidade, deploy | — |
@@ -78,7 +78,7 @@ f42e903 Phase 3C: body measurements and private progress photos
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Fase 4A concluída.** **Fase 4B: backend pronto e no GitHub** (mensagens diretas e notificações, 156 testes). Falta a interface da 4B: páginas de Mensagens (lista, conversa com atualização periódica e envio de foto) e Notificações (lista, marcar como lida, preferências), selos de não lidas no menu, teste no navegador, commit.
+**Fase 4 concluída e no GitHub** (comunidade, mensagens diretas e notificações; 156 testes). **Próximo: Fase 5, gamificação**: regras de pontos configuráveis pelo treinador, livro-razão de pontos imutável com idempotência, sequências (streaks), conquistas, desafios com ranking calculado no servidor, recompensas e resgates atômicos. Premiar constância, nunca volume excessivo.
 
 ## 4. Stack e decisões principais
 
@@ -112,7 +112,8 @@ Princípios que valem para todo código novo:
 - **Treino do aluno (3A):** player no celular com registro de séries, cronômetro de descanso, carga da última vez, recordes calculados no servidor, resumo, histórico; o treinador vê constância de 8 semanas, últimos treinos e recordes na ficha do aluno.
 - **Progresso (3C):** medidas corporais com gráfico e tabela (o treinador vê e registra avaliações só com consentimento de saúde); fotos privadas por padrão, compartilhadas uma a uma, com comparação antes/depois; o servidor reprocessa cada foto e remove localização GPS e metadados.
 - **Comunidade (4A):** feed da consultoria (todos/seguindo), avisos fixados do treinador, posts com texto, foto ou treino compartilhado, curtidas, comentários com respostas, perfis, seguir, bloquear, denunciar; fila de moderação do treinador; aprovação prévia opcional; filtro NSFW no servidor.
-- **Qualidade:** 143 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Mensagens e notificações (4B):** conversas aluno ↔ treinador e aluno ↔ aluno (o treinador pode desligar), fotos com filtro, apagar, denunciar; notificações com preferências; selos de não lidas no menu.
+- **Qualidade:** 156 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

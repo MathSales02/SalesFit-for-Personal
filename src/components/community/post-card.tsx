@@ -181,7 +181,7 @@ export function PostCard({ post, basePath, canModerate, linkToPost = true }: { p
   );
 }
 
-export function ReportForm({ targetType, targetId, onDone }: { targetType: "post" | "comment" | "member"; targetId: string; onDone: (message: string) => void }) {
+export function ReportForm({ targetType, targetId, onDone }: { targetType: "post" | "comment" | "member" | "message"; targetId: string; onDone: (message: string) => void }) {
   const [reason, setReason] = useState<(typeof REPORT_REASONS)[number][0]>("spam");
   const [details, setDetails] = useState("");
   const [pending, startTransition] = useTransition();
