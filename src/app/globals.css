@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * Cadência design tokens.
+ * Field green carries the brand and primary actions; "signal" yellow is
+ * reserved for streaks, records and rewards so it keeps its meaning.
+ */
+@theme {
+  --color-chalk: #f3f5f2;
+  --color-paper: #ffffff;
+  --color-ink: #14201b;
+  --color-ink-soft: #3a4741;
+  --color-muted: #56635d;
+  --color-line: #d6dcd6;
+  --color-line-strong: #b9c3bc;
+  --color-turf: #123f30;
+  --color-turf-hover: #0c2e23;
+  --color-turf-tint: #e3ece6;
+  --color-signal: #f2b705;
+  --color-signal-tint: #fdf3d3;
+  --color-danger: #b42318;
+  --color-danger-tint: #fdecea;
+  --color-success: #1d7a4b;
+
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
+
+  --radius-control: 6px;
+  --radius-panel: 10px;
+
+  --shadow-raised: 0 1px 2px rgb(20 32 27 / 0.06), 0 4px 12px -4px rgb(20 32 27 / 0.08);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-chalk text-ink font-sans antialiased;
+    font-feature-settings: "tnum" 1;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-turf);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

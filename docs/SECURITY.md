@@ -1,0 +1,48 @@
+# Security controls
+
+Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status reflects what is implemented **and covered by tests** as of Phase 1.
+
+## Implemented
+
+| Control | Where | Verified by |
+|---|---|---|
+| Argon2id hashing, rehash on parameter change | `src/server/auth/password.ts` | `tests/security-units.test.ts`, `tests/auth.test.ts` |
+| Opaque session tokens, hashed at rest, idle + absolute expiry, revocation | `src/server/auth/session.ts` | `tests/auth.test.ts` (logout, expired, idle, suspended user, BOLA on revoke) |
+| Cookie flags: HttpOnly, SameSite=Lax, Secure + `__Host-` in production | `src/server/http/next.ts` | Browser smoke test |
+| Email verification required before login; single-use, 24 h tokens | `src/server/auth/service.ts` | `tests/auth.test.ts` |
+| Password reset: 30 min single-use token, newer link voids older, all sessions revoked | `src/server/auth/service.ts` | `tests/auth.test.ts` |
+| No account enumeration: same response for signup/reset on known and unknown emails; timing equalized on login | `src/server/auth/service.ts`, `password.ts` | `tests/auth.test.ts` |
+| Brute force: per-IP and per-account limits + progressive lockout (30 s doubling to 15 min) stored in Postgres | `service.ts`, `security/rate-limit.ts` | `tests/auth.test.ts` (IP rotation does not bypass) |
+| Rate limiting on every request (proxy, per IP) and every action (per user, per workspace, per sensitive action) | `src/proxy.ts`, `security/rate-limit.ts` | `tests/security-units.test.ts` |
+| Client IP from the trusted end of `X-Forwarded-For` only | `src/server/http/request-meta.ts` | `tests/security-units.test.ts` |
+| RBAC, deny by default, central permission table | `src/server/authz/policy.ts` | `tests/security-units.test.ts` |
+| Tenant isolation in Postgres RLS; app role without DDL/BYPASSRLS | `drizzle/0001_security.sql`, `db/context.ts` | `tests/tenant-isolation.test.ts` (14 negative cases) |
+| Billing status writable only by system/admin context | RLS on `subscriptions` | `tests/tenant-isolation.test.ts` |
+| Append-only audit log and security events (no UPDATE/DELETE grant) | `0001_security.sql`, `security/audit.ts` | `tests/tenant-isolation.test.ts` |
+| Strict input validation; unknown, duplicated and file fields rejected | `lib/validation/*`, `http/action.ts` | `tests/security-units.test.ts` |
+| Generic errors to users; no stack traces or SQL errors | `http/action.ts`, `app/error.tsx` | Code review |
+| Log redaction of passwords, tokens, cookies, bodies | `lib/logger.ts` | `tests/security-units.test.ts` |
+| CSP with per-request nonce, HSTS (prod), nosniff, frame-ancestors none, no-referrer, COOP/CORP, Permissions-Policy | `proxy.ts`, `next.config.ts` | Header check on running app |
+| IPs and unknown emails stored only as keyed HMAC | `lib/crypto.ts` | `tests/security-units.test.ts` |
+| Consent records (versioned, append-only) | `consents` table | Signup flow |
+| Secrets only via environment; validated at startup | `server/env.ts`, `.env.example` | — |
+| Local services bound to 127.0.0.1; Redis password; least-privilege DB roles | `docker-compose.yml`, `docker/postgres/init.sh` | — |
+| CI: lint, typecheck, tests, production dependency audit | `.github/workflows/ci.yml` | — |
+
+## Not yet implemented (planned)
+
+- MFA (TOTP). Schema flag exists; required for platform admins before launch. — Phase 7
+- File upload pipeline: signature sniffing, size limits, private bucket, signed URLs, malware scan hook. — Phase 2
+- Audited break-glass access for admins to sensitive data. — Phase 6
+- Payment webhook signature verification and idempotency (`billing_events`). — Phase 6
+- Data subject requests (export, deletion) and retention jobs for `login_attempts`, `security_events`, revoked sessions. — Phase 6/7
+- Redis Lua limiter has no automated test yet (tests use the memory store with the same contract). — Phase 7
+- Alerting on security events. — Phase 7
+
+## Known dev-only advisories
+
+`npm audit` reports moderate advisories in dev tooling only (esbuild inside drizzle-kit; minimatch inside ESLint). Production dependencies: 0 known vulnerabilities. CI fails on any production advisory.
+
+## LGPD notes
+
+Health data (restrictions, injuries, measurements, progress photos) is sensitive personal data (art. 11). Planned handling: separate tables, explicit `health_data_processing` consent per student, no admin RLS clause, never shown in social features. Legal texts in `/termos` and `/privacidade` are drafts and must be reviewed by a qualified professional before commercial launch.
