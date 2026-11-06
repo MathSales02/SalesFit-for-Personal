@@ -46,3 +46,9 @@ export const IconDumbbell = () => (
     <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" />
   </svg>
 );
+export const IconClipboard = () => (
+  <svg {...base}>
+    <rect x="5" y="4" width="14" height="17" rx="2" />
+    <path d="M9 4.5h6M9 10h6M9 14h6M9 18h3" />
+  </svg>
+);

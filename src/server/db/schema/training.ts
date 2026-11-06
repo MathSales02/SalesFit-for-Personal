@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, index, integer, pgEnum, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { users } from "./identity";
 import { workspaces } from "./tenancy";
@@ -72,5 +72,103 @@ export const exercises = pgTable(
       .on(sql`coalesce(${t.workspaceId}, '00000000-0000-0000-0000-000000000000'::uuid)`, sql`lower(${t.name})`)
       .where(sql`archived_at is null`),
     index("exercises_ws_group_idx").on(t.workspaceId, t.muscleGroup),
+  ],
+);
+
+/** A training program. Content lives in versions so edits never rewrite history. */
+export const programs = pgTable(
+  "programs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    isTemplate: boolean("is_template").notNull().default(false),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("programs_ws_idx").on(t.workspaceId)],
+);
+
+export const programVersionStatus = pgEnum("program_version_status", ["draft", "published"]);
+
+/**
+ * Published versions are immutable. Trainers edit a single draft per program
+ * and publish it as the next version; workout logs reference the version used.
+ */
+export const programVersions = pgTable(
+  "program_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    programId: uuid("program_id").notNull(),
+    number: integer("number").notNull(),
+    status: programVersionStatus("status").notNull().default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("program_versions_number_uq").on(t.programId, t.number),
+    uniqueIndex("program_versions_one_draft_uq").on(t.programId).where(sql`status = 'draft'`),
+  ],
+);
+
+export const programDays = pgTable(
+  "program_days",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    programId: uuid("program_id").notNull(),
+    versionId: uuid("version_id").notNull(),
+    position: smallint("position").notNull(),
+    name: text("name").notNull(),
+    notes: text("notes"),
+  },
+  (t) => [uniqueIndex("program_days_position_uq").on(t.versionId, t.position)],
+);
+
+export const programExercises = pgTable(
+  "program_exercises",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    programId: uuid("program_id").notNull(),
+    versionId: uuid("version_id").notNull(),
+    dayId: uuid("day_id").notNull(),
+    position: smallint("position").notNull(),
+    exerciseId: uuid("exercise_id").notNull().references(() => exercises.id, { onDelete: "restrict" }),
+    variationExerciseId: uuid("variation_exercise_id").references(() => exercises.id, { onDelete: "set null" }),
+    sets: smallint("sets").notNull(),
+    reps: text("reps").notNull(),
+    load: text("load"),
+    restSeconds: smallint("rest_seconds"),
+    tempo: text("tempo"),
+    notes: text("notes"),
+  },
+  (t) => [uniqueIndex("program_exercises_position_uq").on(t.dayId, t.position), index("program_exercises_version_idx").on(t.versionId)],
+);
+
+export const assignmentStatus = pgEnum("assignment_status", ["active", "ended"]);
+
+/** Which program a student follows. One active assignment per student. */
+export const programAssignments = pgTable(
+  "program_assignments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    programId: uuid("program_id").notNull(),
+    memberId: uuid("member_id").notNull(),
+    startsOn: date("starts_on").notNull(),
+    endsOn: date("ends_on"),
+    status: assignmentStatus("status").notNull().default("active"),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("program_assignments_one_active_uq").on(t.memberId).where(sql`status = 'active'`),
+    index("program_assignments_program_idx").on(t.programId),
   ],
 );

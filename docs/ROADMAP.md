@@ -10,7 +10,7 @@
 - Design system: tokens, type (Barlow / Barlow Condensed), buttons, fields, notices, headings
 - 59 automated tests (auth, sessions, tenant isolation, validation, rate limits)
 
-## Phase 2 — Trainer management (in progress)
+## Phase 2 — Trainer management ✅
 
 Done (2A):
 - Student invitations by email (7-day single-use link, re-invite replaces the link, plan seat limit with a per-workspace lock)
@@ -25,8 +25,12 @@ Done (2B-1):
 - Private video uploads: signed direct-to-storage form (exact key, type and size), server-side size and file-signature check, rejected files deleted, plan storage quota, 15-minute signed playback URLs
 - 16 new tests (93 total)
 
-Next (2B-2):
-1. Program builder: days, exercises, sets/reps/load/rest/tempo, drag and drop, duplicate, templates, versioning, assignment
+Done (2B-2):
+- Program builder: days, prescribed exercises (sets, reps, load, rest, tempo, notes, variation), drag-and-drop plus keyboard reordering, duplicate day
+- Versioning: one draft per program; publishing freezes a version (enforced by database triggers); students always see the latest published version
+- Templates and duplication; archive
+- Assignment to students with start/end dates (one active program per student); student home shows the program with videos and instructions
+- 13 new tests (106 total)
 
 ## Phase 3 — Student experience
 
