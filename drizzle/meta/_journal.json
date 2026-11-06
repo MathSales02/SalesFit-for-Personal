@@ -99,6 +99,34 @@
       "when": 1793941796962,
       "tag": "0013_progress_security",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793942714688,
+      "tag": "0014_community",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793942716758,
+      "tag": "0015_community_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793943077136,
+      "tag": "0016_follows_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793943204697,
+      "tag": "0017_post_counter_guard",
+      "breakpoints": true
     }
   ]
 }

@@ -1,12 +1,13 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, date, index, integer, pgEnum, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, index, integer, jsonb, pgEnum, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { users } from "./identity";
 import { workspaces } from "./tenancy";
 
 export const mediaKind = pgEnum("media_kind", ["video", "image"]);
 export const mediaStatus = pgEnum("media_status", ["pending", "ready", "rejected", "deleted"]);
-export const mediaVisibility = pgEnum("media_visibility", ["workspace", "private"]);
+export const mediaVisibility = pgEnum("media_visibility", ["workspace", "private", "community"]);
+export const mediaModeration = pgEnum("media_moderation", ["not_checked", "clear", "review"]);
 
 /**
  * Files in private object storage. The storage key is random and never shown
@@ -34,6 +35,9 @@ export const mediaAssets = pgTable(
      */
     visibility: mediaVisibility("visibility").notNull().default("workspace"),
     ownerMemberId: uuid("owner_member_id"),
+    /** Automated image screening result for community images (NSFW classifier). */
+    moderation: mediaModeration("moderation").notNull().default("not_checked"),
+    moderationScores: jsonb("moderation_scores").$type<Record<string, number>>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("media_assets_key_uq").on(t.storageKey), index("media_assets_ws_status_idx").on(t.workspaceId, t.status)],

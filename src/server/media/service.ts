@@ -11,6 +11,7 @@ import type { RequestMeta } from "../http/request-meta";
 import { audit, recordSecurityEvent } from "../security/audit";
 import { enforceRateLimit } from "../security/rate-limit";
 import { isUploadContentType, matchesSignature, UPLOAD_TYPES, type UploadContentType } from "../storage/file-signature";
+import { screenImage, type ScreenResult } from "../moderation/image-screen";
 import { PROCESSED_IMAGE_TYPE, reencodeImage } from "../storage/image-processing";
 import { deleteObject, getObjectBytes, headObject, presignPlayback, presignUpload, putObject, readHead } from "../storage/s3";
 
@@ -37,18 +38,22 @@ async function storageUsage(tx: Tx, workspaceId: string) {
 
 export type UploadTicket = { assetId: string; url: string; fields: Record<string, string>; maxBytes: number };
 
-/**
- * Step 1: reserve quota and hand the browser a signed form that only accepts
- * this key, this content type and at most the declared size.
- */
-/** Most private photos a student may keep at once. */
+/** Most personal images (progress + post photos) one member may keep at once. */
 export const MAX_PRIVATE_PHOTOS = 300;
 
 /**
  * workspace: trainer uploads shared with the workspace (exercise videos).
  * private: a student's own image (progress photo), visible only to them unless shared.
+ * community: an image attached to a community post; screened for NSFW content.
  */
-export type UploadVisibility = "workspace" | "private";
+export type UploadVisibility = "workspace" | "private" | "community";
+
+const PERMISSION = { workspace: "training.manage", private: "progress.manage_own", community: "community.post" } as const;
+
+/**
+ * Step 1: reserve quota and hand the browser a signed form that only accepts
+ * this key, this content type and at most the declared size.
+ */
 
 export async function requestUpload(
   actor: Actor,
@@ -56,21 +61,22 @@ export async function requestUpload(
   meta: RequestMeta,
   visibility: UploadVisibility = "workspace",
 ): Promise<UploadTicket> {
-  assertCan(actor, visibility === "private" ? "progress.manage_own" : "training.manage");
+  assertCan(actor, PERMISSION[visibility]);
+  const personal = visibility !== "workspace";
   const m = requireMembership(actor);
   await enforceRateLimit("upload_user", actor.userId);
   if (!isUploadContentType(input.contentType)) {
     throw new AppError("VALIDATION", "Formato não aceito. Envie vídeos MP4, MOV ou WebM, ou imagens JPG, PNG ou WebP.");
   }
   const type = UPLOAD_TYPES[input.contentType];
-  if (visibility === "private" && type.kind !== "image") throw new AppError("VALIDATION", "Envie uma foto (JPG, PNG ou WebP).");
+  if (personal && type.kind !== "image") throw new AppError("VALIDATION", "Envie uma foto (JPG, PNG ou WebP).");
   if (!Number.isInteger(input.sizeBytes) || input.sizeBytes <= 0 || input.sizeBytes > type.maxBytes) {
     throw new AppError("VALIDATION", `Arquivo grande demais. O limite é ${Math.round(type.maxBytes / 1024 / 1024)} MB.`);
   }
 
   const assetId = randomUUID();
   // Random, non-guessable key; nothing user-provided (like the file name) goes into it.
-  const key = visibility === "private" ? `ws/${m.workspaceId}/private/${m.memberId}/${assetId}.orig` : `ws/${m.workspaceId}/${assetId}.${type.ext}`;
+  const key = personal ? `ws/${m.workspaceId}/${visibility}/${m.memberId}/${assetId}.orig` : `ws/${m.workspaceId}/${assetId}.${type.ext}`;
   await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`storage:${m.workspaceId}`}, 0))`);
     // Students cannot read the subscription (RLS), so the quota check runs in the
@@ -81,12 +87,12 @@ export async function requestUpload(
     if (usage.usedBytes + input.sizeBytes > usage.quotaBytes) {
       throw new AppError(
         "PLAN_LIMIT",
-        visibility === "private"
+        personal
           ? "O espaço de armazenamento da sua consultoria acabou. Avise seu treinador."
           : "O espaço de armazenamento do seu plano acabou. Remova vídeos que não usa mais ou mude de plano.",
       );
     }
-    if (visibility === "private") {
+    if (personal) {
       const [{ n } = { n: 0 }] = await tx
         .select({ n: sql<number>`count(*)::int` })
         .from(mediaAssets)
@@ -102,7 +108,7 @@ export async function requestUpload(
       contentType: input.contentType,
       sizeBytes: input.sizeBytes,
       visibility,
-      ownerMemberId: visibility === "private" ? m.memberId : null,
+      ownerMemberId: personal ? m.memberId : null,
     });
     await audit(tx, { action: "media.upload_requested", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "media", targetId: assetId, metadata: { contentType: input.contentType, sizeBytes: input.sizeBytes }, ipHash: meta.ipHash });
   });
@@ -116,7 +122,7 @@ export async function requestUpload(
  * (exists, size within the declared limit, real file signature) before the
  * asset can be used anywhere. Anything that fails is deleted and rejected.
  */
-export async function completeUpload(actor: Actor, assetId: string, meta: RequestMeta): Promise<{ status: "ready" }> {
+export async function completeUpload(actor: Actor, assetId: string, meta: RequestMeta): Promise<{ status: "ready"; moderation?: "clear" | "review" }> {
   const m = requireMembership(actor);
   const ctx = { userId: actor.userId, workspaceId: m.workspaceId };
   const asset = await withTenant(ctx, async (tx) => {
@@ -127,13 +133,10 @@ export async function completeUpload(actor: Actor, assetId: string, meta: Reques
     return a;
   });
   if (!asset) throw Errors.notFound();
-  // Workspace media is completed by trainers; private media only by its owner.
-  if (asset.visibility === "private") {
-    assertCan(actor, "progress.manage_own");
-    if (asset.ownerMemberId !== m.memberId) throw Errors.notFound();
-  } else {
-    assertCan(actor, "training.manage");
-  }
+  // Workspace media is completed by trainers; personal media only by its owner.
+  const personal = asset.visibility !== "workspace";
+  assertCan(actor, PERMISSION[asset.visibility]);
+  if (personal && asset.ownerMemberId !== m.memberId) throw Errors.notFound();
 
   const reject = async (reason: string) => {
     await deleteObject(asset.storageKey).catch((err: unknown) => log.error("could not delete rejected upload", errorFields(err)));
@@ -150,11 +153,12 @@ export async function completeUpload(actor: Actor, assetId: string, meta: Reques
   }
   // Malware scanning hook: plug an AV/content scanner here before marking ready (not configured yet).
 
-  // Private photos are re-encoded: strips EXIF/GPS metadata and anything that is not pixels.
+  // Personal images are re-encoded: strips EXIF/GPS metadata and anything that is not pixels.
   let finalKey = asset.storageKey;
   let finalType = asset.contentType;
   let finalSize = head.size;
-  if (asset.visibility === "private") {
+  let screening: { decision: "clear" | "review"; scores: ScreenResult["scores"] } | null = null;
+  if (personal) {
     let processed: Uint8Array;
     try {
       processed = await reencodeImage(await getObjectBytes(asset.storageKey, asset.sizeBytes));
@@ -164,8 +168,17 @@ export async function completeUpload(actor: Actor, assetId: string, meta: Reques
     finalKey = asset.storageKey.replace(/\.orig$/, ".webp");
     finalType = PROCESSED_IMAGE_TYPE;
     finalSize = processed.byteLength;
-    await putObject(finalKey, processed, finalType);
     await deleteObject(asset.storageKey).catch((err: unknown) => log.error("could not delete original upload", errorFields(err)));
+    if (asset.visibility === "community") {
+      const result = await screenImage(processed);
+      if (result.decision === "block") {
+        await withTenant(ctx, (tx) => tx.update(mediaAssets).set({ status: "rejected" }).where(eq(mediaAssets.id, asset.id)));
+        await recordSecurityEvent({ type: "media.nsfw_blocked", severity: "warning", userId: actor.userId, workspaceId: m.workspaceId, ipHash: meta.ipHash, metadata: { scores: result.scores } });
+        throw new AppError("VALIDATION", "Esta imagem não é permitida na comunidade.");
+      }
+      screening = { decision: result.decision, scores: result.scores };
+    }
+    await putObject(finalKey, processed, finalType);
   }
 
   await withTenant(ctx, async (tx) => {
@@ -173,9 +186,15 @@ export async function completeUpload(actor: Actor, assetId: string, meta: Reques
       .update(mediaAssets)
       .set({ status: "ready", storageKey: finalKey, contentType: finalType, sizeBytes: finalSize, verifiedAt: new Date() })
       .where(eq(mediaAssets.id, asset.id));
+    if (screening) {
+      // The screening verdict is written only in the trusted system context (DB trigger enforces it).
+      await setTenantContext(tx, { ...ctx, isSystem: true });
+      await tx.update(mediaAssets).set({ moderation: screening.decision, moderationScores: screening.scores }).where(eq(mediaAssets.id, asset.id));
+      await setTenantContext(tx, ctx);
+    }
     await audit(tx, { action: "media.upload_verified", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "media", targetId: asset.id, ipHash: meta.ipHash });
   });
-  return { status: "ready" };
+  return { status: "ready", moderation: screening?.decision };
 }
 
 /**
