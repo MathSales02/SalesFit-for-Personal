@@ -113,7 +113,32 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 **Em andamento (fora destas sessões):** um redesenho visual com tema escuro e laranja e um navbar "liquid glass", em `globals.css`, `page.tsx`, `app-shell.tsx`, `nav-link.tsx`, `button-styles.ts` e `liquid-glass-navbar*.tsx`. Ainda não está no Git. Antes de commitar, resolver:
 - o contraste do logo laranja, que o teste de acessibilidade aponta;
-- 3 erros de lint (um import não usado em `page.tsx`; refs e uma função impura durante o render em `liquid-glass-navbar.tsx`).
+- 3 erros de lint (um import não usado em `page.tsx`; refs e uma função impura durante o render em `liquid-glass-navbar.tsx`);
+- a página inicial nova carrega uma imagem de um site externo (CloudFront), que a CSP bloqueia; mover a imagem para `public/`;
+- a página inicial mostra números inventados ("+15.000 treinos", "94% de frequência", "+40 consultorias"). Trocar por benefícios ou tirar até haver dados reais (risco de propaganda enganosa).
+
+**Conversa de 06/11/2026: como lançar gastando pouco e com segurança.** Recomendação dada (ainda sem decisão do usuário):
+- **Stack, tudo em São Paulo,** por volta de US$ 15–40/mês no começo:
+  - App: Fly.io, 1 máquina de 1 GB.
+  - Banco: Neon ou Supabase, no plano pago com backup e recuperação para qualquer momento. É o único gasto que não deve ser cortado.
+  - Redis: Upstash.
+  - Arquivos: AWS S3.
+  - E-mail: SES ou Resend.
+  - Pagamentos: Asaas.
+  - Domínio: Registro.br.
+- **O que evitar:** VPS própria e o plano grátis da Oracle (backup e atualizações ficam por nossa conta, arriscado com dados de saúde) e a Vercel (filtro de imagens pesado, chat ao vivo e rotina diária pedem um servidor sempre ligado).
+- **Segurança que não custa nada:**
+  - verificação em duas etapas em todas as contas de provedores;
+  - chaves novas de produção;
+  - alerta de gastos;
+  - testar a restauração do backup antes de abrir.
+- **Plano de lançamento:**
+  1. Beta fechado com 3–5 personal trainers por 4–6 semanas.
+  2. Revisão jurídica dos termos e da política de privacidade durante o beta.
+  3. Lançamento pago, subindo para 2 máquinas.
+- **Próximo passo combinado:** o usuário volta ao computador, decide sobre o redesenho e a hospedagem. Ofereci preparar Dockerfile e configuração do Fly.io, mais o passo a passo de criação das contas.
+
+O usuário viu o app pelo celular através de capturas enviadas no Remote Control. Para navegar de verdade pelo celular, as opções são a mesma rede Wi-Fi (firewall + `allowedDevOrigins` no Next) ou um Cloudflare Tunnel temporário; ainda não foram feitas.
 
 **Para lançar:** seguir o checklist de `docs/DEPLOY.md`.
 
