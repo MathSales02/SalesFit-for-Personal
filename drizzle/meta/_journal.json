@@ -57,6 +57,34 @@
       "when": 1793939053759,
       "tag": "0007_programs_security",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793940178276,
+      "tag": "0008_workouts",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793940180182,
+      "tag": "0009_workouts_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793940240620,
+      "tag": "0010_workouts_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793940427032,
+      "tag": "0011_workouts_guard_fix",
+      "breakpoints": true
     }
   ]
 }

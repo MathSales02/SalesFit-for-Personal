@@ -27,6 +27,7 @@ export const RATE_LIMITS = {
   otp_verify_user: { limit: 5, windowSec: 15 * 60, failClosed: true },
   // Authenticated activity (per user unless noted)
   user_default: { limit: 120, windowSec: 60 },
+  workout_log_user: { limit: 240, windowSec: 60 },
   workspace_default: { limit: 2000, windowSec: 60 },
   account_change_user: { limit: 10, windowSec: 60 * 60 },
   invite_create_user: { limit: 30, windowSec: 60 * 60, failClosed: true },

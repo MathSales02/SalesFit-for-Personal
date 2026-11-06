@@ -142,7 +142,12 @@ Diretrizes já definidas pelo master prompt e pela arquitetura:
 - Custos por chamada: gerar em lote (por exemplo, semanal) e sob demanda com limite de uso, cacheando o resultado.
 - Cada análise gerada fica registrada (quando, de qual período, por qual versão do modelo), com trilha de auditoria.
 
-Decisões em aberto sobre a IA: ver a seção 8.
+Decisões tomadas pelo usuário (06/11/2026):
+- **Provedor:** Claude (Anthropic), via API, com chave no `.env` (nunca no código).
+- **Dados enviados:** só dados de treino (frequência, séries, cargas, recordes, observações de treino). **Dados de saúde não entram.**
+- **Quem vê:** só o personal. A IA é assistente do treinador, que decide o que repassar ao aluno.
+
+Ordem de construção: 3A (execução do treino, séries, cronômetro, recordes, histórico), depois 3B (IA de evolução), depois 3C (medidas e fotos de progresso).
 
 ## 8. Decisões de negócio em aberto
 
@@ -150,10 +155,5 @@ Decisões em aberto sobre a IA: ver a seção 8.
 - Provedor de pagamento (Stripe, Mercado Pago, Asaas…).
 - Alunos podem trocar mensagens entre si por padrão?
 - Região de hospedagem (no Brasil simplifica a LGPD).
-- **IA:**
-  - Qual provedor e modelo.
-  - Quem paga o custo (incluso no plano ou recurso premium).
-  - O aluno também vê as análises?
-  - Os dados de saúde entram na análise?
-  - Texto de consentimento para o uso de IA.
+- **IA:** quem paga o custo (incluso no plano ou recurso premium) e o texto de aviso/consentimento sobre o uso de IA. Provedor, dados enviados e quem vê já foram decididos (seção 7).
 - Os textos de Termos e Privacidade são rascunhos e precisam de revisão jurídica antes do lançamento.

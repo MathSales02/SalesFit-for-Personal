@@ -63,7 +63,7 @@ export type ProgramContent = {
 };
 
 /** Loads a version's days and exercises in two queries (no N+1). */
-async function loadContent(tx: Tx, versionId: string): Promise<ProgramContent> {
+export async function loadContent(tx: Tx, versionId: string): Promise<ProgramContent> {
   const days = await tx.select().from(programDays).where(eq(programDays.versionId, versionId)).orderBy(asc(programDays.position));
   if (days.length === 0) return { days: [] };
   const variation = sql<string | null>`(select e2.name from exercises e2 where e2.id = ${programExercises.variationExerciseId})`;
