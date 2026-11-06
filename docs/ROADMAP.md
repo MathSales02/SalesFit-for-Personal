@@ -170,6 +170,9 @@ Done (7C):
   - Polling stays as a fallback: every 4 s while the channel is down, every 30 s as a safety net.
   - Streams re-authorize every 5 minutes, and connections are rate limited.
 - 1 new unit test and 1 E2E test (197 unit tests in total).
+- Deployment guide: [DEPLOY.md](DEPLOY.md).
+
+**Phase 7 is complete.** Still open before launch: legal review of the terms and privacy policy, final prices, hosting region, and the production checklist in DEPLOY.md.
 
 ## Open business questions
 

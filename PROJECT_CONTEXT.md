@@ -109,11 +109,13 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 **Fase 7B concluída:** limpeza diária de dados antigos (`npm run jobs:retention`, para agendar 1x por dia em produção).
 
-**Próximo na Fase 7:**
-- Testes E2E no CI.
-- WebSockets para mensagens.
-- Revisão de acessibilidade e desempenho.
-- Guia de deploy (inclui o checklist do Asaas).
+**Fase 7 concluída. As 7 fases do plano estão prontas.** A 7C trouxe testes de navegador com acessibilidade rodando no GitHub, mensagens em tempo real (SSE + Redis) e o guia de deploy (`docs/DEPLOY.md`).
+
+**Em andamento (fora destas sessões):** um redesenho visual com tema escuro e laranja e um navbar "liquid glass", em `globals.css`, `page.tsx`, `app-shell.tsx`, `nav-link.tsx`, `button-styles.ts` e `liquid-glass-navbar*.tsx`. Ainda não está no Git. Antes de commitar, resolver:
+- o contraste do logo laranja, que o teste de acessibilidade aponta;
+- 3 erros de lint (um import não usado em `page.tsx`; refs e uma função impura durante o render em `liquid-glass-navbar.tsx`).
+
+**Para lançar:** seguir o checklist de `docs/DEPLOY.md`.
 
 Pendentes de negócio: preços finais, região de hospedagem e revisão jurídica dos termos e da política de privacidade.
 
@@ -158,7 +160,8 @@ Princípios que valem para todo código novo:
 - **Privacidade (6B):** baixar meus dados, excluir conta, acesso emergencial de suporte auditado e visível ao treinador.
 - **Verificação em duas etapas (7A):** em Conta; obrigatória para administradores.
 - **Retenção (7B):** job diário que apaga sessões, tokens, tentativas de login, notificações e uploads abandonados antigos.
-- **Qualidade:** 196 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Tempo real e E2E (7C):** chat ao vivo; testes de navegador com acessibilidade no CI; guia de deploy.
+- **Qualidade:** 197 testes automáticos + 6 testes de navegador, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

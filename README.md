@@ -5,6 +5,7 @@ Platform for personal trainers and their students: training, progress, community
 - Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Security controls: [docs/SECURITY.md](docs/SECURITY.md)
 - Roadmap and phase status: [docs/ROADMAP.md](docs/ROADMAP.md)
+- Deploy guide: [docs/DEPLOY.md](docs/DEPLOY.md)
 
 ## Run locally
 
