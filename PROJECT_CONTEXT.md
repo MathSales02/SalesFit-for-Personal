@@ -74,11 +74,19 @@ fcfed76 Add PROJECT_CONTEXT.md
 a0e4749 Phase 3A UI: workout player, rest timer, summary, history, trainer view
 f42e903 Phase 3C: body measurements and private progress photos
 9ee5fdc Phase 4A backend: community feed, likes, comments, follows, blocks, reports, NSFW screening
+e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stopped
+01bf3cc Phase 4A UI: community feed, posts, comments, profiles, moderation
+77d7088 Phase 4B backend: direct messages and notifications
+92bf6a3 Phase 4B UI: messages, notifications, badges and trainer mobile menu
+45663b4 Phase 5A backend: check-ins, points ledger, rankings and competitions
+(este) Phase 5A UI: check-in card, rankings and competitions
 ```
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Fase 4 concluída e no GitHub** (comunidade, mensagens diretas e notificações; 156 testes). **Próximo: Fase 5, gamificação**: regras de pontos configuráveis pelo treinador, livro-razão de pontos imutável com idempotência, sequências (streaks), conquistas, desafios com ranking calculado no servidor, recompensas e resgates atômicos. Premiar constância, nunca volume excessivo.
+**Fase 5A concluída e no GitHub** (check-in, pontos de constância, ranking e competições; 167 testes). Decisões do usuário: check-in automático ao concluir treino + manual 1x/dia (vale menos; o treinador pode desligar); ranking por pontos de constância (check-ins, treinos, bônus de meta semanal); o aluno pode sair do ranking; prêmio é opcional em cada competição ("premiações futuras, não sempre").
+
+**Próximo:** Fase 5B (conquistas, catálogo de recompensas e resgates) só se o usuário quiser; senão Fase 6 (administração, planos e cobrança). A IA de evolução (3B) continua adiada por custo.
 
 ## 4. Stack e decisões principais
 
@@ -113,7 +121,8 @@ Princípios que valem para todo código novo:
 - **Progresso (3C):** medidas corporais com gráfico e tabela (o treinador vê e registra avaliações só com consentimento de saúde); fotos privadas por padrão, compartilhadas uma a uma, com comparação antes/depois; o servidor reprocessa cada foto e remove localização GPS e metadados.
 - **Comunidade (4A):** feed da consultoria (todos/seguindo), avisos fixados do treinador, posts com texto, foto ou treino compartilhado, curtidas, comentários com respostas, perfis, seguir, bloquear, denunciar; fila de moderação do treinador; aprovação prévia opcional; filtro NSFW no servidor.
 - **Mensagens e notificações (4B):** conversas aluno ↔ treinador e aluno ↔ aluno (o treinador pode desligar), fotos com filtro, apagar, denunciar; notificações com preferências; selos de não lidas no menu.
-- **Qualidade:** 156 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Ranking (5A):** cartão no início do aluno (pontos da semana, posição, meta semanal, sequência, check-in manual); página de ranking (semana/mês/geral, sair do ranking) e competições com prêmio opcional; painel do treinador com regras de pontuação, ajuste manual com motivo e gestão de competições.
+- **Qualidade:** 167 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

@@ -80,3 +80,10 @@ export const IconMenu = () => (
     <path d="M4 7h16M4 12h16M4 17h16" />
   </svg>
 );
+export const IconTrophy = () => (
+  <svg {...base}>
+    <path d="M8 4h8v5a4 4 0 0 1-8 0V4Z" />
+    <path d="M8 6H4.5c0 3 1.5 4.5 3.7 4.8M16 6h3.5c0 3-1.5 4.5-3.7 4.8" />
+    <path d="M12 13v4M8.5 20h7M10 17h4" />
+  </svg>
+);

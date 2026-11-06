@@ -15,6 +15,7 @@ import {
   IconMenu,
   IconMessage,
   IconShield,
+  IconTrophy,
   IconTrend,
   IconUser,
   IconUsers,
@@ -37,6 +38,7 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
         { href: "/treinador/treinos", label: "Treinos", icon: <IconClipboard /> },
         { href: "/treinador/exercicios", label: "Exercícios", icon: <IconDumbbell /> },
         { href: "/treinador/comunidade", label: "Comunidade", icon: <IconChat /> },
+        { href: "/treinador/ranking", label: "Ranking", icon: <IconTrophy /> },
         ...header,
         { href: "/conta", label: "Conta", icon: <IconUser /> },
       ],
@@ -48,6 +50,7 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
       main: [
         { href: "/aluno", label: "Início", icon: <IconActivity /> },
         { href: "/aluno/comunidade", label: "Comunidade", icon: <IconChat /> },
+        { href: "/aluno/ranking", label: "Ranking", icon: <IconTrophy /> },
         { href: "/aluno/historico", label: "Histórico", icon: <IconClipboard /> },
         { href: "/aluno/progresso", label: "Progresso", icon: <IconTrend /> },
         { href: "/conta", label: "Perfil", icon: <IconUser /> },

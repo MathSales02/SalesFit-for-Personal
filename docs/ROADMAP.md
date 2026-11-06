@@ -67,7 +67,15 @@ Done (4B):
 
 ## Phase 5 — Gamification
 
-Configurable point rules, append-only ledger with idempotency, streaks, achievements, challenges with server-computed leaderboards, rewards and atomic redemptions.
+Done (5A):
+- Check-ins: a completed workout checks in automatically; a manual check-in (activity outside the program) is allowed once per day, worth fewer points, and the trainer can turn it off. One check-in per local day (America/Sao_Paulo); a workout after a manual check-in upgrades it by the difference.
+- Constancy points in an append-only ledger with idempotency keys: workout, manual check-in, weekly-goal bonus (student's weekly frequency), trainer adjustments with a mandatory reason (audited). All computed on the server.
+- Rankings by week / month / all time, computed in SQL; students can hide themselves (only they and the trainer still see their position); the trainer can turn the ranking off.
+- Competitions with dates, rules and an optional prize; students join or leave while open; after the last day the trainer closes it and the official result is frozen; cancel.
+- Student home card (points, position, weekly goal, streak, check-in), ranking page, trainer panel (rules, adjustments, competitions).
+- 11 new tests (167 total).
+
+Next (5B, if wanted): achievements, reward catalog and atomic redemptions.
 
 ## Phase 6 — Administration and SaaS
 

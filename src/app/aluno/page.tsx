@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GamificationCard } from "@/components/gamification/home-card";
 import { ProgramView } from "@/components/program-view";
 import { buttonClass } from "@/components/ui/button-styles";
 import { requirePageActor } from "@/server/http/next";
@@ -42,6 +43,8 @@ export default async function StudentHomePage() {
           </div>
         </section>
       )}
+
+      <GamificationCard actor={actor} />
 
       {!program ? (
         <section className="mt-8 rounded-[var(--radius-panel)] bg-turf p-6 text-white">
