@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
 import { overrideSubscription, setUserStatus, setWorkspaceStatus, updatePlan } from "@/server/admin/service";
+import { closeSupportAccess, openSupportAccess } from "@/server/admin/support";
 import { reprocessBillingEvent } from "@/server/billing/provider";
 import { parseForm, runAction } from "@/server/http/action";
 import { requestMeta, requireActionActor } from "@/server/http/next";
@@ -97,5 +99,30 @@ export async function reprocessBillingEventAction(_prev: ActionResult, form: For
     await reprocessBillingEvent(actor, eventId, await requestMeta());
     revalidatePath("/admin/cobranca");
     return { ok: true, message: "Evento reprocessado. Confira a situação na lista." };
+  });
+}
+
+export async function openSupportAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("admin_support_open", async () => {
+    const actor = await requireActionActor("admin.support_access");
+    const input = parseForm(
+      z.strictObject({
+        workspaceId: z.uuid(),
+        reason: z.string().trim().min(20, "Explique o motivo com pelo menos 20 caracteres (inclua o número do chamado).").max(500, "Use no máximo 500 caracteres."),
+        minutes: z.enum(["15", "30", "60"]).transform((v) => Number(v) as 15 | 30 | 60),
+      }),
+      form,
+    );
+    await openSupportAccess(actor, input.workspaceId, { reason: input.reason, minutes: input.minutes }, await requestMeta());
+    redirect(`/admin/consultorias/${input.workspaceId}/suporte`);
+  });
+}
+
+export async function closeSupportAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("admin_support_close", async () => {
+    const actor = await requireActionActor("admin.support_access");
+    const { workspaceId } = parseForm(z.strictObject({ workspaceId: z.uuid() }), form);
+    await closeSupportAccess(actor, workspaceId, await requestMeta());
+    redirect(`/admin/consultorias/${workspaceId}`);
   });
 }

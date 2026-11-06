@@ -3,7 +3,7 @@
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import { changePasswordAction, revokeOtherSessionsAction, revokeSessionAction } from "./actions";
+import { changePasswordAction, deleteAccountAction, revokeOtherSessionsAction, revokeSessionAction } from "./actions";
 
 export function ChangePasswordForm() {
   return (
@@ -55,6 +55,24 @@ export function RevokeOthersButton() {
             Sair de todos os outros dispositivos
           </SubmitButton>
         </div>
+      )}
+    </ActionForm>
+  );
+}
+
+export function DeleteAccountForm() {
+  return (
+    <ActionForm action={deleteAccountAction}>
+      {(s) => (
+        <>
+          <Field label="Sua senha" name="password" type="password" autoComplete="current-password" errors={fieldErrors(s, "password")} />
+          <Field label='Digite "EXCLUIR" para confirmar' name="confirm" maxLength={10} errors={fieldErrors(s, "confirm")} />
+          <div>
+            <SubmitButton variant="danger" pendingLabel="Excluindo…">
+              Excluir minha conta para sempre
+            </SubmitButton>
+          </div>
+        </>
       )}
     </ActionForm>
   );

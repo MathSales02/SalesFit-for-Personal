@@ -5,6 +5,7 @@ import { Notice } from "@/components/ui/notice";
 import { PageHeading } from "@/components/ui/page-heading";
 import { requirePageActor } from "@/server/http/next";
 import { getTrainerOverview } from "@/server/workspace/overview";
+import { listSupportAccessForTrainer } from "@/server/admin/support";
 
 export const metadata: Metadata = { title: "Visão geral" };
 
@@ -16,13 +17,15 @@ const STATUS_LABEL: Record<string, string> = {
   expired: "Expirada",
 };
 
+const fmtDateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+
 function daysUntil(d: Date) {
   return Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86_400_000));
 }
 
 export default async function TrainerOverviewPage() {
   const actor = await requirePageActor("students.read");
-  const o = await getTrainerOverview(actor);
+  const [o, support] = await Promise.all([getTrainerOverview(actor), listSupportAccessForTrainer(actor)]);
   const firstName = actor.displayName.split(" ")[0];
   const used = o.students.active + o.students.invited;
   const max = o.plan?.maxStudents ?? 0;
@@ -41,6 +44,24 @@ export default async function TrainerOverviewPage() {
             </Link>
           </Notice>
         </div>
+      )}
+
+      {support.length > 0 && (
+        <section aria-labelledby="support-h" className="mb-8 rounded-[var(--radius-panel)] border border-line bg-paper p-4">
+          <h2 id="support-h" className="font-semibold">
+            Acessos de suporte nos últimos 90 dias
+          </h2>
+          <p className="mt-1 text-sm text-muted">A equipe do Cadência só acessa com motivo registrado, por tempo limitado e sem ver saúde, fotos ou mensagens.</p>
+          <ul className="mt-3 flex flex-col gap-2 text-sm">
+            {support.map((g) => (
+              <li key={g.id}>
+                <span className="font-semibold">{fmtDateTime.format(g.createdAt)}</span>
+                <span className="text-muted"> · {g.revokedAt ? "encerrado" : g.expiresAt > new Date() ? "aberto agora" : "expirado"}</span>
+                <span className="block break-words text-ink-soft">{g.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section aria-labelledby="students-h" className="grid gap-px overflow-hidden rounded-[var(--radius-panel)] border border-line bg-line sm:grid-cols-3">

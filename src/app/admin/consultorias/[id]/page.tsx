@@ -4,10 +4,11 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { PageHeading } from "@/components/ui/page-heading";
 import { getWorkspaceAdmin, listPlansAdmin } from "@/server/admin/service";
+import { activeSupportGrant } from "@/server/admin/support";
 import { can } from "@/server/authz/policy";
 import { requirePageActor } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
-import { SubscriptionOverrideForm, WorkspaceStatusForm } from "../../forms";
+import { CloseSupportForm, OpenSupportForm, SubscriptionOverrideForm, WorkspaceStatusForm } from "../../forms";
 import { ACCESS_CLASS, ACCESS_LABEL, fmtDate, fmtDateTime, WS_STATUS_LABEL } from "../../ui";
 
 export const metadata: Metadata = { title: "Consultoria" };
@@ -19,6 +20,9 @@ const ACTION_LABEL: Record<string, string> = {
   "admin.subscription_grant": "Plano liberado manualmente",
   "admin.subscription_change_plan": "Plano trocado",
   "admin.subscription_expire": "Assinatura encerrada",
+  "admin.support_access_opened": "Acesso de suporte aberto",
+  "admin.support_access_closed": "Acesso de suporte encerrado",
+  "admin.support_viewed": "Dados de suporte consultados",
 };
 
 const panel = "rounded-[var(--radius-panel)] border border-line bg-paper p-5";
@@ -33,6 +37,7 @@ export default async function WorkspaceAdminPage({ params }: { params: Promise<{
   });
   const plans = can(actor, "admin.billing.manage") ? (await listPlansAdmin(actor).catch(() => [])).filter((p) => p.code !== "trial") : [];
   const { workspace: w, subscription: s, access, students } = data;
+  const grant = can(actor, "admin.support_access") ? await activeSupportGrant(actor, w.id) : null;
 
   return (
     <>
@@ -83,6 +88,31 @@ export default async function WorkspaceAdminPage({ params }: { params: Promise<{
           <section aria-label="Ajustar assinatura" className={panel}>
             <h2 className="mb-4 font-display text-lg font-bold">Ajustar assinatura</h2>
             <SubscriptionOverrideForm workspaceId={w.id} plans={plans} trialing={s.status === "trialing"} />
+          </section>
+        )}
+
+        {can(actor, "admin.support_access") && (
+          <section aria-label="Acesso de suporte" className={panel}>
+            <h2 className="mb-1 font-display text-lg font-bold">Acesso de suporte (emergencial)</h2>
+            {grant ? (
+              <>
+                <p className="mb-4 text-sm text-muted">Aberto até {fmtDateTime.format(grant.expiresAt)}. Cada consulta fica registrada.</p>
+                <div className="flex flex-wrap items-start gap-3">
+                  <Link href={`/admin/consultorias/${w.id}/suporte`} className="inline-flex h-11 items-center rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-white">
+                    Ver dados de suporte
+                  </Link>
+                  <CloseSupportForm workspaceId={w.id} />
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-sm text-muted">
+                  Somente leitura e por tempo limitado: lista de alunos, programas e frequência. Nunca saúde, fotos, medidas, mensagens ou publicações. O dono da
+                  consultoria recebe um e-mail e vê o acesso na visão geral.
+                </p>
+                <OpenSupportForm workspaceId={w.id} />
+              </>
+            )}
           </section>
         )}
 

@@ -112,7 +112,24 @@ Done (6C), Asaas online payment:
 - 9 new tests with a fake Asaas (184 total).
 - Production checklist in [ASAAS_NOTES.md](ASAAS_NOTES.md).
 
-Next: 6B (LGPD export and account deletion, audited break-glass access).
+Done (6B):
+- **Data export (LGPD access and portability).** Every user can download a JSON file of their account, sessions, consents and, per workspace, the data they own:
+  - training, health, progress, community activity, messages they sent, notifications and points.
+  - Secrets and storage paths are excluded.
+- **Account deletion (LGPD erasure).**
+  - Requires the password and typing "EXCLUIR".
+  - The user row is deleted and everything the member owns cascades; files are removed from storage.
+  - History guards let cascaded deletes through (trigger depth), and the comment counter handles deletes.
+  - Audit entries keep only ids.
+  - Workspace owners and admins go through support.
+- **Break-glass support access.**
+  - An admin opens a 15, 30 or 60 minute read-only window on one workspace with a written reason (at least 20 characters). The database caps grants at 2 hours and makes them immutable except for revocation.
+  - The owner is emailed and sees every access on the overview.
+  - The data comes from a SQL function that re-checks the grant and returns only students' names, status, program and workout counts, plus program names. It never returns health, photos, measurements, messages or posts.
+  - Every view is audited.
+- 5 new tests (189 total).
+
+Phase 6 is complete.
 
 ## Phase 7 — Hardening
 

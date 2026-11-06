@@ -7,7 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { PageHeading } from "@/components/ui/page-heading";
 import { listActiveSessions } from "@/server/auth/service";
 import { requirePageActor } from "@/server/http/next";
-import { ChangePasswordForm, RevokeOthersButton, RevokeSessionButton } from "./forms";
+import { ChangePasswordForm, DeleteAccountForm, RevokeOthersButton, RevokeSessionButton } from "./forms";
 
 export const metadata: Metadata = { title: "Conta e segurança" };
 
@@ -72,7 +72,7 @@ export default async function AccountPage() {
         <ChangePasswordForm />
       </section>
 
-      <section aria-labelledby="sessions-h" className="py-10">
+      <section aria-labelledby="sessions-h" className="border-b border-line py-10">
         <h2 id="sessions-h" className="text-lg font-semibold">
           Sessões ativas
         </h2>
@@ -101,6 +101,34 @@ export default async function AccountPage() {
             Sair desta conta
           </button>
         </form>
+      </section>
+
+      <section aria-labelledby="privacy-h" className="py-10">
+        <h2 id="privacy-h" className="text-lg font-semibold">
+          Seus dados (LGPD)
+        </h2>
+        <p className="mt-1 max-w-xl text-sm text-muted">Baixe uma cópia de tudo o que o Cadência guarda sobre você, em um arquivo que outros sistemas conseguem ler.</p>
+        <a href="/conta/meus-dados" download className={`${buttonClass("secondary")} mt-5`}>
+          Baixar meus dados
+        </a>
+
+        <details className="mt-10 max-w-md rounded-[var(--radius-panel)] border border-danger/40 bg-paper p-5">
+          <summary className="cursor-pointer font-semibold text-danger">Excluir minha conta</summary>
+          {actor.membership?.role === "trainer" || actor.isPlatformAdmin ? (
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              Como dono de uma consultoria, a exclusão precisa ser combinada: a consultoria é encerrada e seus alunos são avisados antes. Fale com o suporte pelo
+              e-mail de contato da página de privacidade.
+            </p>
+          ) : (
+            <div className="mt-4 flex flex-col gap-4">
+              <p className="text-sm leading-relaxed text-muted">
+                Apaga para sempre sua conta, treinos, histórico, saúde, medidas, fotos, publicações, comentários, mensagens e pontos. Não dá para desfazer. Se quiser
+                guardar algo, baixe seus dados antes.
+              </p>
+              <DeleteAccountForm />
+            </div>
+          )}
+        </details>
       </section>
     </AppShell>
   );

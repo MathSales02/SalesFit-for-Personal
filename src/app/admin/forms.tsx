@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
-import { Field, SelectField } from "@/components/ui/field";
-import { planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
+import { Field, SelectField, TextAreaField } from "@/components/ui/field";
+import { closeSupportAction, openSupportAction, planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
 
 const reasonHint = "Fica registrado na auditoria.";
 
@@ -132,6 +132,50 @@ export function ReprocessButton({ eventId }: { eventId: string }) {
           <input type="hidden" name="eventId" value={eventId} />
           <SubmitButton variant="secondary" pendingLabel="…">
             Reprocessar
+          </SubmitButton>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function OpenSupportForm({ workspaceId }: { workspaceId: string }) {
+  return (
+    <ActionForm action={openSupportAction}>
+      {(s) => (
+        <>
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <TextAreaField label="Motivo e número do chamado" name="reason" maxLength={500} rows={3} errors={fieldErrors(s, "reason")} />
+          <SelectField
+            label="Duração"
+            name="minutes"
+            defaultValue="15"
+            options={[
+              { value: "15", label: "15 minutos" },
+              { value: "30", label: "30 minutos" },
+              { value: "60", label: "1 hora" },
+            ]}
+            errors={fieldErrors(s, "minutes")}
+          />
+          <div>
+            <SubmitButton variant="danger" pendingLabel="Abrindo…">
+              Abrir acesso de suporte
+            </SubmitButton>
+          </div>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function CloseSupportForm({ workspaceId }: { workspaceId: string }) {
+  return (
+    <ActionForm action={closeSupportAction} className="flex flex-col gap-2">
+      {() => (
+        <>
+          <input type="hidden" name="workspaceId" value={workspaceId} />
+          <SubmitButton variant="secondary" pendingLabel="Encerrando…">
+            Encerrar acesso agora
           </SubmitButton>
         </>
       )}

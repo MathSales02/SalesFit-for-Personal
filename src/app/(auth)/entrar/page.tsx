@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: "Entrar" };
 const NOTICES: Record<string, string> = {
   "email-confirmado": "E-mail confirmado. Agora é só entrar.",
   "senha-redefinida": "Senha redefinida. Entre com a nova senha.",
+  "conta-excluida": "Sua conta e seus dados foram excluídos.",
 };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ aviso?: string }> }) {

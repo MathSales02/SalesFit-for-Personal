@@ -63,3 +63,14 @@ export function passwordChangedEmail(to: string): Mail {
   ];
   return { to, subject: "Sua senha foi alterada", text: textLayout(p), html: layout("Senha alterada", p) };
 }
+
+export function supportAccessEmail(to: string, workspaceName: string, reason: string, minutes: number): Mail {
+  const url = `${env().APP_URL}/treinador`;
+  const p = [
+    `A equipe do Cadência abriu um acesso de suporte temporário à consultoria ${workspaceName}, válido por ${minutes} minutos.`,
+    `Motivo informado: ${reason}`,
+    "O acesso é somente leitura e não inclui dados de saúde, fotos, mensagens nem publicações. Tudo fica registrado e aparece na sua visão geral.",
+    "Se você não reconhece este pedido, responda a este e-mail.",
+  ];
+  return { to, subject: "Acesso de suporte à sua consultoria", text: textLayout(p, url), html: layout("Acesso de suporte aberto", p, { label: "Ver na visão geral", url }) };
+}

@@ -100,7 +100,20 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - A troca de plano vale na renovação; o cancelamento mantém o período já pago.
 - Foi testado de ponta a ponta no sandbox. Chave do sandbox no `.env` (fora do Git). Antes de lançar, seguir o checklist de produção em `docs/ASAAS_NOTES.md`.
 
-**Próximo: 6B**: LGPD (exportar e excluir os próprios dados) e acesso emergencial auditado.
+**Fase 6B concluída: a Fase 6 está completa** (189 testes):
+- Exportar os próprios dados (LGPD).
+- Excluir a conta (aluno; o dono de uma consultoria passa pelo suporte).
+- Acesso emergencial de suporte, com motivo, prazo curto e aviso por e-mail ao treinador. O treinador vê o registro na visão geral. O acesso nunca inclui saúde, fotos, medidas, mensagens nem publicações.
+
+**Próximo: Fase 7 (endurecimento).**
+- MFA.
+- Testes E2E no CI.
+- WebSockets para mensagens.
+- Revisão de acessibilidade e desempenho.
+- Rotinas de retenção de dados.
+- Guia de deploy (inclui o checklist do Asaas).
+
+Pendentes de negócio: preços finais, região de hospedagem e revisão jurídica dos termos e da política de privacidade.
 
 Para testar localmente, existe uma conta admin só no banco de desenvolvimento: `admin-smoke@example.com`. Crie a sua com `npm run admin:create`.
 
@@ -140,7 +153,8 @@ Princípios que valem para todo código novo:
 - **Ranking (5A):** cartão no início do aluno (pontos da semana, posição, meta semanal, sequência, check-in manual); página de ranking (semana/mês/geral, sair do ranking) e competições com prêmio opcional; painel do treinador com regras de pontuação, ajuste manual com motivo e gestão de competições.
 - **Administração e assinatura (6A):** painel admin (consultorias, usuários, planos, segurança, auditoria) e página de assinatura do treinador; acesso pausado automaticamente quando o teste/assinatura vence.
 - **Pagamento (6C):** assinatura mensal pelo Asaas (Pix, boleto, cartão), cobranças listadas, troca de plano e cancelamento; eventos de cobrança no admin.
-- **Qualidade:** 184 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Privacidade (6B):** baixar meus dados, excluir conta, acesso emergencial de suporte auditado e visível ao treinador.
+- **Qualidade:** 189 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

@@ -40,3 +40,22 @@ export const securityEvents = pgTable(
   },
   (t) => [index("security_events_time_idx").on(t.createdAt), index("security_events_type_time_idx").on(t.type, t.createdAt)],
 );
+
+/**
+ * Break-glass: a platform admin's time-limited, read-only support access to
+ * one workspace, with a mandatory reason. The workspace owner is notified and
+ * can see every grant. Health data, photos and messages stay out of reach.
+ */
+export const supportAccessGrants = pgTable(
+  "support_access_grants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull(),
+    adminUserId: uuid("admin_user_id").notNull(),
+    reason: text("reason").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (t) => [index("support_grants_ws_idx").on(t.workspaceId, t.createdAt), index("support_grants_admin_idx").on(t.adminUserId, t.expiresAt)],
+);
