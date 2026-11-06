@@ -18,9 +18,24 @@ const schema = z
     S3_SECRET_KEY: z.string().min(16),
     /** Optional JSON object overriding entries of RATE_LIMITS, e.g. {"login_ip":{"limit":50,"windowSec":600}} */
     RATE_LIMIT_OVERRIDES: z.string().optional(),
+    /** Asaas payment provider. Without a key, online payment is off and admins manage subscriptions by hand. */
+    ASAAS_API_URL: z.url().default("https://api-sandbox.asaas.com/v3"),
+    // Asaas keys start with "$"; .env files escape it as "\$" so Next.js does not expand it as a variable.
+    ASAAS_API_KEY: z
+      .string()
+      .min(20)
+      .transform((v) => (v.startsWith("\\$") ? v.slice(1) : v))
+      .optional(),
+    ASAAS_WEBHOOK_TOKEN: z.string().min(32).optional(),
   })
   .superRefine((env, ctx) => {
+    if (env.ASAAS_API_KEY && !env.ASAAS_WEBHOOK_TOKEN) {
+      ctx.addIssue({ code: "custom", path: ["ASAAS_WEBHOOK_TOKEN"], message: "required when ASAAS_API_KEY is set" });
+    }
     if (env.NODE_ENV !== "production") return;
+    if (env.ASAAS_API_KEY?.startsWith("$aact_hmlg") && !env.ASAAS_API_URL.includes("sandbox")) {
+      ctx.addIssue({ code: "custom", path: ["ASAAS_API_URL"], message: "sandbox key used with a production URL" });
+    }
     if (!env.REDIS_URL) {
       ctx.addIssue({ code: "custom", path: ["REDIS_URL"], message: "Redis is required in production for distributed rate limiting" });
     }

@@ -72,6 +72,7 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
       { href: "/admin/consultorias", label: "Consultorias", icon: <IconBuilding /> },
       { href: "/admin/usuarios", label: "Usuários", icon: <IconUsers /> },
       { href: "/admin/planos", label: "Planos", icon: <IconCard /> },
+      { href: "/admin/cobranca", label: "Cobrança", icon: <IconActivity /> },
       { href: "/admin/seguranca", label: "Segurança", icon: <IconAlert /> },
       { href: "/admin/auditoria", label: "Auditoria", icon: <IconClipboard /> },
       { href: "/conta", label: "Conta", icon: <IconUser /> },

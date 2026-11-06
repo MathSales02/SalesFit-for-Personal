@@ -94,9 +94,13 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - Acesso pausado quando o teste ou a assinatura vencem, com 7 dias de tolerância após um pagamento não identificado.
 - Página "Assinatura" do treinador.
 
-**Próximo:**
-- **6B:** LGPD (exportar e excluir os próprios dados) e acesso emergencial auditado.
-- **6C:** checkout e webhooks do Asaas. Detalhes da API em `docs/ASAAS_NOTES.md`.
+**Fase 6C concluída** (184 testes): pagamento online pelo Asaas.
+- O treinador escolhe o plano e paga por Pix, boleto ou cartão.
+- O acesso é liberado pelo webhook do pagamento.
+- A troca de plano vale na renovação; o cancelamento mantém o período já pago.
+- Foi testado de ponta a ponta no sandbox. Chave do sandbox no `.env` (fora do Git). Antes de lançar, seguir o checklist de produção em `docs/ASAAS_NOTES.md`.
+
+**Próximo: 6B**: LGPD (exportar e excluir os próprios dados) e acesso emergencial auditado.
 
 Para testar localmente, existe uma conta admin só no banco de desenvolvimento: `admin-smoke@example.com`. Crie a sua com `npm run admin:create`.
 
@@ -135,7 +139,8 @@ Princípios que valem para todo código novo:
 - **Mensagens e notificações (4B):** conversas aluno ↔ treinador e aluno ↔ aluno (o treinador pode desligar), fotos com filtro, apagar, denunciar; notificações com preferências; selos de não lidas no menu.
 - **Ranking (5A):** cartão no início do aluno (pontos da semana, posição, meta semanal, sequência, check-in manual); página de ranking (semana/mês/geral, sair do ranking) e competições com prêmio opcional; painel do treinador com regras de pontuação, ajuste manual com motivo e gestão de competições.
 - **Administração e assinatura (6A):** painel admin (consultorias, usuários, planos, segurança, auditoria) e página de assinatura do treinador; acesso pausado automaticamente quando o teste/assinatura vence.
-- **Qualidade:** 175 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Pagamento (6C):** assinatura mensal pelo Asaas (Pix, boleto, cartão), cobranças listadas, troca de plano e cancelamento; eventos de cobrança no admin.
+- **Qualidade:** 184 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

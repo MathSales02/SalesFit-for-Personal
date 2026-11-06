@@ -98,7 +98,21 @@ Done (6A):
   - Admins still cannot read student, health, training, community or message data (RLS).
 - 8 new tests (175 total).
 
-Next: 6B (LGPD export and account deletion, audited break-glass access), 6C (Asaas checkout and verified webhooks; notes in [ASAAS_NOTES.md](ASAAS_NOTES.md)).
+Done (6C), Asaas online payment:
+- The trainer picks a plan and gives the CPF/CNPJ once (validated, not stored by us), then pays the Asaas invoice by Pix, boleto or card.
+- Plan changes apply at renewal; cancel keeps the paid period.
+- Webhook:
+  - Authenticated by a constant-time token check and rate limited.
+  - Each event is stored once before processing, so redeliveries do nothing.
+  - Failures are kept for an admin to reprocess.
+  - Unknown fields and events are tolerated.
+- If saving a checkout fails, the subscription created at Asaas is undone.
+- Admin page for billing events.
+- Verified end to end against the Asaas sandbox.
+- 9 new tests with a fake Asaas (184 total).
+- Production checklist in [ASAAS_NOTES.md](ASAAS_NOTES.md).
+
+Next: 6B (LGPD export and account deletion, audited break-glass access).
 
 ## Phase 7 — Hardening
 

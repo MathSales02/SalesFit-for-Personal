@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, SelectField } from "@/components/ui/field";
-import { planUpdateAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
+import { planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
 
 const reasonHint = "Fica registrado na auditoria.";
 
@@ -118,6 +118,21 @@ export function PlanForm({ plan }: { plan: { id: string; code: string; name: str
           <div>
             <SubmitButton pendingLabel="Salvando…">Salvar plano</SubmitButton>
           </div>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function ReprocessButton({ eventId }: { eventId: string }) {
+  return (
+    <ActionForm action={reprocessBillingEventAction} className="flex flex-col gap-1">
+      {() => (
+        <>
+          <input type="hidden" name="eventId" value={eventId} />
+          <SubmitButton variant="secondary" pendingLabel="…">
+            Reprocessar
+          </SubmitButton>
         </>
       )}
     </ActionForm>

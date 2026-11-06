@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
 import { overrideSubscription, setUserStatus, setWorkspaceStatus, updatePlan } from "@/server/admin/service";
+import { reprocessBillingEvent } from "@/server/billing/provider";
 import { parseForm, runAction } from "@/server/http/action";
 import { requestMeta, requireActionActor } from "@/server/http/next";
 
@@ -86,5 +87,15 @@ export async function planUpdateAction(_prev: ActionResult, form: FormData): Pro
     );
     revalidatePath("/admin/planos");
     return { ok: true, message: "Plano salvo. Novos valores valem para novas assinaturas e renovações." };
+  });
+}
+
+export async function reprocessBillingEventAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("admin_billing_reprocess", async () => {
+    const actor = await requireActionActor("admin.billing.manage");
+    const { eventId } = parseForm(z.strictObject({ eventId: z.uuid() }), form);
+    await reprocessBillingEvent(actor, eventId, await requestMeta());
+    revalidatePath("/admin/cobranca");
+    return { ok: true, message: "Evento reprocessado. Confira a situação na lista." };
   });
 }

@@ -41,6 +41,8 @@ export const RATE_LIMITS = {
   search_user: { limit: 60, windowSec: 60 },
   reward_redeem_user: { limit: 5, windowSec: 60 * 60, failClosed: true },
   challenge_join_user: { limit: 20, windowSec: 60 * 60 },
+  checkout_user: { limit: 10, windowSec: 60 * 60, failClosed: true },
+  billing_webhook_ip: { limit: 300, windowSec: 60 },
 } as const satisfies Record<string, Rule>;
 
 export type RateLimitRule = keyof typeof RATE_LIMITS;

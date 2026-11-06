@@ -38,6 +38,10 @@ export default defineConfig({
       S3_BUCKET: process.env.TEST_S3_BUCKET ?? "cadencia-media-test",
       S3_ACCESS_KEY: process.env.S3_ACCESS_KEY ?? "ci-access-key",
       S3_SECRET_KEY: process.env.S3_SECRET_KEY ?? "ci-secret-key-0000",
+      // Tests never call the real payment provider: they swap in a fake transport.
+      ASAAS_API_URL: "https://asaas.test/v3",
+      ASAAS_API_KEY: "test-asaas-key-not-real-0000",
+      ASAAS_WEBHOOK_TOKEN: "test-webhook-token-test-webhook-token-0000",
     },
   },
 });

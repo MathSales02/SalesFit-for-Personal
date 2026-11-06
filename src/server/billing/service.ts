@@ -18,6 +18,8 @@ export async function getBillingOverview(actor: Actor) {
         trialEndsAt: subscriptions.trialEndsAt,
         currentPeriodEnd: subscriptions.currentPeriodEnd,
         provider: subscriptions.provider,
+        providerSubscriptionId: subscriptions.providerSubscriptionId,
+        pendingPlanId: subscriptions.pendingPlanId,
         planId: plans.id,
         planCode: plans.code,
         planName: plans.name,
