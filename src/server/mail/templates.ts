@@ -47,6 +47,15 @@ export function passwordResetEmail(to: string, token: string): Mail {
   return { to, subject: "Redefinição de senha", text: textLayout(p, url), html: layout("Redefinir senha", p, { label: "Criar nova senha", url }) };
 }
 
+export function invitationEmail(to: string, trainerName: string, workspaceName: string, token: string): Mail {
+  const url = `${env().APP_URL}/convite?token=${token}`;
+  const p = [
+    `${trainerName} convidou você para treinar com ${workspaceName} na Cadência.`,
+    "Lá você encontra seus treinos, registra sua evolução e participa da comunidade da consultoria. O convite vale por 7 dias.",
+  ];
+  return { to, subject: `Convite de ${workspaceName}`, text: textLayout(p, url), html: layout("Você foi convidado", p, { label: "Aceitar convite", url }) };
+}
+
 export function passwordChangedEmail(to: string): Mail {
   const p = [
     "A senha da sua conta foi alterada e as outras sessões foram encerradas.",

@@ -25,6 +25,9 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 | CSP with per-request nonce, HSTS (prod), nosniff, frame-ancestors none, no-referrer, COOP/CORP, Permissions-Policy | `proxy.ts`, `next.config.ts` | Header check on running app |
 | IPs and unknown emails stored only as keyed HMAC | `lib/crypto.ts` | `tests/security-units.test.ts` |
 | Consent records (versioned, append-only) | `consents` table | Signup flow |
+| Health data: RLS lets the trainer read only while consent is active; no admin clause; reads audited; student can erase | `drizzle/0003_students_security.sql`, `server/students/students.ts` | `tests/students.test.ts` |
+| Invitations: hashed single-use tokens, 7-day expiry, email must match for existing accounts, seat limit race-safe | `server/students/invitations.ts` | `tests/students.test.ts` (incl. concurrent last-seat race) |
+| Cross-tenant integrity: composite foreign keys (member_id, workspace_id) | `0003_students_security.sql` | `tests/students.test.ts` |
 | Secrets only via environment; validated at startup | `server/env.ts`, `.env.example` | — |
 | Local services bound to 127.0.0.1; Redis password; least-privilege DB roles | `docker-compose.yml`, `docker/postgres/init.sh` | — |
 | CI: lint, typecheck, tests, production dependency audit | `.github/workflows/ci.yml` | — |
@@ -44,4 +47,4 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 
 ## LGPD notes
 
-Health data (restrictions, injuries, measurements, progress photos) is sensitive personal data (art. 11). Planned handling: separate tables, explicit `health_data_processing` consent per student, no admin RLS clause, never shown in social features. Legal texts in `/termos` and `/privacidade` are drafts and must be reviewed by a qualified professional before commercial launch.
+Health data (restrictions, injuries, measurements, progress photos) is sensitive personal data (art. 11). Implemented: separate table, explicit `health_data_processing` consent (latest decision wins, enforced in RLS), no admin RLS clause, trainer reads audited, self-service deletion. Must never be shown in social features (Phase 4). Consent is currently per user, not per workspace; revisit if students may belong to several trainers. Legal texts in `/termos` and `/privacidade` are drafts and must be reviewed by a qualified professional before commercial launch.

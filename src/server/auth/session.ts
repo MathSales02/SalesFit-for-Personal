@@ -114,3 +114,8 @@ export async function revokeUserSessions(exec: Executor, userId: string, reason:
       ),
     );
 }
+
+/** Points a session at another workspace (after accepting an invitation). Membership is re-checked on every request. */
+export async function setActiveWorkspace(exec: Executor, sessionId: string, workspaceId: string) {
+  await exec.update(sessions).set({ activeWorkspaceId: workspaceId }).where(eq(sessions.id, sessionId));
+}

@@ -7,7 +7,7 @@ import { changePasswordAction, revokeOtherSessionsAction, revokeSessionAction } 
 
 export function ChangePasswordForm() {
   return (
-    <ActionForm action={changePasswordAction} className="flex max-w-md flex-col gap-5">
+    <ActionForm action={changePasswordAction} className="flex max-w-md flex-col gap-5" resetOnSuccess>
       {(s) => (
         <>
           <Field label="Senha atual" name="currentPassword" type="password" autoComplete="current-password" errors={fieldErrors(s, "currentPassword")} />

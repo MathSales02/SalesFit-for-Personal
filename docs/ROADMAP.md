@@ -10,14 +10,20 @@
 - Design system: tokens, type (Barlow / Barlow Condensed), buttons, fields, notices, headings
 - 59 automated tests (auth, sessions, tenant isolation, validation, rate limits)
 
-## Phase 2 — Trainer management (next)
+## Phase 2 — Trainer management (in progress)
 
-1. Student invitations (email link, plan seat limit enforced server-side, invited → active)
-2. Student list and profile (goals, level, frequency, notes), suspend/archive
-3. Health records with explicit consent (separate table, stricter RLS)
-4. Exercise library (platform defaults + trainer's own)
-5. Media pipeline: S3-compatible private storage (MinIO locally), upload validation, signed URLs
-6. Program builder: days, exercises, sets/reps/load/rest/tempo, drag and drop, duplicate, templates, versioning, assignment
+Done (2A):
+- Student invitations by email (7-day single-use link, re-invite replaces the link, plan seat limit with a per-workspace lock)
+- Invitation acceptance for new accounts and for existing accounts (must own the invited email)
+- Student list (status tabs, pagination) and student file (goal, level, frequency, private trainer notes)
+- Suspend / reactivate / archive (archive frees the seat; suspension cuts access immediately)
+- Health records with explicit, revocable consent; student can view, edit and delete their own; trainer reads are audited
+- 18 new tests (77 total)
+
+Next (2B):
+1. Exercise library (platform defaults + trainer's own)
+2. Media pipeline: S3-compatible private storage (MinIO locally), upload validation, signed URLs
+3. Program builder: days, exercises, sets/reps/load/rest/tempo, drag and drop, duplicate, templates, versioning, assignment
 
 ## Phase 3 — Student experience
 

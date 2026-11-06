@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { buttonClass } from "@/components/ui/button-styles";
 import { Notice } from "@/components/ui/notice";
 import { PageHeading } from "@/components/ui/page-heading";
 import { requirePageActor } from "@/server/http/next";
@@ -72,12 +74,18 @@ export default async function TrainerOverviewPage() {
           {o.students.active === 0 ? (
             <div className="mt-4 rounded-[var(--radius-panel)] border border-dashed border-line-strong px-6 py-10">
               <p className="font-semibold">Nenhum aluno ainda</p>
-              <p className="mt-1 max-w-md text-sm leading-relaxed text-muted">
-                O convite de alunos por e-mail, as fichas de treino e a biblioteca de exercícios são a próxima etapa da plataforma.
-              </p>
+              <p className="mt-1 max-w-md text-sm leading-relaxed text-muted">Convide seus alunos por e-mail. Eles criam a conta pelo link do convite.</p>
+              <Link href="/treinador/alunos" className={`${buttonClass("primary")} mt-5`}>
+                Convidar alunos
+              </Link>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted">{o.students.active} alunos ativos.</p>
+            <p className="mt-4 text-sm text-muted">
+              {o.students.active} {o.students.active === 1 ? "aluno ativo" : "alunos ativos"}.{" "}
+              <Link href="/treinador/alunos" className="font-semibold text-turf underline-offset-4 hover:underline">
+                Ver todos
+              </Link>
+            </p>
           )}
         </section>
 

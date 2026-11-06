@@ -1,34 +1,59 @@
 "use client";
 
-import { useActionState } from "react";
+import { createContext, startTransition, useActionState, useContext, useEffect, useRef } from "react";
 import type { ActionResult } from "@/lib/action-result";
 import { Notice } from "./notice";
 
 type Action = (prev: ActionResult, form: FormData) => Promise<ActionResult>;
 
+const PendingContext = createContext(false);
+export const useActionPending = () => useContext(PendingContext);
+
 /**
- * Form bound to a server action. Works without JavaScript (progressive
- * enhancement) and renders field errors returned by the server.
+ * Form bound to a server action.
+ * - Without JavaScript it still posts natively (progressive enhancement).
+ * - With JavaScript it submits through a transition instead of the `action`
+ *   prop, so React does not auto-reset the fields: input survives validation
+ *   errors and saved values stay visible. Pass resetOnSuccess for forms that
+ *   should clear after a successful submit (e.g. invite by email).
  */
 export function ActionForm({
   action,
   children,
   className = "flex flex-col gap-5",
   successNotice = true,
+  resetOnSuccess = false,
 }: {
   action: Action;
   children: (state: ActionResult) => React.ReactNode;
   className?: string;
   successNotice?: boolean;
+  resetOnSuccess?: boolean;
 }) {
-  const [state, formAction] = useActionState(action, { ok: true } as ActionResult);
+  const [state, formAction, pending] = useActionState(action, { ok: true } as ActionResult);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (resetOnSuccess && state.ok && state.message) formRef.current?.reset();
+  }, [state, resetOnSuccess]);
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+    const data = new FormData(e.currentTarget, submitter);
+    startTransition(() => formAction(data));
+  }
+
   return (
-    <form action={formAction} className={className} noValidate>
-      {!state.ok && !state.fieldErrors && <Notice tone="error">{state.message}</Notice>}
-      {!state.ok && state.fieldErrors?._form && <Notice tone="error">{state.fieldErrors._form.join(" ")}</Notice>}
-      {successNotice && state.ok && state.message && <Notice tone="success">{state.message}</Notice>}
-      {children(state)}
-    </form>
+    <PendingContext.Provider value={pending}>
+      <form ref={formRef} action={formAction} onSubmit={onSubmit} className={className} noValidate>
+        {!state.ok && !state.fieldErrors && <Notice tone="error">{state.message}</Notice>}
+        {!state.ok && state.fieldErrors?._form && <Notice tone="error">{state.fieldErrors._form.join(" ")}</Notice>}
+        {successNotice && state.ok && state.message && <Notice tone="success">{state.message}</Notice>}
+        {children(state)}
+      </form>
+    </PendingContext.Provider>
   );
 }
 

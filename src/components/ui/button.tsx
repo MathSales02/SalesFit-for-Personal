@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-
+import { useActionPending } from "./action-form";
 import { buttonClass, type Variant } from "./button-styles";
 
 /** Submit button that disables itself and shows progress while its form is pending. */
@@ -20,7 +20,10 @@ export function SubmitButton({
   name?: string;
   value?: string;
 }) {
-  const { pending } = useFormStatus();
+  // Plain <form action> submissions report through useFormStatus; ActionForm reports through context.
+  const { pending: nativePending } = useFormStatus();
+  const actionPending = useActionPending();
+  const pending = nativePending || actionPending;
   return (
     <button type="submit" name={name} value={value} disabled={pending} aria-busy={pending} className={buttonClass(variant, full)}>
       {pending ? (pendingLabel ?? "Aguarde…") : children}

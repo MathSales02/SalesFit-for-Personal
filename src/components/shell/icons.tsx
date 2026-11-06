@@ -29,3 +29,15 @@ export const IconLogout = () => (
     <path d="M10 8l-4 4 4 4M6 12h10" />
   </svg>
 );
+export const IconUsers = () => (
+  <svg {...base}>
+    <circle cx="9" cy="8" r="3.5" />
+    <path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5" />
+    <path d="M16 4.8a3.3 3.3 0 0 1 0 6.4M18 14.8c1.7.7 2.9 2.4 3.5 5.2" />
+  </svg>
+);
+export const IconHeart = () => (
+  <svg {...base}>
+    <path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20Z" />
+  </svg>
+);
