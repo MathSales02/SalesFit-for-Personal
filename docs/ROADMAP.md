@@ -145,6 +145,22 @@ Done (7A), two-step verification (TOTP):
 - Rate limited per user (failures only).
 - 6 new tests, including the RFC 6238 vectors (195 total).
 
+Done (7B), data retention: `npm run jobs:retention` runs once a day as the owner role and removes:
+
+| Data | Removed after |
+|---|---|
+| Expired or revoked sessions | 30 days |
+| Used or expired auth tokens | 7 days |
+| Login attempts | 90 days |
+| Security events | 1 year |
+| Read notifications | 90 days |
+| All notifications | 1 year |
+| Expired or revoked invitations | 90 days |
+| Processed billing events | 1 year (failed ones are kept) |
+| Uploads never completed | 24 hours (file deleted too) |
+
+Audit logs are kept. 1 new test (196 total).
+
 ## Open business questions
 
 - Plan prices and limits (seeded placeholders: Inicial R$ 79 / 30 alunos; Profissional R$ 149 / 150 alunos).

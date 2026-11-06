@@ -107,11 +107,12 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 **Fase 7A concluída:** verificação em duas etapas (aplicativo autenticador + códigos de recuperação). É opcional para treinadores e alunos e obrigatória para administradores. O `.env` ganhou `MFA_ENCRYPTION_KEY`; não troque essa chave em produção, senão os autenticadores param de funcionar.
 
+**Fase 7B concluída:** limpeza diária de dados antigos (`npm run jobs:retention`, para agendar 1x por dia em produção).
+
 **Próximo na Fase 7:**
 - Testes E2E no CI.
 - WebSockets para mensagens.
 - Revisão de acessibilidade e desempenho.
-- Rotinas de retenção de dados.
 - Guia de deploy (inclui o checklist do Asaas).
 
 Pendentes de negócio: preços finais, região de hospedagem e revisão jurídica dos termos e da política de privacidade.
@@ -156,7 +157,8 @@ Princípios que valem para todo código novo:
 - **Pagamento (6C):** assinatura mensal pelo Asaas (Pix, boleto, cartão), cobranças listadas, troca de plano e cancelamento; eventos de cobrança no admin.
 - **Privacidade (6B):** baixar meus dados, excluir conta, acesso emergencial de suporte auditado e visível ao treinador.
 - **Verificação em duas etapas (7A):** em Conta; obrigatória para administradores.
-- **Qualidade:** 195 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Retenção (7B):** job diário que apaga sessões, tokens, tentativas de login, notificações e uploads abandonados antigos.
+- **Qualidade:** 196 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 
