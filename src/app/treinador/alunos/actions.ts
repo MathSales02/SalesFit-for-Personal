@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/action-result";
 import { invitationIdSchema, inviteStudentSchema, memberStatusSchema, studentProfileSchema, trainerHealthSchema } from "@/lib/validation/students";
+import { trainerMeasurementSchema } from "@/lib/validation/progress";
 import { parseForm, runAction } from "@/server/http/action";
 import { requestMeta, requireActionActor } from "@/server/http/next";
+import { addMeasurementAsTrainer } from "@/server/progress/service";
 import { inviteStudent, revokeInvitation } from "@/server/students/invitations";
 import { setStudentStatus, updateStudentHealthAsTrainer, updateStudentProfile } from "@/server/students/students";
 
@@ -45,6 +47,16 @@ export async function updateHealthAction(_prev: ActionResult, form: FormData): P
     await updateStudentHealthAsTrainer(actor, memberId, health, await requestMeta());
     revalidatePath(`/treinador/alunos/${memberId}`);
     return { ok: true, message: "Dados de saúde salvos." };
+  });
+}
+
+export async function addTrainerMeasurementAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("add_trainer_measurement", async () => {
+    const actor = await requireActionActor("students.manage");
+    const { memberId, ...input } = parseForm(trainerMeasurementSchema, form);
+    await addMeasurementAsTrainer(actor, memberId, input, await requestMeta());
+    revalidatePath(`/treinador/alunos/${memberId}`);
+    return { ok: true, message: "Avaliação registrada." };
   });
 }
 

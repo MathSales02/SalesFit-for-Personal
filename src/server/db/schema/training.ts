@@ -6,6 +6,7 @@ import { workspaces } from "./tenancy";
 
 export const mediaKind = pgEnum("media_kind", ["video", "image"]);
 export const mediaStatus = pgEnum("media_status", ["pending", "ready", "rejected", "deleted"]);
+export const mediaVisibility = pgEnum("media_visibility", ["workspace", "private"]);
 
 /**
  * Files in private object storage. The storage key is random and never shown
@@ -26,6 +27,13 @@ export const mediaAssets = pgTable(
     /** Declared size while pending; verified size once ready. */
     sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
     verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    /**
+     * workspace: visible to every member (exercise videos).
+     * private: visible to the owning student only, and to their trainer only
+     * when the student shares that specific photo.
+     */
+    visibility: mediaVisibility("visibility").notNull().default("workspace"),
+    ownerMemberId: uuid("owner_member_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("media_assets_key_uq").on(t.storageKey), index("media_assets_ws_status_idx").on(t.workspaceId, t.status)],

@@ -1,5 +1,5 @@
 import "server-only";
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "../env";
@@ -60,6 +60,17 @@ export async function headObject(key: string) {
 export async function readHead(key: string, bytes = 64): Promise<Uint8Array> {
   const res = await clients().internal.send(new GetObjectCommand({ Bucket: bucket(), Key: key, Range: `bytes=0-${bytes - 1}` }));
   return res.Body ? new Uint8Array(await res.Body.transformToByteArray()) : new Uint8Array();
+}
+
+/** Whole object, refusing anything larger than maxBytes (protects memory). */
+export async function getObjectBytes(key: string, maxBytes: number): Promise<Uint8Array> {
+  const res = await clients().internal.send(new GetObjectCommand({ Bucket: bucket(), Key: key }));
+  if ((res.ContentLength ?? 0) > maxBytes) throw new Error("object larger than allowed");
+  return res.Body ? new Uint8Array(await res.Body.transformToByteArray()) : new Uint8Array();
+}
+
+export async function putObject(key: string, body: Uint8Array, contentType: string) {
+  await clients().internal.send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: body, ContentType: contentType }));
 }
 
 export async function deleteObject(key: string) {

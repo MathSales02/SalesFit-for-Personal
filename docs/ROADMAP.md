@@ -32,7 +32,7 @@ Done (2B-2):
 - Assignment to students with start/end dates (one active program per student); student home shows the program with videos and instructions
 - 13 new tests (106 total)
 
-## Phase 3 — Student experience (in progress)
+## Phase 3 — Student experience ✅ (AI analysis postponed)
 
 Done (3A):
 - Workout player (mobile-first): exercise navigation, set logging with optimistic updates, previous performance prefilled, variations, extra sets, rest timer (+15s, skip, vibration), elapsed time, effort (1-10) and notes on finish
@@ -41,9 +41,13 @@ Done (3A):
 - Trainer view per student: 8-week consistency vs weekly target, recent workouts, recent records
 - 11 new tests (117 total)
 
-Next:
-- 3B: AI progress analysis for the trainer (Claude; training data only, never health data; trainer-only)
-- 3C: body measurements and progress photos (private by default, consent)
+Done (3C):
+- Body measurements (weight, body fat, waist, hip, chest, arm, thigh): student records; trainer sees and records assessments only with the student's health consent; line chart with crosshair/keyboard tooltip plus an exact table
+- Progress photos: private by default, shared one by one with the trainer, before/after comparison; server re-encodes every photo (strips EXIF/GPS, max 1600 px WebP, discards non-pixel content)
+- 10 new tests (127 total)
+
+Postponed by the product owner (no cost for now):
+- 3B: AI progress analysis for the trainer (Claude; training data only, never health data; trainer-only). Needs ANTHROPIC_API_KEY.
 
 ## Phase 4 — Social
 

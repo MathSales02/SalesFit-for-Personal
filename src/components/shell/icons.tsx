@@ -52,3 +52,9 @@ export const IconClipboard = () => (
     <path d="M9 4.5h6M9 10h6M9 14h6M9 18h3" />
   </svg>
 );
+export const IconTrend = () => (
+  <svg {...base}>
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M15 7h6v6" />
+  </svg>
+);

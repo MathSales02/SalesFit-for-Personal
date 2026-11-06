@@ -32,7 +32,7 @@ As fases:
 |---|---|---|
 | 1 | Fundação: arquitetura, banco, autenticação, RBAC, isolamento, design system | ✅ |
 | 2 | Gestão do treinador: alunos, exercícios, vídeos, montagem de treinos | ✅ |
-| 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | **3A feita**; 3B (IA de evolução) e 3C (medidas e fotos) a seguir |
+| 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | ✅ (3A e 3C). A 3B (IA) foi adiada pelo usuário |
 | 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | — |
 | 5 | Gamificação: pontos, desafios, rankings, conquistas, recompensas | — |
 | 6 | Administração e SaaS: planos, limites, pagamentos, webhooks | — |
@@ -94,7 +94,8 @@ Princípios que valem para todo código novo:
 - **Aluno:** início com o programa atual (dias, séries, vídeo e instruções), **Saúde** (consentimento, dados próprios, exclusão), perfil e sessões.
 - **Admin:** painel com números agregados e eventos de segurança.
 - **Treino do aluno (3A):** player no celular com registro de séries, cronômetro de descanso, carga da última vez, recordes calculados no servidor, resumo, histórico; o treinador vê constância de 8 semanas, últimos treinos e recordes na ficha do aluno.
-- **Qualidade:** 117 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Progresso (3C):** medidas corporais com gráfico e tabela (o treinador vê e registra avaliações só com consentimento de saúde); fotos privadas por padrão, compartilhadas uma a uma, com comparação antes/depois; o servidor reprocessa cada foto e remove localização GPS e metadados.
+- **Qualidade:** 127 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 
@@ -148,7 +149,7 @@ Decisões tomadas pelo usuário (06/11/2026):
 - **Dados enviados:** só dados de treino (frequência, séries, cargas, recordes, observações de treino). **Dados de saúde não entram.**
 - **Quem vê:** só o personal. A IA é assistente do treinador, que decide o que repassar ao aluno.
 
-Ordem de construção: 3A (execução do treino, séries, cronômetro, recordes, histórico), depois 3B (IA de evolução), depois 3C (medidas e fotos de progresso).
+Ordem de construção: 3A (execução do treino, séries, cronômetro, recordes, histórico) ✅, depois 3C (medidas e fotos de progresso). **A 3B (IA) foi adiada pelo usuário em 06/11/2026** para não gerar custo agora. Quando for retomada, será preciso uma chave `ANTHROPIC_API_KEY` no `.env`. Os dados de treino da 3A já estão estruturados para a análise.
 
 ## 8. Decisões de negócio em aberto
 

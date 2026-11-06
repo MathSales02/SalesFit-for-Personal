@@ -2,7 +2,7 @@ import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/logo";
 import type { Actor } from "@/server/authz/policy";
-import { IconActivity, IconClipboard, IconDumbbell, IconHeart, IconHome, IconLogout, IconShield, IconUser, IconUsers } from "./icons";
+import { IconActivity, IconClipboard, IconTrend, IconDumbbell, IconHeart, IconHome, IconLogout, IconShield, IconUser, IconUsers } from "./icons";
 import { SideNavLink, TabNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
@@ -18,6 +18,7 @@ const NAV: Record<Variant, NavItem[]> = {
   student: [
     { href: "/aluno", label: "Início", icon: <IconActivity /> },
     { href: "/aluno/historico", label: "Histórico", icon: <IconClipboard /> },
+    { href: "/aluno/progresso", label: "Progresso", icon: <IconTrend /> },
     { href: "/aluno/saude", label: "Saúde", icon: <IconHeart /> },
     { href: "/conta", label: "Perfil", icon: <IconUser /> },
   ],

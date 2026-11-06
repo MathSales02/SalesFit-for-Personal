@@ -35,7 +35,7 @@ export default async function StudentHealthPage() {
           Compartilhar com o treinador
         </h2>
         <p className="mt-2 mb-4 max-w-xl text-sm leading-relaxed text-ink-soft">
-          Lesões, restrições e observações médicas são dados sensíveis. Com sua autorização, {trainerWorkspace} pode vê-los para montar treinos
+          Lesões, restrições, observações médicas e medidas corporais são dados sensíveis. Com sua autorização, {trainerWorkspace} pode vê-los para montar treinos
           seguros. Eles nunca aparecem no seu perfil público nem na comunidade, e você pode retirar a autorização quando quiser.
         </p>
         <div className="mb-4 max-w-xl">

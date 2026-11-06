@@ -10,6 +10,9 @@ import { AppError } from "@/server/lib/errors";
 import { getStudentForTrainer } from "@/server/students/students";
 import { getStudentTraining } from "@/server/workouts/service";
 import { TrainingSection } from "./training-section";
+import { ProgressSection } from "./progress-section";
+import { getStudentProgress } from "@/server/progress/service";
+import { todayInBrazil } from "@/lib/validation/progress";
 import { HealthForm, ProfileForm, StatusActions } from "../forms";
 
 export const metadata: Metadata = { title: "Ficha do aluno" };
@@ -21,9 +24,11 @@ export default async function StudentPage({ params }: { params: Promise<{ member
 
   let s;
   let training;
+  let progress;
   try {
     s = await getStudentForTrainer(actor, memberId, await requestMeta());
     training = await getStudentTraining(actor, memberId);
+    progress = await getStudentProgress(actor, memberId, await requestMeta());
   } catch (err) {
     if (err instanceof AppError && err.code === "NOT_FOUND") notFound();
     throw err;
@@ -44,6 +49,14 @@ export default async function StudentPage({ params }: { params: Promise<{ member
       />
 
       <TrainingSection data={training} weeklyTarget={s.profile.weeklyFrequency} />
+
+      <ProgressSection
+        memberId={s.memberId}
+        consent={progress.consent}
+        measurements={progress.measurements}
+        photos={progress.photos.map((ph) => ({ id: ph.id, url: ph.url, takenOn: ph.takenOn, pose: ph.pose, sharedWithTrainer: ph.sharedWithTrainer }))}
+        today={todayInBrazil()}
+      />
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section aria-labelledby="profile-h">

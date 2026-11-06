@@ -39,6 +39,7 @@ const WORKSPACE_PERMISSIONS = {
   "training.manage": ["trainer"],
   "training.read_own": ["student"],
   "training.log_own": ["student"],
+  "progress.manage_own": ["student"],
   "community.read": ["trainer", "student"],
   "community.post": ["trainer", "student"],
   "community.announce": ["trainer"],
