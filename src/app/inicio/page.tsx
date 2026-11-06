@@ -4,6 +4,6 @@ import { requirePageActor } from "@/server/http/next";
 
 /** Single landing point after login: sends each role to its own area. */
 export default async function HomeRedirect() {
-  const actor = await requirePageActor();
+  const actor = await requirePageActor(undefined, { allowInactive: true });
   redirect(homePathFor(actor));
 }

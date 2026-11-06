@@ -1,3 +1,4 @@
+import type { BillingAccess } from "../billing/access";
 import { AppError, Errors } from "../lib/errors";
 
 /**
@@ -16,6 +17,8 @@ export type Membership = {
   workspaceName: string;
   memberId: string;
   role: WorkspaceRole;
+  /** Subscription-derived access, filled in by resolveActor. */
+  access?: BillingAccess;
 };
 
 export type Actor = {
@@ -34,6 +37,7 @@ const WORKSPACE_PERMISSIONS = {
   "workspace.update": ["trainer"],
   "workspace.audit.read": ["trainer"],
   "subscription.read": ["trainer"],
+  "subscription.manage": ["trainer"],
   "students.read": ["trainer"],
   "students.manage": ["trainer"],
   "training.manage": ["trainer"],
@@ -57,7 +61,7 @@ export type WorkspacePermission = keyof typeof WORKSPACE_PERMISSIONS;
 /**
  * Platform admin permissions. Deliberately excludes health data, progress
  * photos and private messages: access to those needs an explicit, audited
- * break-glass flow (planned for Phase 6), never a blanket admin role.
+ * break-glass flow, never a blanket admin role.
  */
 const ADMIN_PERMISSIONS = [
   "admin.dashboard",
@@ -68,6 +72,8 @@ const ADMIN_PERMISSIONS = [
   "admin.plans.manage",
   "admin.reports.review",
   "admin.security_events.read",
+  "admin.billing.manage",
+  "admin.audit.read",
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];

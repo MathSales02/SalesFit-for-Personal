@@ -1,7 +1,8 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
-import { withTenant } from "../db/context";
-import { workspaceMembers, workspaces } from "../db/schema";
+import { billingAccess } from "../billing/access";
+import { setTenantContext, withTenant } from "../db/context";
+import { subscriptions, workspaceMembers, workspaces } from "../db/schema";
 import type { Actor, Membership } from "../authz/policy";
 import { validateSessionToken } from "./session";
 
@@ -36,7 +37,14 @@ export async function resolveActor(token: string | undefined): Promise<Actor | n
           ),
         )
         .limit(1);
-      return m ?? null;
+      if (!m) return null;
+      // Students cannot read the subscription (RLS); only the derived access flag leaves this block.
+      await setTenantContext(tx, { userId: user.id, workspaceId: m.workspaceId, isSystem: true });
+      const [sub] = await tx
+        .select({ status: subscriptions.status, trialEndsAt: subscriptions.trialEndsAt, currentPeriodEnd: subscriptions.currentPeriodEnd })
+        .from(subscriptions)
+        .where(eq(subscriptions.workspaceId, m.workspaceId));
+      return { ...m, access: billingAccess(sub) };
     });
   }
 

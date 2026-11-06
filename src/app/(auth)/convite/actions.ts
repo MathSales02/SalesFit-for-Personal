@@ -18,7 +18,7 @@ export async function acceptWithNewAccountAction(_prev: ActionResult, form: Form
 
 export async function acceptAsCurrentUserAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("accept_invitation_existing", async () => {
-    const actor = await requireActionActor();
+    const actor = await requireActionActor(undefined, { allowInactive: true });
     const { token } = parseForm(acceptInviteExistingSchema, form);
     await acceptInvitationAsActor(actor, token, await requestMeta());
     redirect("/aluno");

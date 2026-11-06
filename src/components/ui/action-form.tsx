@@ -23,18 +23,27 @@ export function ActionForm({
   className = "flex flex-col gap-5",
   successNotice = true,
   resetOnSuccess = false,
+  onSuccess,
 }: {
   action: Action;
   children: (state: ActionResult) => React.ReactNode;
   className?: string;
   successNotice?: boolean;
   resetOnSuccess?: boolean;
+  /** Runs after a successful submit, e.g. to reset client state the form reset does not cover. */
+  onSuccess?: () => void;
 }) {
   const [state, formAction, pending] = useActionState(action, { ok: true } as ActionResult);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const onSuccessRef = useRef(onSuccess);
   useEffect(() => {
-    if (resetOnSuccess && state.ok && state.message) formRef.current?.reset();
+    onSuccessRef.current = onSuccess;
+  });
+  useEffect(() => {
+    if (!(state.ok && state.message)) return;
+    if (resetOnSuccess) formRef.current?.reset();
+    onSuccessRef.current?.();
   }, [state, resetOnSuccess]);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {

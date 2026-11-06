@@ -2,10 +2,14 @@ import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/logo";
 import type { Actor } from "@/server/authz/policy";
+import { daysLeft } from "@/server/billing/access";
 import { unreadConversationCount } from "@/server/messaging/service";
 import { unreadNotificationCount } from "@/server/notifications/service";
 import {
   IconActivity,
+  IconAlert,
+  IconBuilding,
+  IconCard,
   IconBell,
   IconChat,
   IconClipboard,
@@ -40,6 +44,7 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
         { href: "/treinador/comunidade", label: "Comunidade", icon: <IconChat /> },
         { href: "/treinador/ranking", label: "Ranking", icon: <IconTrophy /> },
         ...header,
+        { href: "/treinador/assinatura", label: "Assinatura", icon: <IconCard /> },
         { href: "/conta", label: "Conta", icon: <IconUser /> },
       ],
       header,
@@ -64,6 +69,11 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
   return {
     main: [
       { href: "/admin", label: "Plataforma", icon: <IconShield /> },
+      { href: "/admin/consultorias", label: "Consultorias", icon: <IconBuilding /> },
+      { href: "/admin/usuarios", label: "Usuários", icon: <IconUsers /> },
+      { href: "/admin/planos", label: "Planos", icon: <IconCard /> },
+      { href: "/admin/seguranca", label: "Segurança", icon: <IconAlert /> },
+      { href: "/admin/auditoria", label: "Auditoria", icon: <IconClipboard /> },
       { href: "/conta", label: "Conta", icon: <IconUser /> },
     ],
     header: [],
@@ -181,7 +191,30 @@ export async function AppShell({ actor, variant = variantFor(actor), children }:
           </details>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 lg:py-10">{children}</main>
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 lg:py-10">
+        {variant === "trainer" && <BillingBanner actor={actor} />}
+        {children}
+      </main>
+    </div>
+  );
+}
+
+/** Trainer-only reminder when the trial is ending, a payment is late or access is paused. */
+function BillingBanner({ actor }: { actor: Actor }) {
+  const a = actor.membership?.access;
+  if (!a) return null;
+  const left = daysLeft(a.until);
+  let text: string | null = null;
+  if (a.state === "blocked") text = "Acesso pausado: a assinatura está inativa. Seus alunos também estão sem acesso.";
+  else if (a.state === "grace") text = `Pagamento pendente. O acesso será pausado em ${left} ${left === 1 ? "dia" : "dias"}.`;
+  else if (a.state === "trial" && left !== null && left <= 5) text = `Seu teste grátis termina em ${left} ${left === 1 ? "dia" : "dias"}.`;
+  if (!text) return null;
+  return (
+    <div className={`mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border px-4 py-3 text-sm ${a.state === "trial" ? "border-signal/60 bg-signal-tint" : "border-danger/40 bg-danger-tint"}`}>
+      <span className="font-semibold">{text}</span>
+      <Link href="/treinador/assinatura" className="font-semibold text-turf underline-offset-2 hover:underline">
+        Ver planos
+      </Link>
     </div>
   );
 }

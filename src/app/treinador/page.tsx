@@ -32,11 +32,13 @@ export default async function TrainerOverviewPage() {
     <>
       <PageHeading title={`Olá, ${firstName}`} description={o.workspaceName} />
 
-      {trialDays !== null && (
+      {trialDays !== null && trialDays > 5 && (
         <div className="mb-8">
           <Notice tone="warning">
-            {trialDays > 0 ? `Seu teste grátis termina em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.` : "Seu teste grátis termina hoje."} A
-            contratação de planos chega em breve.
+            {trialDays > 0 ? `Seu teste grátis termina em ${trialDays} ${trialDays === 1 ? "dia" : "dias"}.` : "Seu teste grátis termina hoje."} {" "}
+            <Link href="/treinador/assinatura" className="font-semibold underline">
+              Ver planos
+            </Link>
           </Notice>
         </div>
       )}

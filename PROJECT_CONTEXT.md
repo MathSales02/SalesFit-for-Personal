@@ -86,7 +86,19 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 **Fase 5A concluída e no GitHub** (check-in, pontos de constância, ranking e competições; 167 testes). Decisões do usuário: check-in automático ao concluir treino + manual 1x/dia (vale menos; o treinador pode desligar); ranking por pontos de constância (check-ins, treinos, bônus de meta semanal); o aluno pode sair do ranking; prêmio é opcional em cada competição ("premiações futuras, não sempre").
 
-**Próximo:** Fase 5B (conquistas, catálogo de recompensas e resgates) só se o usuário quiser; senão Fase 6 (administração, planos e cobrança). A IA de evolução (3B) continua adiada por custo.
+**Decisões para a Fase 6:** conquistas e recompensas (5B) ficam para depois do lançamento. Cobrança pelo **Asaas** (assinatura recorrente por Pix, boleto e cartão). Planos mantidos por enquanto (Inicial R$ 79 / 30 alunos; Profissional R$ 149 / 150 alunos; 14 dias de teste), editáveis no painel admin.
+
+**Fase 6A concluída** (175 testes):
+- Painel admin com consultorias, usuários, planos, eventos de segurança e auditoria.
+- Ajustes manuais de assinatura.
+- Acesso pausado quando o teste ou a assinatura vencem, com 7 dias de tolerância após um pagamento não identificado.
+- Página "Assinatura" do treinador.
+
+**Próximo:**
+- **6B:** LGPD (exportar e excluir os próprios dados) e acesso emergencial auditado.
+- **6C:** checkout e webhooks do Asaas. Detalhes da API em `docs/ASAAS_NOTES.md`.
+
+Para testar localmente, existe uma conta admin só no banco de desenvolvimento: `admin-smoke@example.com`. Crie a sua com `npm run admin:create`.
 
 ## 4. Stack e decisões principais
 
@@ -122,7 +134,8 @@ Princípios que valem para todo código novo:
 - **Comunidade (4A):** feed da consultoria (todos/seguindo), avisos fixados do treinador, posts com texto, foto ou treino compartilhado, curtidas, comentários com respostas, perfis, seguir, bloquear, denunciar; fila de moderação do treinador; aprovação prévia opcional; filtro NSFW no servidor.
 - **Mensagens e notificações (4B):** conversas aluno ↔ treinador e aluno ↔ aluno (o treinador pode desligar), fotos com filtro, apagar, denunciar; notificações com preferências; selos de não lidas no menu.
 - **Ranking (5A):** cartão no início do aluno (pontos da semana, posição, meta semanal, sequência, check-in manual); página de ranking (semana/mês/geral, sair do ranking) e competições com prêmio opcional; painel do treinador com regras de pontuação, ajuste manual com motivo e gestão de competições.
-- **Qualidade:** 167 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Administração e assinatura (6A):** painel admin (consultorias, usuários, planos, segurança, auditoria) e página de assinatura do treinador; acesso pausado automaticamente quando o teste/assinatura vence.
+- **Qualidade:** 175 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

@@ -87,3 +87,21 @@ export const IconTrophy = () => (
     <path d="M12 13v4M8.5 20h7M10 17h4" />
   </svg>
 );
+export const IconCard = () => (
+  <svg {...base}>
+    <rect x="3" y="5.5" width="18" height="13" rx="2" />
+    <path d="M3 10h18M7 15h4" />
+  </svg>
+);
+export const IconBuilding = () => (
+  <svg {...base}>
+    <path d="M4 21V5l8-2v18M12 8l8 2v11M2 21h20" />
+    <path d="M7.5 8.5v.01M7.5 12v.01M7.5 15.5v.01M16 13v.01M16 16.5v.01" />
+  </svg>
+);
+export const IconAlert = () => (
+  <svg {...base}>
+    <path d="M12 3 2 20h20L12 3Z" />
+    <path d="M12 10v4M12 17v.01" />
+  </svg>
+);

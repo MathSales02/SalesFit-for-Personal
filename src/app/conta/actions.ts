@@ -9,7 +9,7 @@ import { requestMeta, requireActionActor } from "@/server/http/next";
 
 export async function changePasswordAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("change_password", async () => {
-    const actor = await requireActionActor();
+    const actor = await requireActionActor(undefined, { allowInactive: true });
     const input = parseForm(changePasswordSchema, form);
     await changePassword(actor, input, await requestMeta());
     revalidatePath("/conta");
@@ -19,7 +19,7 @@ export async function changePasswordAction(_prev: ActionResult, form: FormData):
 
 export async function revokeSessionAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("revoke_session", async () => {
-    const actor = await requireActionActor();
+    const actor = await requireActionActor(undefined, { allowInactive: true });
     const { sessionId } = parseForm(revokeSessionSchema, form);
     await revokeOwnSession(actor, sessionId, await requestMeta());
     revalidatePath("/conta");
@@ -29,7 +29,7 @@ export async function revokeSessionAction(_prev: ActionResult, form: FormData): 
 
 export async function revokeOtherSessionsAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("revoke_other_sessions", async () => {
-    const actor = await requireActionActor();
+    const actor = await requireActionActor(undefined, { allowInactive: true });
     parseForm(revokeSessionSchema.pick({}), form);
     await revokeAllOtherSessions(actor, await requestMeta());
     revalidatePath("/conta");

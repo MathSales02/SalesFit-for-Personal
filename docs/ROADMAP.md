@@ -81,6 +81,25 @@ Next (5B, if wanted): achievements, reward catalog and atomic redemptions.
 
 Admin tools (accounts, workspaces, reports, security events), plans, limits, payment provider integration with verified webhooks, break-glass access, data subject requests.
 
+Decisions: payment provider is **Asaas** (Pix, boleto and card subscriptions); plan prices stay as placeholders, editable in the admin panel. Achievements and rewards (old 5B) move to after launch.
+
+Done (6A):
+- Subscription-based access computed at read time:
+  - trial, active, a 7-day grace period after a missed payment, then blocked.
+  - Blocked workspaces keep only account, subscription and notice screens; every other page redirects and every other action is refused.
+  - Students see a neutral notice; nothing is deleted.
+- Trainer subscription page and reminders (trial ending, late payment, paused access).
+- Admin panel:
+  - Workspaces: search, detail, suspend/reactivate with reason.
+  - Manual subscription changes: extend trial, grant a paid plan until a date, change plan, expire.
+  - Users: search, suspend/reactivate, which ends sessions; never admins or yourself.
+  - Plan editing: the trial plan stays free and available.
+  - Security events and audit log viewers.
+  - Admins still cannot read student, health, training, community or message data (RLS).
+- 8 new tests (175 total).
+
+Next: 6B (LGPD export and account deletion, audited break-glass access), 6C (Asaas checkout and verified webhooks; notes in [ASAAS_NOTES.md](ASAAS_NOTES.md)).
+
 ## Phase 7 — Hardening
 
 MFA, Playwright E2E suite in CI, accessibility audit, performance review, retention jobs, deployment guide.

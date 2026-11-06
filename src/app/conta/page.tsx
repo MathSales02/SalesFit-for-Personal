@@ -22,7 +22,7 @@ function deviceLabel(ua: string | null) {
 }
 
 export default async function AccountPage() {
-  const actor = await requirePageActor();
+  const actor = await requirePageActor(undefined, { allowInactive: true });
   const sessions = await listActiveSessions(actor.userId);
 
   return (

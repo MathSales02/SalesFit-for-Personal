@@ -7,7 +7,7 @@ import { requirePageActor } from "@/server/http/next";
 export const metadata: Metadata = { title: "Sem acesso" };
 
 export default async function NoAccessPage() {
-  await requirePageActor();
+  await requirePageActor(undefined, { allowInactive: true });
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5">
       <Logo />
