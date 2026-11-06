@@ -63,3 +63,78 @@ jobs:
           MFA_ENCRYPTION_KEY: ci-only-mfa-key-ci-only-mfa-key-0000
           S3_PUBLIC_ENDPOINT: http://127.0.0.1:8333
           S3_BUCKET: cadencia-media
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+      mailpit:
+        image: axllent/mailpit:v1.33.0
+        ports: ["1025:1025", "8025:8025"]
+    env:
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgres://cadencia_app:ci_app@127.0.0.1:5432/cadencia
+      DATABASE_MIGRATION_URL: postgres://cadencia_owner:ci_owner@127.0.0.1:5432/cadencia
+      REDIS_URL: redis://127.0.0.1:6379
+      SMTP_URL: smtp://127.0.0.1:1025
+      MAIL_FROM: "Cadência <ci@cadencia.local>"
+      PII_HASH_SECRET: ci-only-secret-ci-only-secret-0000
+      MFA_ENCRYPTION_KEY: ci-only-mfa-key-ci-only-mfa-key-0000
+      S3_ENDPOINT: http://127.0.0.1:8333
+      S3_PUBLIC_ENDPOINT: http://localhost:8333
+      S3_ACCESS_KEY: ci-access-key
+      S3_SECRET_KEY: ci-secret-key-0000
+      S3_BUCKET: cadencia-media
+      RATE_LIMIT_OVERRIDES: '{"register_ip":{"limit":500,"windowSec":3600},"token_redeem_ip":{"limit":500,"windowSec":900},"login_ip":{"limit":500,"windowSec":900}}'
+      E2E_BASE_URL: http://localhost:3000
+      E2E_MAILPIT_URL: http://127.0.0.1:8025
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Create database roles
+        run: |
+          sudo apt-get install -y postgresql-client >/dev/null
+          sed 's/^psql /psql -h 127.0.0.1 /' docker/postgres/init.sh > /tmp/init.sh
+          PGPASSWORD=postgres CADENCIA_OWNER_PASSWORD=ci_owner CADENCIA_APP_PASSWORD=ci_app sh /tmp/init.sh
+      - name: Start object storage
+        run: |
+          docker run -d --name storage -p 8333:8333 -e S3_ACCESS_KEY -e S3_SECRET_KEY \
+            -v "$PWD/docker/seaweedfs/entrypoint.sh:/init/entrypoint.sh:ro" \
+            --entrypoint /bin/sh chrislusf/seaweedfs:4.50 /init/entrypoint.sh
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8333 && break; sleep 2; done
+      - run: npm run db:migrate
+      - run: npm run storage:init
+      - run: npx playwright install --with-deps chromium
+      - name: Start the app
+        run: |
+          npx next dev -p 3000 > /tmp/app.log 2>&1 &
+          for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:3000/api/health && break; sleep 2; done
+          # Compile the main routes once so the first test does not wait for them.
+          for p in / /entrar /cadastro /treinador /treinador/alunos /aluno /aluno/ranking /conta /conta/duas-etapas; do
+            curl -s -o /dev/null --max-time 120 "http://localhost:3000$p" || true
+          done
+      - run: npx playwright test
+      - name: App log
+        if: failure()
+        run: tail -n 200 /tmp/app.log
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

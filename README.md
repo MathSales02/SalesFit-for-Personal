@@ -36,3 +36,21 @@ npm run typecheck
 npm test        # needs TEST_DATABASE_URL and TEST_DATABASE_MIGRATION_URL (see .env.example)
 npm run build
 ```
+
+## Testes de navegador (E2E)
+
+Fluxos principais num navegador real, com verificação de acessibilidade (axe, WCAG 2.1 AA) em cada tela. No GitHub Actions eles rodam no job `e2e`. Para rodar localmente:
+
+1. Suba um servidor isolado na porta 3100, sem mexer no seu `npm run dev`:
+
+   ```bash
+   RATE_LIMIT_OVERRIDES='{"register_ip":{"limit":500,"windowSec":3600},"token_redeem_ip":{"limit":500,"windowSec":900},"login_ip":{"limit":500,"windowSec":900}}'    REDIS_URL=<seu REDIS_URL>/1 NEXT_DIST_DIR=.next/e2e APP_URL=http://localhost:3100 npx next dev -p 3100
+   ```
+
+2. Em outro terminal, rode os testes:
+
+   ```bash
+   npm run test:e2e
+   ```
+
+3. Ao terminar, pare o servidor, apague `.next/e2e` e descarte as entradas `.next/e2e` que o `next dev` adiciona ao `tsconfig.json`.

@@ -121,7 +121,7 @@ export async function AppShell({ actor, variant = variantFor(actor), children }:
       <div className="min-h-dvh pb-20 sm:pb-0">
         <header className="sticky top-0 z-10 border-b border-line bg-chalk/95 backdrop-blur">
           <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-2 px-4">
-            <Link href="/aluno" aria-label="Início">
+            <Link href="/aluno" aria-label="Cadência, início">
               <Logo />
             </Link>
             <div className="flex items-center gap-1">
@@ -153,7 +153,7 @@ export async function AppShell({ actor, variant = variantFor(actor), children }:
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
       <aside className={`hidden flex-col gap-8 px-4 py-6 lg:flex ${dark ? "bg-ink" : "border-r border-line bg-paper"}`}>
-        <Link href={main[0]!.href} className="px-3" aria-label="Início">
+        <Link href={main[0]!.href} className="px-3" aria-label="Cadência, início">
           <Logo tone={dark ? "light" : "ink"} />
         </Link>
         <div className={`px-3 ${dark ? "text-white" : ""}`}>

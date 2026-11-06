@@ -5,7 +5,7 @@ import { Notice } from "@/components/ui/notice";
 export function LegalPage({ title, version, children }: { title: string; version: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-2xl px-5 py-10">
-      <Link href="/" aria-label="Página inicial">
+      <Link href="/" aria-label="Cadência, página inicial">
         <Logo />
       </Link>
       <h1 className="mt-10 font-display text-4xl font-bold">{title}</h1>
