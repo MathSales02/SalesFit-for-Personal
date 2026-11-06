@@ -13,7 +13,7 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 | Password reset: 30 min single-use token, newer link voids older, all sessions revoked | `src/server/auth/service.ts` | `tests/auth.test.ts` |
 | No account enumeration: same response for signup/reset on known and unknown emails; timing equalized on login | `src/server/auth/service.ts`, `password.ts` | `tests/auth.test.ts` |
 | Brute force: per-IP and per-account limits + progressive lockout (30 s doubling to 15 min) stored in Postgres | `service.ts`, `security/rate-limit.ts` | `tests/auth.test.ts` (IP rotation does not bypass) |
-| Rate limiting on every request (proxy, per IP) and every action (per user, per workspace, per sensitive action) | `src/proxy.ts`, `security/rate-limit.ts` | `tests/security-units.test.ts` |
+| Rate limiting on every request (proxy, per IP) and every action (per user, per workspace, per sensitive action) | `src/proxy.ts`, `security/rate-limit.ts` | `tests/security-units.test.ts`, `tests/redis-rate-limit.test.ts` (atomic under concurrency) |
 | Client IP from the trusted end of `X-Forwarded-For` only | `src/server/http/request-meta.ts` | `tests/security-units.test.ts` |
 | RBAC, deny by default, central permission table | `src/server/authz/policy.ts` | `tests/security-units.test.ts` |
 | Tenant isolation in Postgres RLS; app role without DDL/BYPASSRLS | `drizzle/0001_security.sql`, `db/context.ts` | `tests/tenant-isolation.test.ts` (14 negative cases) |
@@ -36,7 +36,6 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 - Audited break-glass access for admins to sensitive data. — Phase 6
 - Payment webhook signature verification and idempotency (`billing_events`). — Phase 6
 - Data subject requests (export, deletion) and retention jobs for `login_attempts`, `security_events`, revoked sessions. — Phase 6/7
-- Redis Lua limiter has no automated test yet (tests use the memory store with the same contract). — Phase 7
 - Alerting on security events. — Phase 7
 
 ## Known dev-only advisories

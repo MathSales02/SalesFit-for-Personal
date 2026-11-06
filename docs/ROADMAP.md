@@ -8,7 +8,7 @@
 - Brute-force protection, rate limiting, audit log, security events
 - RBAC policy, three role areas (trainer, student, admin) with distinct shells
 - Design system: tokens, type (Barlow / Barlow Condensed), buttons, fields, notices, headings
-- 55 automated tests (auth, sessions, tenant isolation, validation, rate limits)
+- 59 automated tests (auth, sessions, tenant isolation, validation, rate limits)
 
 ## Phase 2 — Trainer management (next)
 
@@ -37,7 +37,7 @@ Admin tools (accounts, workspaces, reports, security events), plans, limits, pay
 
 ## Phase 7 — Hardening
 
-MFA, Redis limiter tests, Playwright E2E suite in CI, accessibility audit, performance review, retention jobs, deployment guide.
+MFA, Playwright E2E suite in CI, accessibility audit, performance review, retention jobs, deployment guide.
 
 ## Open business questions
 
