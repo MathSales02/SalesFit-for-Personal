@@ -8,6 +8,8 @@ import { MEMBER_STATUS_LABEL } from "@/lib/validation/students";
 import { requestMeta, requirePageActor } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 import { getStudentForTrainer } from "@/server/students/students";
+import { getStudentTraining } from "@/server/workouts/service";
+import { TrainingSection } from "./training-section";
 import { HealthForm, ProfileForm, StatusActions } from "../forms";
 
 export const metadata: Metadata = { title: "Ficha do aluno" };
@@ -18,8 +20,10 @@ export default async function StudentPage({ params }: { params: Promise<{ member
   if (!z.uuid().safeParse(memberId).success) notFound();
 
   let s;
+  let training;
   try {
     s = await getStudentForTrainer(actor, memberId, await requestMeta());
+    training = await getStudentTraining(actor, memberId);
   } catch (err) {
     if (err instanceof AppError && err.code === "NOT_FOUND") notFound();
     throw err;
@@ -38,6 +42,8 @@ export default async function StudentPage({ params }: { params: Promise<{ member
           </>
         }
       />
+
+      <TrainingSection data={training} weeklyTarget={s.profile.weeklyFrequency} />
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section aria-labelledby="profile-h">

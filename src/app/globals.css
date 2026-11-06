@@ -34,6 +34,10 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* Keep focused or scrolled-to elements clear of the sticky header and the
+       bottom bars (tab bar, rest timer) — WCAG 2.4.11 Focus Not Obscured. */
+    scroll-padding-top: 4.5rem;
+    scroll-padding-bottom: 9rem;
   }
   body {
     @apply bg-chalk text-ink font-sans antialiased;

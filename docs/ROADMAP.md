@@ -32,9 +32,18 @@ Done (2B-2):
 - Assignment to students with start/end dates (one active program per student); student home shows the program with videos and instructions
 - 13 new tests (106 total)
 
-## Phase 3 — Student experience
+## Phase 3 — Student experience (in progress)
 
-Workout player (progress, rest timer, set logging, previous performance), history, PR detection, progress tracking, measurements and photos (private).
+Done (3A):
+- Workout player (mobile-first): exercise navigation, set logging with optimistic updates, previous performance prefilled, variations, extra sets, rest timer (+15s, skip, vibration), elapsed time, effort (1-10) and notes on finish
+- Server-side personal records (estimated 1RM, Epley), idempotent completion, database-clock duration
+- History with keyset pagination; summary page; open-workout banner (resume or abandon)
+- Trainer view per student: 8-week consistency vs weekly target, recent workouts, recent records
+- 11 new tests (117 total)
+
+Next:
+- 3B: AI progress analysis for the trainer (Claude; training data only, never health data; trainer-only)
+- 3C: body measurements and progress photos (private by default, consent)
 
 ## Phase 4 — Social
 

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ProgramView } from "@/components/program-view";
+import { buttonClass } from "@/components/ui/button-styles";
 import { requirePageActor } from "@/server/http/next";
 import { playbackUrls } from "@/server/media/service";
 import { getMyProgram } from "@/server/programs/service";
+import { getOpenSession } from "@/server/workouts/service";
+import { StartWorkoutButton } from "./start-button";
+import { AbandonButton } from "./treino/[sessionId]/abandon-button";
 
 export const metadata: Metadata = { title: "Início" };
 
@@ -11,7 +16,7 @@ const fmtDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "numeri
 export default async function StudentHomePage() {
   const actor = await requirePageActor("training.read_own");
   const firstName = actor.displayName.split(" ")[0];
-  const program = await getMyProgram(actor);
+  const [program, open] = await Promise.all([getMyProgram(actor), getOpenSession(actor)]);
   const videos = program
     ? await playbackUrls(
         actor,
@@ -23,6 +28,20 @@ export default async function StudentHomePage() {
     <>
       <p className="text-sm font-semibold text-muted">{actor.membership?.workspaceName}</p>
       <h1 className="mt-1 font-display text-[2.4rem] leading-none font-bold tracking-tight">Bora, {firstName}.</h1>
+
+      {open && (
+        <section aria-label="Treino em andamento" className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-signal/60 bg-signal-tint p-4">
+          <p>
+            <span className="font-semibold">{open.dayName}</span> em andamento.
+          </p>
+          <div className="flex items-center gap-4">
+            <AbandonButton sessionId={open.id} />
+            <Link href={`/aluno/treino/${open.id}`} className={buttonClass("primary")}>
+              Continuar
+            </Link>
+          </div>
+        </section>
+      )}
 
       {!program ? (
         <section className="mt-8 rounded-[var(--radius-panel)] bg-turf p-6 text-white">
@@ -44,7 +63,7 @@ export default async function StudentHomePage() {
             {program.description && <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/85">{program.description}</p>}
           </section>
           <div className="mt-8">
-            <ProgramView content={program.content} videos={videos} showInstructions />
+            <ProgramView content={program.content} videos={videos} showInstructions dayAction={open ? undefined : (dayId) => <StartWorkoutButton dayId={dayId} />} />
           </div>
         </>
       )}

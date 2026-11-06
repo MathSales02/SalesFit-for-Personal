@@ -29,6 +29,7 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 | Invitations: hashed single-use tokens, 7-day expiry, email must match for existing accounts, seat limit race-safe | `server/students/invitations.ts` | `tests/students.test.ts` (incl. concurrent last-seat race) |
 | Uploads: allowlisted types, signed POST bound to key/type/size, magic-byte verification after upload, rejected files deleted and logged, storage quota with lock, private bucket, 15-min signed playback | `server/media/service.ts`, `server/storage/*` | `tests/media-exercises.test.ts` (spoofed file, oversize, cross-workspace playback) |
 | Programs: published versions immutable (trigger), exercises limited to platform or own workspace (trigger), students read only their assigned program's published content (RLS) | `drizzle/0007_programs_security.sql` | `tests/programs.test.ts` |
+| Workouts: sets only for the day's prescribed exercises and only while open; finished sessions immutable; records and record flags only in system context; completion time from DB clock (all enforced by triggers using session_user) | `drizzle/0009..0011_*.sql`, `server/workouts/service.ts` | `tests/workouts.test.ts` |
 | Cross-tenant integrity: composite foreign keys (member_id, workspace_id) | `0003_students_security.sql` | `tests/students.test.ts` |
 | Secrets only via environment; validated at startup | `server/env.ts`, `.env.example` | — |
 | Local services bound to 127.0.0.1; Redis password; least-privilege DB roles | `docker-compose.yml`, `docker/postgres/init.sh` | — |

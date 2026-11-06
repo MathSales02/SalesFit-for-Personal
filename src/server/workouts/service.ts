@@ -101,7 +101,8 @@ export async function getSessionView(actor: Actor, sessionId: string) {
       .from(workoutSets)
       .where(eq(workoutSets.sessionId, sessionId));
 
-    return { session: s, programName: program?.name ?? "", day, sets, previous: await previousPerformance(tx, m.memberId, day.exercises.map((e) => e.exerciseId), sessionId) };
+    const exerciseIds = day.exercises.flatMap((e) => [e.exerciseId, e.variationExerciseId]).filter((x): x is string => !!x);
+    return { session: s, programName: program?.name ?? "", day, sets, previous: await previousPerformance(tx, m.memberId, exerciseIds, sessionId) };
   });
 }
 

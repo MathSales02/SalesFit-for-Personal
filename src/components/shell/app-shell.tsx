@@ -17,6 +17,7 @@ const NAV: Record<Variant, NavItem[]> = {
   ],
   student: [
     { href: "/aluno", label: "Início", icon: <IconActivity /> },
+    { href: "/aluno/historico", label: "Histórico", icon: <IconClipboard /> },
     { href: "/aluno/saude", label: "Saúde", icon: <IconHeart /> },
     { href: "/conta", label: "Perfil", icon: <IconUser /> },
   ],

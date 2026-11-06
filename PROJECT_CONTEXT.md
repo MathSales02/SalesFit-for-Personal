@@ -32,7 +32,7 @@ As fases:
 |---|---|---|
 | 1 | Fundação: arquitetura, banco, autenticação, RBAC, isolamento, design system | ✅ |
 | 2 | Gestão do treinador: alunos, exercícios, vídeos, montagem de treinos | ✅ |
-| 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | **Próxima** (+ IA de evolução, ver seção 7) |
+| 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | **3A feita**; 3B (IA de evolução) e 3C (medidas e fotos) a seguir |
 | 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | — |
 | 5 | Gamificação: pontos, desafios, rankings, conquistas, recompensas | — |
 | 6 | Administração e SaaS: planos, limites, pagamentos, webhooks | — |
@@ -93,7 +93,8 @@ Princípios que valem para todo código novo:
 - **Treinador:** visão geral, **Alunos** (convite por e-mail, abas por situação, ficha, saúde com consentimento, suspender/arquivar), **Treinos** (montador com dias, versões, modelos, atribuição), **Exercícios** (biblioteca própria + 35 padrão, vídeos).
 - **Aluno:** início com o programa atual (dias, séries, vídeo e instruções), **Saúde** (consentimento, dados próprios, exclusão), perfil e sessões.
 - **Admin:** painel com números agregados e eventos de segurança.
-- **Qualidade:** 106 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Treino do aluno (3A):** player no celular com registro de séries, cronômetro de descanso, carga da última vez, recordes calculados no servidor, resumo, histórico; o treinador vê constância de 8 semanas, últimos treinos e recordes na ficha do aluno.
+- **Qualidade:** 117 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

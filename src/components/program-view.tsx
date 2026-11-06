@@ -6,12 +6,26 @@ const restLabel = (s: number | null) => (s == null ? null : s >= 60 ? `${Math.fl
  * Read-only program content. Used by the trainer (published version) and the
  * student. Videos come as short-lived signed URLs resolved on the server.
  */
-export function ProgramView({ content, videos, showInstructions = false }: { content: ProgramContent; videos?: Map<string, string>; showInstructions?: boolean }) {
+export function ProgramView({
+  content,
+  videos,
+  showInstructions = false,
+  dayAction,
+}: {
+  content: ProgramContent;
+  videos?: Map<string, string>;
+  showInstructions?: boolean;
+  /** Optional control rendered beside each day title (e.g. the student's Start button). */
+  dayAction?: (dayId: string) => React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-8">
       {content.days.map((d) => (
         <section key={d.id} aria-label={d.name}>
-          <h3 className="font-display text-2xl font-bold">{d.name}</h3>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-2xl font-bold">{d.name}</h3>
+            {dayAction?.(d.id)}
+          </div>
           {d.notes && <p className="mt-1 text-sm text-muted">{d.notes}</p>}
           <ol className="mt-3 divide-y divide-line rounded-[var(--radius-panel)] border border-line bg-paper">
             {d.exercises.map((e, i) => {
