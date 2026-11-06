@@ -33,7 +33,7 @@ As fases:
 | 1 | Fundação: arquitetura, banco, autenticação, RBAC, isolamento, design system | ✅ |
 | 2 | Gestão do treinador: alunos, exercícios, vídeos, montagem de treinos | ✅ |
 | 3 | Experiência do aluno: execução do treino, cronômetro, histórico, progresso | ✅ (3A e 3C). A 3B (IA) foi adiada pelo usuário |
-| 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | — |
+| 4 | Rede social: feed, comentários, curtidas, mensagens, notificações, moderação | **Em andamento**: backend da 4A pronto; interface da 4A sendo feita; 4B (mensagens e notificações) depois |
 | 5 | Gamificação: pontos, desafios, rankings, conquistas, recompensas | — |
 | 6 | Administração e SaaS: planos, limites, pagamentos, webhooks | — |
 | 7 | Segurança e otimização: auditoria, MFA, E2E, acessibilidade, deploy | — |
@@ -49,7 +49,14 @@ As fases:
 7. **Fase 2B-1:** biblioteca de exercícios e upload privado de vídeos. O MinIO deixou de publicar imagens Docker gratuitas, então foi adotado o **SeaweedFS** (compatível com S3).
 8. **Fase 2B-2:** montador de treinos com versões, modelos e atribuição.
 9. Durante os testes no navegador, os testes esgotaram o limite de cadastro do localhost (compartilhado com o servidor do usuário). Os contadores foram limpos e os testes passaram a usar um banco Redis separado. Também havia recarregamento em loop entre dois servidores `next dev`, corrigido com a pasta de build de teste dentro de `.next`.
-10. **Pedido atual:** na Fase 3, incluir uma **IA que entenda a evolução do aluno e repasse ao personal** (seção 7).
+10. **IA de evolução:** o usuário pediu, na Fase 3, uma IA que entenda a evolução do aluno e repasse ao personal. Ele escolheu Claude, só dados de treino, visível só ao personal. Depois **adiou a IA** para não ter custo agora (seção 7).
+11. **Fase 3A:** execução do treino (player, séries, cronômetro, recordes, histórico). Os testes encontraram e fecharam uma brecha nas regras do banco: funções com privilégio de dono usavam `current_user`; agora usam `session_user`.
+12. **Fase 3C:** medidas corporais e fotos de progresso privadas. Cada foto é reprocessada no servidor (sem GPS nem metadados).
+13. **Fase 4 (rede social).** O usuário quer uma rede social de verdade dentro da consultoria: alunos postam treinos, curtem e comentam, com segurança e **filtro NSFW** nas imagens. Decisões:
+    - Filtro NSFW **no próprio servidor, sem custo** (modelo open-source `nsfwjs`): bloqueia o explícito e manda o duvidoso para revisão do treinador.
+    - **Mensagens entre alunos ligadas por padrão**, com o treinador podendo desligar (configuração da consultoria).
+    - **4A** (feed, curtidas, comentários, seguir, bloquear, denunciar, moderação) e **4B** (mensagens e notificações).
+    - Os testes da 4A encontraram outra brecha: o autor podia alterar direto o contador de curtidas do próprio post. Fechada.
 
 Commits até aqui:
 
@@ -62,7 +69,19 @@ c533ae6 Phase 2B-1: exercise library and private video uploads
 ed98eda CI: fix line continuation in storage step
 b42baf5 Phase 2B-2: program builder, versioning and assignments
 defb831 Remove test build paths that next dev added to tsconfig
+fcfed76 Add PROJECT_CONTEXT.md
+35bc13c Phase 3A backend: workout sessions, set logging and personal records
+a0e4749 Phase 3A UI: workout player, rest timer, summary, history, trainer view
+f42e903 Phase 3C: body measurements and private progress photos
+9ee5fdc Phase 4A backend: community feed, likes, comments, follows, blocks, reports, NSFW screening
 ```
+
+### Onde paramos (atualizado a cada etapa)
+
+**Fase 4A, interface da rede social, em andamento.** O backend está pronto, testado (143 testes) e no GitHub. A interface está sendo escrita e ainda não foi commitada:
+- Já escritos: `src/app/_community/actions.ts` (ações do servidor) e `src/components/community/` (cartão de post, caixa de publicação, feed com "carregar mais", comentários, ações de perfil, páginas compartilhadas). Também as rotas `aluno/comunidade` e `treinador/comunidade` (feed, post, perfil).
+- Falta: página de moderação do treinador (`treinador/comunidade/moderacao`), botão "Compartilhar na comunidade" no resumo do treino, itens de menu, typecheck e lint, teste no navegador, commit.
+- Depois: **4B** (mensagens e notificações).
 
 ## 4. Stack e decisões principais
 
@@ -155,7 +174,7 @@ Ordem de construção: 3A (execução do treino, séries, cronômetro, recordes,
 
 - Preço e limite de alunos de cada plano (hoje são valores de exemplo: R$ 79 com 30 alunos, R$ 149 com 150).
 - Provedor de pagamento (Stripe, Mercado Pago, Asaas…).
-- Alunos podem trocar mensagens entre si por padrão?
+- ~~Alunos podem trocar mensagens entre si por padrão?~~ Decidido: sim, com o treinador podendo desligar.
 - Região de hospedagem (no Brasil simplifica a LGPD).
 - **IA:** quem paga o custo (incluso no plano ou recurso premium) e o texto de aviso/consentimento sobre o uso de IA. Provedor, dados enviados e quem vê já foram decididos (seção 7).
 - Os textos de Termos e Privacidade são rascunhos e precisam de revisão jurídica antes do lançamento.
