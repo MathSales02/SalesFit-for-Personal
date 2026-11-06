@@ -148,6 +148,20 @@
       "when": 1793966163845,
       "tag": "0020_cursor_precision",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793967094862,
+      "tag": "0021_gamification",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793967096851,
+      "tag": "0022_gamification_security",
+      "breakpoints": true
     }
   ]
 }

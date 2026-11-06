@@ -8,3 +8,4 @@ export * from "./workouts";
 export * from "./progress";
 export * from "./community";
 export * from "./messaging";
+export * from "./gamification";

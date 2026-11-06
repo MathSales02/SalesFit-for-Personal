@@ -22,6 +22,7 @@ import type { RequestMeta } from "../http/request-meta";
 import { audit } from "../security/audit";
 import { enforceRateLimit } from "../security/rate-limit";
 import { loadContent, type ProgramContent } from "../programs/service";
+import { recordWorkoutCheckin } from "../gamification/service";
 
 function studentScope(actor: Actor) {
   assertCan(actor, "training.log_own");
@@ -208,6 +209,8 @@ export async function finishSession(actor: Actor, input: { sessionId: string; ef
     await setTenantContext(tx, ctx);
 
     await tx.update(workoutSessions).set({ status: "completed", effort: input.effort, notes: input.notes }).where(eq(workoutSessions.id, s.id));
+    // Same transaction: the check-in and its points exist only if the workout was really completed.
+    await recordWorkoutCheckin(tx, ctx, { workspaceId: m.workspaceId, memberId: m.memberId, sessionId: s.id });
     await audit(tx, { action: "workouts.completed", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "session", targetId: s.id, metadata: { sets: sets.length }, ipHash: meta.ipHash });
   });
   return getSessionSummary(actor, input.sessionId);
