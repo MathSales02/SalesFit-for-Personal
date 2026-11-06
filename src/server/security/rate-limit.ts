@@ -56,7 +56,7 @@ export function ruleConfig(rule: RateLimitRule): Rule {
   return { ...RATE_LIMITS[rule], ...overrides[rule] };
 }
 
-export type RateLimitOutcome = { allowed: boolean; retryAfterSec: number; remaining: number };
+export type RateLimitOutcome = { allowed: boolean; retryAfterSec: number; remaining: number; unavailable?: boolean };
 
 /** Checks a rule without throwing. Use enforceRateLimit in most places. */
 export async function checkRateLimit(rule: RateLimitRule, subject: string): Promise<RateLimitOutcome> {
@@ -68,13 +68,20 @@ export async function checkRateLimit(rule: RateLimitRule, subject: string): Prom
     return { allowed: res.allowed, remaining: res.remaining, retryAfterSec: Math.ceil(res.retryAfterMs / 1000) };
   } catch (err) {
     log.error("rate limit store unavailable", { rule, failClosed: !!cfg.failClosed, ...errorFields(err) });
-    return cfg.failClosed ? { allowed: false, remaining: 0, retryAfterSec: 60 } : { allowed: true, remaining: 0, retryAfterSec: 0 };
+    return cfg.failClosed
+      ? { allowed: false, remaining: 0, retryAfterSec: 60, unavailable: true }
+      : { allowed: true, remaining: 0, retryAfterSec: 0 };
   }
 }
 
-/** Throws a RATE_LIMITED AppError (HTTP 429 with Retry-After) when the limit is exceeded. */
+/**
+ * Throws RATE_LIMITED (HTTP 429 with Retry-After) when the limit is exceeded,
+ * or UNAVAILABLE (503) when a fail-closed rule cannot reach the store. The two
+ * are kept apart so users are never told they tried too often when they did not.
+ */
 export async function enforceRateLimit(rule: RateLimitRule, subject: string): Promise<void> {
   const res = await checkRateLimit(rule, subject);
+  if (res.unavailable) throw Errors.unavailable();
   if (!res.allowed) throw Errors.rateLimited(res.retryAfterSec);
 }
 

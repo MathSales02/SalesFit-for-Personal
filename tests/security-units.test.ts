@@ -5,7 +5,7 @@ import { clientIp, requestMetaFrom } from "@/server/http/request-meta";
 import { redact } from "@/server/lib/logger";
 import { AppError } from "@/server/lib/errors";
 import { checkRateLimit, enforceRateLimit } from "@/server/security/rate-limit";
-import { MemoryRateLimitStore } from "@/server/security/rate-limit-store";
+import { MemoryRateLimitStore, setRateLimitStore } from "@/server/security/rate-limit-store";
 import { loginSchema, registerTrainerSchema } from "@/lib/validation/auth";
 import { hashPassword, needsRehash, verifyPassword } from "@/server/auth/password";
 
@@ -127,6 +127,21 @@ describe("rate limiting", () => {
     const a = `unit-a-${Math.random()}`;
     for (let i = 0; i < 6; i++) await checkRateLimit("register_ip", a);
     expect((await checkRateLimit("register_ip", `unit-b-${Math.random()}`)).allowed).toBe(true);
+  });
+
+  it("an unreachable store is reported as unavailable, not as too many attempts", async () => {
+    const broken = { hit: () => Promise.reject(new Error("ECONNREFUSED")), reset: () => Promise.resolve() };
+    setRateLimitStore(broken);
+    try {
+      // Fail-closed rule (signup): denied, with an honest message.
+      const err = await enforceRateLimit("register_ip", "unit-broken").catch((e: AppError) => e);
+      expect((err as AppError).code).toBe("UNAVAILABLE");
+      expect((err as AppError).status).toBe(503);
+      // Fail-open rule: allowed.
+      await expect(enforceRateLimit("user_default", "unit-broken")).resolves.toBeUndefined();
+    } finally {
+      setRateLimitStore(undefined);
+    }
   });
 
   it("the sliding window frees slots as time passes", async () => {

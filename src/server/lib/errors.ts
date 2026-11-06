@@ -10,6 +10,7 @@ export type ErrorCode =
   | "CONFLICT"
   | "RATE_LIMITED"
   | "PLAN_LIMIT"
+  | "UNAVAILABLE"
   | "INTERNAL";
 
 const HTTP_STATUS: Record<ErrorCode, number> = {
@@ -20,6 +21,7 @@ const HTTP_STATUS: Record<ErrorCode, number> = {
   CONFLICT: 409,
   RATE_LIMITED: 429,
   PLAN_LIMIT: 402,
+  UNAVAILABLE: 503,
   INTERNAL: 500,
 };
 
@@ -43,6 +45,7 @@ export const Errors = {
   forbidden: () => new AppError("FORBIDDEN", "Você não tem permissão para esta ação."),
   rateLimited: (retryAfterSec: number) =>
     new AppError("RATE_LIMITED", "Muitas tentativas. Aguarde um pouco e tente novamente.", { retryAfterSec }),
+  unavailable: () => new AppError("UNAVAILABLE", "O serviço está temporariamente indisponível. Tente novamente em alguns minutos."),
   validation: (fieldErrors: Record<string, string[]>) =>
     new AppError("VALIDATION", "Confira os campos destacados.", { fieldErrors }),
 };
