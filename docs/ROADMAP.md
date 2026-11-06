@@ -161,6 +161,16 @@ Done (7B), data retention: `npm run jobs:retention` runs once a day as the owner
 
 Audit logs are kept. 1 new test (196 total).
 
+Done (7C):
+- **E2E suite (Playwright).** Covers trainer signup, a student on a phone (check-in, ranking), MFA sign-in and live messages, with axe WCAG 2.1 AA checks on about 20 screens. It runs in CI (job `e2e`).
+- **Accessibility fixes found by it.** Logo links carry their visible name; unread counts no longer replace the visible link text; the photo-attach control is labelled correctly.
+- **Live messages.**
+  - A Server-Sent Events channel per conversation carries only a "changed" signal. Content is still fetched through the authorized poll.
+  - The signal crosses instances through Redis pub/sub.
+  - Polling stays as a fallback: every 4 s while the channel is down, every 30 s as a safety net.
+  - Streams re-authorize every 5 minutes, and connections are rate limited.
+- 1 new unit test and 1 E2E test (197 unit tests in total).
+
 ## Open business questions
 
 - Plan prices and limits (seeded placeholders: Inicial R$ 79 / 30 alunos; Profissional R$ 149 / 150 alunos).

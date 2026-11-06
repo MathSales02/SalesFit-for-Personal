@@ -34,6 +34,7 @@ export const RATE_LIMITS = {
   health_access_user: { limit: 120, windowSec: 60 * 60 },
   // Reserved for upcoming phases so every sensitive action has a limit from day one
   message_send_user: { limit: 30, windowSec: 60 },
+  realtime_connect_user: { limit: 60, windowSec: 60 },
   comment_create_user: { limit: 20, windowSec: 60 },
   like_user: { limit: 120, windowSec: 60 },
   post_create_user: { limit: 10, windowSec: 10 * 60 },

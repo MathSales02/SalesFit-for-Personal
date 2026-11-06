@@ -14,14 +14,15 @@ import { Notice } from "@/components/ui/notice";
 import type { MessageView } from "@/server/messaging/service";
 
 const POLL_MS = 4000;
+const SAFETY_POLL_MS = 30_000;
 const ACCEPT = "image/jpeg,image/png,image/webp";
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 type Cursor = { createdAt: string; id: string } | null;
 
 /**
- * A conversation. New messages arrive by polling every few seconds while the
- * tab is visible (a WebSocket channel is planned for the optimization phase).
+ * A conversation. New messages arrive through a live signal (Server-Sent
+ * Events), with polling as the fallback while that channel is down.
  */
 export function Thread({
   conversationId,
@@ -61,13 +62,42 @@ export function Thread({
   }, [items]);
 
   useEffect(() => {
+    let busy = false;
     const tick = async () => {
-      if (document.visibilityState !== "visible") return;
-      const res = await pollMessagesAction({ conversationId, after: latest.current });
-      if (res.ok && res.data?.length) append(res.data);
+      if (busy) return;
+      busy = true;
+      try {
+        const res = await pollMessagesAction({ conversationId, after: latest.current });
+        if (res.ok && res.data?.length) append(res.data);
+      } finally {
+        busy = false;
+      }
     };
-    const t = setInterval(() => void tick(), POLL_MS);
-    return () => clearInterval(t);
+    // Live signal: the server only says "something changed"; the content comes through the poll.
+    let live = false;
+    const source = typeof EventSource === "undefined" ? null : new EventSource(`/api/conversas/${conversationId}/eventos`);
+    source?.addEventListener("open", () => {
+      live = true;
+      void tick(); // catch up on anything sent while reconnecting
+    });
+    source?.addEventListener("message", () => void tick());
+    source?.addEventListener("error", () => {
+      live = false;
+    });
+    // Fallback: frequent polling while the live channel is down, a slow safety net otherwise.
+    let last = 0;
+    const t = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (!live || now - last >= SAFETY_POLL_MS) {
+        last = now;
+        void tick();
+      }
+    }, POLL_MS);
+    return () => {
+      clearInterval(t);
+      source?.close();
+    };
   }, [conversationId]);
 
   async function pick(file: File | undefined) {
@@ -194,7 +224,8 @@ export function Thread({
             </div>
           )}
           <div className="flex items-end gap-2">
-            <label htmlFor={fileId} className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-[var(--radius-control)] border border-line-strong bg-paper ${uploading ? "opacity-50" : ""}`} aria-label="Anexar foto">
+            <label htmlFor={fileId} className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-[var(--radius-control)] border border-line-strong bg-paper ${uploading ? "opacity-50" : ""}`}>
+              <span className="sr-only">Anexar foto</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <circle cx="9" cy="10" r="2" />

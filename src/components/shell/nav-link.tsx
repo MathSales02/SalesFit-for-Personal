@@ -9,7 +9,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || (href.split("/").length > 2 && pathname.startsWith(`${href}/`));
 }
 
-/** Unread count, announced to screen readers as part of the link name. */
+/** Unread count. Visually a pill; screen readers hear the count through <UnreadText>. */
 function Badge({ n, tone = "light" }: { n?: number; tone?: "light" | "dark" }) {
   if (!n) return null;
   return (
@@ -20,6 +20,8 @@ function Badge({ n, tone = "light" }: { n?: number; tone?: "light" | "dark" }) {
 }
 
 const withCount = (label: string, n?: number) => (n ? `${label} (${n} não lidas)` : label);
+/** Screen-reader-only count, so the link name keeps the visible label (WCAG 2.5.3). */
+const UnreadText = ({ n }: { n?: number }) => (n ? <span className="sr-only"> ({n} não lidas)</span> : null);
 
 export function SideNavLink({ item, tone = "light", iconOnly = false }: { item: NavItem; tone?: "light" | "dark"; iconOnly?: boolean }) {
   const active = isActive(usePathname(), item.href);
@@ -33,7 +35,7 @@ export function SideNavLink({ item, tone = "light", iconOnly = false }: { item: 
         ? "bg-turf-tint text-turf"
         : "text-ink-soft hover:bg-turf-tint/60 hover:text-ink";
   return (
-    <Link href={item.href} aria-current={active ? "page" : undefined} aria-label={withCount(item.label, item.badge)} className={`${base} ${cls}`}>
+    <Link href={item.href} aria-current={active ? "page" : undefined} aria-label={iconOnly ? withCount(item.label, item.badge) : undefined} className={`${base} ${cls}`}>
       <span className="size-5 shrink-0">{item.icon}</span>
       {iconOnly ? (
         item.badge ? (
@@ -44,6 +46,7 @@ export function SideNavLink({ item, tone = "light", iconOnly = false }: { item: 
       ) : (
         <>
           <span className="flex-1">{item.label}</span>
+          <UnreadText n={item.badge} />
           <Badge n={item.badge} tone={tone} />
         </>
       )}
@@ -57,11 +60,11 @@ export function TabNavLink({ item }: { item: NavItem }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      aria-label={withCount(item.label, item.badge)}
       className={`relative flex flex-1 flex-col items-center gap-1 py-2 text-xs font-semibold ${active ? "text-turf" : "text-muted"}`}
     >
       <span className="size-6">{item.icon}</span>
       {item.label}
+      <UnreadText n={item.badge} />
     </Link>
   );
 }

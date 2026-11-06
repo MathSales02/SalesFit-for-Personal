@@ -1,4 +1,5 @@
 import "server-only";
+import { publishConversationChange } from "./realtime";
 import { and, asc, desc, eq, gt, lt, ne, or, sql } from "drizzle-orm";
 import { countLinks } from "@/lib/validation/community";
 import { withTenant } from "../db/context";
@@ -217,8 +218,15 @@ export async function sendMessage(actor: Actor, input: { conversationId: string;
   });
   // Message content is private: only the fact that a message was sent is audited.
   await withTenant(ctx, (tx) => audit(tx, { action: "messages.sent", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "conversation", targetId: input.conversationId, ipHash: meta.ipHash }));
+  await publishConversationChange(input.conversationId);
   const [view] = await toViews(actor, m.memberId, [row]);
   return view!;
+}
+
+/** Throws unless the actor takes part in the conversation (RLS: only the two participants can read it). */
+export async function assertConversationAccess(actor: Actor, conversationId: string) {
+  const { m, ctx } = scope(actor);
+  await withTenant(ctx, (tx) => loadConversation(tx, m.workspaceId, conversationId));
 }
 
 /** The sender deletes a message: its text and image are wiped for both people. */
