@@ -2,7 +2,7 @@ import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/logo";
 import type { Actor } from "@/server/authz/policy";
-import { IconActivity, IconClipboard, IconTrend, IconDumbbell, IconHeart, IconHome, IconLogout, IconShield, IconUser, IconUsers } from "./icons";
+import { IconActivity, IconChat, IconClipboard, IconTrend, IconDumbbell, IconHome, IconLogout, IconShield, IconUser, IconUsers } from "./icons";
 import { SideNavLink, TabNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
@@ -13,13 +13,14 @@ const NAV: Record<Variant, NavItem[]> = {
     { href: "/treinador/alunos", label: "Alunos", icon: <IconUsers /> },
     { href: "/treinador/treinos", label: "Treinos", icon: <IconClipboard /> },
     { href: "/treinador/exercicios", label: "Exercícios", icon: <IconDumbbell /> },
+    { href: "/treinador/comunidade", label: "Comunidade", icon: <IconChat /> },
     { href: "/conta", label: "Conta", icon: <IconUser /> },
   ],
   student: [
     { href: "/aluno", label: "Início", icon: <IconActivity /> },
+    { href: "/aluno/comunidade", label: "Comunidade", icon: <IconChat /> },
     { href: "/aluno/historico", label: "Histórico", icon: <IconClipboard /> },
     { href: "/aluno/progresso", label: "Progresso", icon: <IconTrend /> },
-    { href: "/aluno/saude", label: "Saúde", icon: <IconHeart /> },
     { href: "/conta", label: "Perfil", icon: <IconUser /> },
   ],
   admin: [

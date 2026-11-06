@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { AppShell } from "@/components/shell/app-shell";
 import { buttonClass } from "@/components/ui/button-styles";
@@ -46,6 +47,20 @@ export default async function AccountPage() {
           <div className="mt-4 max-w-md">
             <Notice tone="warning">Seu e-mail ainda não foi confirmado.</Notice>
           </div>
+        )}
+        {actor.membership?.role === "student" && (
+          <nav aria-label="Seus dados" className="mt-6 flex max-w-md flex-col divide-y divide-line rounded-[var(--radius-panel)] border border-line bg-paper">
+            {[
+              ["/aluno/comunidade/membro/" + actor.membership.memberId, "Meu perfil na comunidade", "Suas publicações, seguidores e quem você segue."],
+              ["/aluno/saude", "Saúde e privacidade", "Lesões, restrições e o que seu treinador pode ver."],
+              ["/aluno/progresso", "Progresso", "Medidas e fotos, privadas por padrão."],
+            ].map(([href, label, hint]) => (
+              <Link key={href} href={href!} className="px-4 py-3 hover:bg-chalk">
+                <span className="block font-semibold">{label}</span>
+                <span className="block text-sm text-muted">{hint}</span>
+              </Link>
+            ))}
+          </nav>
         )}
       </section>
 

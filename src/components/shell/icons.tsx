@@ -58,3 +58,9 @@ export const IconTrend = () => (
     <path d="M15 7h6v6" />
   </svg>
 );
+export const IconChat = () => (
+  <svg {...base}>
+    <path d="M4 5h12v9H8l-4 3.5V5Z" />
+    <path d="M16 9h4v9.5L16.5 16H10v-2" />
+  </svg>
+);

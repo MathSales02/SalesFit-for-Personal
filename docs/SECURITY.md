@@ -31,6 +31,7 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 | Programs: published versions immutable (trigger), exercises limited to platform or own workspace (trigger), students read only their assigned program's published content (RLS) | `drizzle/0007_programs_security.sql` | `tests/programs.test.ts` |
 | Workouts: sets only for the day's prescribed exercises and only while open; finished sessions immutable; records and record flags only in system context; completion time from DB clock (all enforced by triggers using session_user) | `drizzle/0009..0011_*.sql`, `server/workouts/service.ts` | `tests/workouts.test.ts` |
 | Progress data: measurements visible to the trainer only with health consent (RLS); photos private by default and shared per photo; private media readable only by owner or, when shared, the trainer (RLS, so signed URLs follow); photos re-encoded server-side to strip EXIF/GPS and non-pixel content; decompression-bomb guard | `drizzle/0013_progress_security.sql`, `server/progress/service.ts`, `server/storage/image-processing.ts` | `tests/progress.test.ts` |
+| Community: RLS per workspace; held/removed posts visible only to author and trainer; announcements trainer-only; authors cannot edit, pin, approve or change counters (triggers); community images readable only once in a published post; NSFW verdict writable only by the system context; blocks hide content both ways without revealing the blocker | `drizzle/0015..0017_*.sql`, `server/community/service.ts`, `server/moderation/image-screen.ts` | `tests/community.test.ts` |
 | Cross-tenant integrity: composite foreign keys (member_id, workspace_id) | `0003_students_security.sql` | `tests/students.test.ts` |
 | Secrets only via environment; validated at startup | `server/env.ts`, `.env.example` | — |
 | Local services bound to 127.0.0.1; Redis password; least-privilege DB roles | `docker-compose.yml`, `docker/postgres/init.sh` | — |
@@ -39,6 +40,7 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 ## Not yet implemented (planned)
 
 - MFA (TOTP). Schema flag exists; required for platform admins before launch. — Phase 7
+- NSFW model is a first line of defence (false positives/negatives possible); reports and trainer review back it up. Text moderation (offensive words) relies on reports for now. — Phase 7
 - Malware scanning of uploads (hook point marked in `server/media/service.ts`). — Phase 7
 - Production bucket CORS allowlist (local storage reflects any origin; uploads still need a valid signature). — deployment
 - Audited break-glass access for admins to sensitive data. — Phase 6

@@ -49,9 +49,17 @@ Done (3C):
 Postponed by the product owner (no cost for now):
 - 3B: AI progress analysis for the trainer (Claude; training data only, never health data; trainer-only). Needs ANTHROPIC_API_KEY.
 
-## Phase 4 — Social
+## Phase 4 — Social (in progress)
 
-Feed (chronological + ranked, cursor pagination), posts, comments, reactions, profiles, follows, messaging, notifications, reports, blocking, moderation.
+Done (4A):
+- Community feed per workspace (all / following), keyset pagination, pinned trainer announcements
+- Posts with text, photo or a shared workout (summary numbers and records only); likes; comments with one level of replies
+- Profiles, follow, block (hides content both ways), report; trainer moderation queue, optional approval of student posts, community on/off
+- Photo safety: re-encoding (EXIF/GPS stripped) and on-server NSFW screening (open-source model): explicit refused, suggestive held for review
+- Anti-spam: link limits, duplicate-post window, per-action rate limits; counters maintained by the database
+- 16 new tests (143 total)
+
+Next (4B): direct messages (student-trainer always; student-student unless the trainer turns it off), notifications.
 
 ## Phase 5 — Gamification
 

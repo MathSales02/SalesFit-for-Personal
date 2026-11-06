@@ -7,6 +7,7 @@ import { EFFORT_LABEL } from "@/lib/validation/workouts";
 import { requirePageActor } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 import { getSessionSummary } from "@/server/workouts/service";
+import { ShareWorkoutForm } from "./share-form";
 
 export const metadata: Metadata = { title: "Resumo do treino" };
 
@@ -80,6 +81,10 @@ export default async function SummaryPage({ params }: { params: Promise<{ sessio
           )}
         </section>
       )}
+
+      <section aria-label="Compartilhar" className="mt-10 rounded-[var(--radius-panel)] border border-line bg-paper p-5">
+        <ShareWorkoutForm sessionId={s.sessionId} />
+      </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link href="/aluno" className={buttonClass("primary")}>
