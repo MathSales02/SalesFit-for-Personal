@@ -28,6 +28,8 @@ export type Actor = {
   email: string;
   emailVerified: boolean;
   isPlatformAdmin: boolean;
+  /** Two-step verification is on (required for platform admins to use admin permissions). */
+  mfaEnabled?: boolean;
   /** Active membership in the session's workspace, or null (e.g. a platform admin with no workspace). */
   membership: Membership | null;
 };

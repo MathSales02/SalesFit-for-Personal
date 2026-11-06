@@ -53,5 +53,7 @@ export async function createStudent(trainer: { userId: string; workspaceId: stri
 }
 
 export async function loginAs(email: string) {
-  return login({ email, password: PASSWORD }, meta());
+  const r = await login({ email, password: PASSWORD }, meta());
+  if ("mfaRequired" in r) throw new Error("account has MFA: use completeMfaLogin");
+  return r;
 }

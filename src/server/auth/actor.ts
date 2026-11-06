@@ -55,6 +55,7 @@ export async function resolveActor(token: string | undefined): Promise<Actor | n
     email: user.email,
     emailVerified: user.emailVerified,
     isPlatformAdmin: user.isPlatformAdmin,
+    mfaEnabled: user.mfaEnabled,
     membership,
   };
 }

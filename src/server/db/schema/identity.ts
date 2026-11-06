@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 
 /**
@@ -22,6 +22,10 @@ export const users = pgTable(
     isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+    /** TOTP secret, AES-256-GCM encrypted with MFA_ENCRYPTION_KEY. Set during enrollment, kept while MFA is on. */
+    mfaSecret: text("mfa_secret"),
+    /** Last accepted TOTP time step: a code can be used once. */
+    mfaLastStep: bigint("mfa_last_step", { mode: "number" }),
     passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }).notNull().defaultNow(),
     ...timestamps,
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -52,7 +56,7 @@ export const sessions = pgTable(
   ],
 );
 
-export const authTokenPurpose = pgEnum("auth_token_purpose", ["email_verification", "password_reset"]);
+export const authTokenPurpose = pgEnum("auth_token_purpose", ["email_verification", "password_reset", "mfa_challenge"]);
 
 /** Single-use, short-lived tokens for email verification and password reset. Stored hashed. */
 export const authTokens = pgTable(
@@ -112,4 +116,17 @@ export const consents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("consents_user_purpose_idx").on(t.userId, t.purpose, t.createdAt)],
+);
+
+/** One-time recovery codes for MFA, stored hashed. */
+export const mfaRecoveryCodes = pgTable(
+  "mfa_recovery_codes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("mfa_recovery_codes_hash_uq").on(t.codeHash), index("mfa_recovery_codes_user_idx").on(t.userId)],
 );

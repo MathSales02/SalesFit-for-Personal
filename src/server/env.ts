@@ -10,6 +10,8 @@ const schema = z
     MAIL_FROM: z.string().min(3),
     TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     PII_HASH_SECRET: z.string().min(32),
+    /** Encrypts TOTP secrets at rest. Changing it disables every enrolled authenticator. */
+    MFA_ENCRYPTION_KEY: z.string().min(32),
     S3_ENDPOINT: z.url(),
     S3_PUBLIC_ENDPOINT: z.url(),
     S3_REGION: z.string().min(1).default("us-east-1"),

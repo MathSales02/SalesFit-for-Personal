@@ -135,6 +135,16 @@ Phase 6 is complete.
 
 MFA, Playwright E2E suite in CI, accessibility audit, performance review, retention jobs, deployment guide.
 
+Done (7A), two-step verification (TOTP):
+- Login works with any authenticator app.
+- Optional for trainers and students; required for platform admins (admin pages and actions are refused until it is on).
+- Secrets are encrypted at rest (AES-256-GCM, `MFA_ENCRYPTION_KEY`), and each code is accepted once.
+- 10 single-use recovery codes, stored hashed and regenerable.
+- The password step only returns a 5-minute single-use challenge; the session is created after the code.
+- Enabling ends other sessions. Email on enable/disable; security event when a recovery code is used.
+- Rate limited per user (failures only).
+- 6 new tests, including the RFC 6238 vectors (195 total).
+
 ## Open business questions
 
 - Plan prices and limits (seeded placeholders: Inicial R$ 79 / 30 alunos; Profissional R$ 149 / 150 alunos).

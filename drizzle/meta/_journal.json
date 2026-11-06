@@ -204,6 +204,20 @@
       "when": 1793971085435,
       "tag": "0028_support_overview",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793971736267,
+      "tag": "0029_mfa",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793971744191,
+      "tag": "0030_mfa_security",
+      "breakpoints": true
     }
   ]
 }

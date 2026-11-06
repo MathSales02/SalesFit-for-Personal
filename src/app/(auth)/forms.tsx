@@ -4,14 +4,7 @@ import Link from "next/link";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import {
-  forgotPasswordAction,
-  loginAction,
-  registerAction,
-  resendVerificationAction,
-  resetPasswordAction,
-  verifyEmailAction,
-} from "./actions";
+import { forgotPasswordAction, loginAction, mfaLoginAction, registerAction, resendVerificationAction, resetPasswordAction, verifyEmailAction } from "./actions";
 
 const link = "font-semibold text-turf underline-offset-4 hover:underline";
 
@@ -154,6 +147,29 @@ export function VerifyEmailForm({ token }: { token: string }) {
           {fieldErrors(s, "token") && <p className="text-sm font-medium text-danger">Link inválido. Peça um novo.</p>}
           <SubmitButton full pendingLabel="Confirmando…">
             Confirmar meu e-mail
+          </SubmitButton>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function MfaLoginForm() {
+  return (
+    <ActionForm action={mfaLoginAction}>
+      {(s) => (
+        <>
+          <Field
+            label="Código do aplicativo autenticador"
+            name="code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={20}
+            hint="Perdeu o celular? Digite um dos códigos de recuperação."
+            errors={fieldErrors(s, "code")}
+          />
+          <SubmitButton full pendingLabel="Verificando…">
+            Continuar
           </SubmitButton>
         </>
       )}

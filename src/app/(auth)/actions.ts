@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -9,9 +10,9 @@ import {
   verifyEmailSchema,
 } from "@/lib/validation/auth";
 import type { ActionResult } from "@/lib/action-result";
-import { login, logout, registerTrainer, requestPasswordReset, resendVerification, resetPassword, verifyEmail } from "@/server/auth/service";
+import { completeMfaLogin, login, logout, registerTrainer, requestPasswordReset, resendVerification, resetPassword, verifyEmail } from "@/server/auth/service";
 import { parseForm, runAction } from "@/server/http/action";
-import { clearSessionCookie, currentActor, requestMeta, setSessionCookie } from "@/server/http/next";
+import { clearMfaChallengeCookie, clearSessionCookie, currentActor, readMfaChallengeCookie, requestMeta, setMfaChallengeCookie, setSessionCookie } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 
 // Every action re-validates its input on the server; nothing from the client is trusted.
@@ -19,8 +20,12 @@ import { AppError } from "@/server/lib/errors";
 export async function loginAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("login", async () => {
     const input = parseForm(loginSchema, form);
-    const session = await login(input, await requestMeta());
-    await setSessionCookie(session.token, session.expiresAt);
+    const result = await login(input, await requestMeta());
+    if ("mfaRequired" in result) {
+      await setMfaChallengeCookie(result.challenge);
+      redirect("/entrar/verificacao");
+    }
+    await setSessionCookie(result.token, result.expiresAt);
     redirect("/inicio");
   });
 }
@@ -72,4 +77,16 @@ export async function logoutAction(): Promise<void> {
   if (actor) await logout(actor.sessionId, actor.userId, await requestMeta());
   await clearSessionCookie();
   redirect("/entrar");
+}
+
+export async function mfaLoginAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("mfa_login", async () => {
+    const { code } = parseForm(z.strictObject({ code: z.string().trim().min(6, "Digite o código.").max(20) }), form);
+    const challenge = await readMfaChallengeCookie();
+    if (!challenge) throw new AppError("UNAUTHENTICATED", "O tempo para digitar o código acabou. Entre de novo com e-mail e senha.");
+    const session = await completeMfaLogin({ challenge, code }, await requestMeta());
+    await clearMfaChallengeCookie();
+    await setSessionCookie(session.token, session.expiresAt);
+    redirect("/inicio");
+  });
 }

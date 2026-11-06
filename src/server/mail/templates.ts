@@ -74,3 +74,11 @@ export function supportAccessEmail(to: string, workspaceName: string, reason: st
   ];
   return { to, subject: "Acesso de suporte à sua consultoria", text: textLayout(p, url), html: layout("Acesso de suporte aberto", p, { label: "Ver na visão geral", url }) };
 }
+
+export function mfaChangedEmail(to: string, enabled: boolean): Mail {
+  const p = enabled
+    ? ["A verificação em duas etapas foi ativada na sua conta. A partir de agora, o login pede um código do aplicativo autenticador.", "Guarde os códigos de recuperação em lugar seguro."]
+    : ["A verificação em duas etapas foi desativada na sua conta.", "Se não foi você, redefina sua senha imediatamente e fale com o suporte."];
+  const title = enabled ? "Verificação em duas etapas ativada" : "Verificação em duas etapas desativada";
+  return { to, subject: title, text: textLayout(p), html: layout(title, p) };
+}

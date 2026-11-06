@@ -27,6 +27,9 @@ export const currentActor = cache(async (): Promise<Actor | null> => {
  */
 type Gate = { allowInactive?: boolean };
 
+/** Platform administration is only available with two-step verification on. */
+const needsMfa = (actor: Actor, permission?: Permission) => !!permission?.startsWith("admin.") && !actor.mfaEnabled;
+
 const isBlocked = (actor: Actor) => actor.membership?.access?.state === "blocked";
 
 /** Where a blocked member is sent. */
@@ -45,6 +48,7 @@ export async function requirePageActor(permission?: Permission, gate: Gate = {})
       redirect("/inicio");
     }
   }
+  if (needsMfa(actor, permission)) redirect("/conta/duas-etapas?obrigatorio=1");
   if (!gate.allowInactive && isBlocked(actor)) redirect(blockedPathFor(actor));
   return actor;
 }
@@ -59,6 +63,7 @@ export async function requireActionActor(permission?: Permission, gate: Gate = {
   await enforceRateLimit("user_default", actor.userId);
   if (actor.membership) await enforceRateLimit("workspace_default", actor.membership.workspaceId);
   if (permission) assertCan(actor, permission);
+  if (needsMfa(actor, permission)) throw new AppError("FORBIDDEN", "Ative a verificação em duas etapas para usar a administração.");
   if (!gate.allowInactive && isBlocked(actor)) {
     throw new AppError(
       "PLAN_LIMIT",
@@ -80,6 +85,22 @@ export async function setSessionCookie(token: string, expiresAt: Date) {
     expires: expiresAt,
     priority: "high",
   });
+}
+
+const MFA_COOKIE = "cadencia_mfa";
+
+/** Holds the pending MFA challenge between the password step and the code step (5 minutes, login pages only). */
+export async function setMfaChallengeCookie(challenge: string) {
+  const jar = await cookies();
+  jar.set(MFA_COOKIE, challenge, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/entrar", maxAge: 5 * 60 });
+}
+
+export async function readMfaChallengeCookie() {
+  return (await cookies()).get(MFA_COOKIE)?.value ?? null;
+}
+
+export async function clearMfaChallengeCookie() {
+  (await cookies()).delete({ name: MFA_COOKIE, path: "/entrar" });
 }
 
 export async function clearSessionCookie() {

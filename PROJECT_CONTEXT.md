@@ -105,8 +105,9 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - Excluir a conta (aluno; o dono de uma consultoria passa pelo suporte).
 - Acesso emergencial de suporte, com motivo, prazo curto e aviso por e-mail ao treinador. O treinador vê o registro na visão geral. O acesso nunca inclui saúde, fotos, medidas, mensagens nem publicações.
 
-**Próximo: Fase 7 (endurecimento).**
-- MFA.
+**Fase 7A concluída:** verificação em duas etapas (aplicativo autenticador + códigos de recuperação). É opcional para treinadores e alunos e obrigatória para administradores. O `.env` ganhou `MFA_ENCRYPTION_KEY`; não troque essa chave em produção, senão os autenticadores param de funcionar.
+
+**Próximo na Fase 7:**
 - Testes E2E no CI.
 - WebSockets para mensagens.
 - Revisão de acessibilidade e desempenho.
@@ -154,7 +155,8 @@ Princípios que valem para todo código novo:
 - **Administração e assinatura (6A):** painel admin (consultorias, usuários, planos, segurança, auditoria) e página de assinatura do treinador; acesso pausado automaticamente quando o teste/assinatura vence.
 - **Pagamento (6C):** assinatura mensal pelo Asaas (Pix, boleto, cartão), cobranças listadas, troca de plano e cancelamento; eventos de cobrança no admin.
 - **Privacidade (6B):** baixar meus dados, excluir conta, acesso emergencial de suporte auditado e visível ao treinador.
-- **Qualidade:** 189 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
+- **Verificação em duas etapas (7A):** em Conta; obrigatória para administradores.
+- **Qualidade:** 195 testes automáticos, lint, typecheck, CI no GitHub Actions (Postgres, Redis e storage reais), auditoria de dependências de produção.
 
 ## 6. Ambiente local
 

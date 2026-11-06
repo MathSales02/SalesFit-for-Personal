@@ -31,6 +31,7 @@ export default defineConfig({
       SMTP_URL: process.env.SMTP_URL ?? "smtp://127.0.0.1:1025",
       MAIL_FROM: "Cadência <test@cadencia.local>",
       PII_HASH_SECRET: "test-secret-test-secret-test-secret-1234",
+      MFA_ENCRYPTION_KEY: "test-mfa-key-test-mfa-key-test-mfa-key-1234",
       TRUSTED_PROXY_HOPS: "0",
       S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://127.0.0.1:8333",
       S3_PUBLIC_ENDPOINT: process.env.S3_ENDPOINT ?? "http://127.0.0.1:8333",

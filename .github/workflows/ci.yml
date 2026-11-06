@@ -60,5 +60,6 @@ jobs:
           SMTP_URL: smtp://127.0.0.1:1025
           MAIL_FROM: ci@example.com
           PII_HASH_SECRET: ci-only-secret-ci-only-secret-0000
+          MFA_ENCRYPTION_KEY: ci-only-mfa-key-ci-only-mfa-key-0000
           S3_PUBLIC_ENDPOINT: http://127.0.0.1:8333
           S3_BUCKET: cadencia-media

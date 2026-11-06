@@ -1,4 +1,5 @@
 import "server-only";
+import { verifySecondFactor } from "./mfa";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { registerTrainerSchema } from "@/lib/validation/auth";
@@ -59,7 +60,9 @@ async function findUserByEmail(exec: Executor, email: string) {
   return u;
 }
 
-async function issueToken(exec: Executor, userId: string, purpose: "email_verification" | "password_reset", ttlMs: number) {
+type TokenPurpose = "email_verification" | "password_reset" | "mfa_challenge";
+
+async function issueToken(exec: Executor, userId: string, purpose: TokenPurpose, ttlMs: number) {
   // A new token invalidates earlier unused ones of the same purpose.
   await exec
     .update(authTokens)
@@ -71,7 +74,7 @@ async function issueToken(exec: Executor, userId: string, purpose: "email_verifi
 }
 
 /** Atomically marks a token used. Returns its user id, or null when it is unknown, used or expired. */
-async function consumeToken(exec: Executor, token: string, purpose: "email_verification" | "password_reset") {
+async function consumeToken(exec: Executor, token: string, purpose: TokenPurpose) {
   const [row] = await exec
     .update(authTokens)
     .set({ usedAt: new Date() })
@@ -188,7 +191,10 @@ export function lockRemainingMs(failures: Date[], now = Date.now()): number {
   return Math.max(0, failures[0]!.getTime() + lockMs - now);
 }
 
-export type LoginResult = { token: string; expiresAt: Date; userId: string };
+export type SessionResult = { token: string; expiresAt: Date; userId: string };
+/** Either a session, or (for accounts with MFA) a short-lived challenge to complete with a code. */
+export type LoginResult = SessionResult | { mfaRequired: true; challenge: string };
+export const MFA_CHALLENGE_TTL_MS = 5 * 60 * 1000;
 
 export async function login(input: { email: string; password: string }, meta: RequestMeta): Promise<LoginResult> {
   const emailH = emailHash(input.email);
@@ -226,15 +232,52 @@ export async function login(input: { email: string; password: string }, meta: Re
     await db().update(users).set({ passwordHash: await hashPassword(input.password) }).where(eq(users.id, user.id));
   }
 
-  const activeWorkspaceId = await defaultWorkspaceFor(user.id);
+  if (user.mfaEnabled) {
+    // The password is right, but no session until the second factor is checked.
+    const challenge = await issueToken(db(), user.id, "mfa_challenge", MFA_CHALLENGE_TTL_MS);
+    return { mfaRequired: true, challenge };
+  }
+  const result = await openSession(user.id, emailH, meta, null);
+  await resetRateLimit("login_account", emailH);
+  return result;
+}
+
+async function openSession(userId: string, emailH: string, meta: RequestMeta, mfa: "totp" | "recovery" | null): Promise<SessionResult> {
+  const activeWorkspaceId = await defaultWorkspaceFor(userId);
   const result = await db().transaction(async (tx) => {
-    await tx.insert(loginAttempts).values({ emailHash: emailH, userId: user.id, ipHash: meta.ipHash, success: true });
-    const s = await createSession(tx, user.id, meta, activeWorkspaceId);
-    await audit(tx, { action: "auth.login", actorUserId: user.id, targetType: "session", targetId: s.sessionId, ipHash: meta.ipHash });
+    await tx.insert(loginAttempts).values({ emailHash: emailH, userId, ipHash: meta.ipHash, success: true });
+    const s = await createSession(tx, userId, meta, activeWorkspaceId);
+    await audit(tx, { action: "auth.login", actorUserId: userId, targetType: "session", targetId: s.sessionId, metadata: mfa ? { mfa } : {}, ipHash: meta.ipHash });
     return s;
   });
+  return { token: result.token, expiresAt: result.expiresAt, userId };
+}
+
+/** Second step of a login with MFA: the challenge from login() plus an app or recovery code. */
+export async function completeMfaLogin(input: { challenge: string; code: string }, meta: RequestMeta): Promise<SessionResult> {
+  await enforceRateLimit("login_ip", meta.ipHash);
+  const expired = () => new AppError("UNAUTHENTICATED", "O tempo para digitar o código acabou. Entre de novo com e-mail e senha.");
+  const [pending] = await db()
+    .select({ userId: authTokens.userId })
+    .from(authTokens)
+    .where(and(eq(authTokens.tokenHash, hashToken(input.challenge)), eq(authTokens.purpose, "mfa_challenge"), isNull(authTokens.usedAt), gt(authTokens.expiresAt, new Date())));
+  if (!pending) throw expired();
+  const [user] = await db().select().from(users).where(and(eq(users.id, pending.userId), isNull(users.deletedAt)));
+  if (!user || user.status !== "active" || !user.mfaEnabled) throw expired();
+  const emailH = emailHash(user.email);
+
+  const method = await verifySecondFactor(db(), user.id, input.code);
+  if (!method) {
+    await db().insert(loginAttempts).values({ emailHash: emailH, userId: user.id, ipHash: meta.ipHash, success: false, reason: "bad_mfa_code" });
+    throw Errors.validation({ code: ["Código inválido."] });
+  }
+  if (!(await consumeToken(db(), input.challenge, "mfa_challenge"))) throw expired();
+  const result = await openSession(user.id, emailH, meta, method);
   await resetRateLimit("login_account", emailH);
-  return { token: result.token, expiresAt: result.expiresAt, userId: user.id };
+  if (method === "recovery") {
+    await recordSecurityEvent({ type: "auth.mfa_recovery_code_used", severity: "warning", userId: user.id, ipHash: meta.ipHash });
+  }
+  return result;
 }
 
 /** Picks the workspace a new session starts in: a trainer workspace first, then any active membership. */

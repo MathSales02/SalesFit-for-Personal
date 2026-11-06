@@ -70,6 +70,13 @@ export default async function AccountPage() {
         </h2>
         <p className="mt-1 mb-5 text-sm text-muted">Ao alterar, as sessões em outros dispositivos são encerradas.</p>
         <ChangePasswordForm />
+        <Link href="/conta/duas-etapas" className="mt-8 flex max-w-md items-center justify-between rounded-[var(--radius-panel)] border border-line bg-paper px-4 py-3 hover:bg-chalk">
+          <span>
+            <span className="block font-semibold">Verificação em duas etapas</span>
+            <span className="block text-sm text-muted">{actor.mfaEnabled ? "Ativa" : "Desativada. Recomendado para proteger sua conta."}</span>
+          </span>
+          <span aria-hidden className="text-muted">→</span>
+        </Link>
       </section>
 
       <section aria-labelledby="sessions-h" className="border-b border-line py-10">
