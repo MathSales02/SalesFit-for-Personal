@@ -45,10 +45,11 @@ export const MAX_PRIVATE_PHOTOS = 300;
  * workspace: trainer uploads shared with the workspace (exercise videos).
  * private: a student's own image (progress photo), visible only to them unless shared.
  * community: an image attached to a community post; screened for NSFW content.
+ * message: an image sent in a direct message; must screen fully clear.
  */
-export type UploadVisibility = "workspace" | "private" | "community";
+export type UploadVisibility = "workspace" | "private" | "community" | "message";
 
-const PERMISSION = { workspace: "training.manage", private: "progress.manage_own", community: "community.post" } as const;
+const PERMISSION = { workspace: "training.manage", private: "progress.manage_own", community: "community.post", message: "messages.use" } as const;
 
 /**
  * Step 1: reserve quota and hand the browser a signed form that only accepts
@@ -169,12 +170,13 @@ export async function completeUpload(actor: Actor, assetId: string, meta: Reques
     finalType = PROCESSED_IMAGE_TYPE;
     finalSize = processed.byteLength;
     await deleteObject(asset.storageKey).catch((err: unknown) => log.error("could not delete original upload", errorFields(err)));
-    if (asset.visibility === "community") {
+    if (asset.visibility === "community" || asset.visibility === "message") {
       const result = await screenImage(processed);
-      if (result.decision === "block") {
+      // Nobody reviews private conversations, so message images must screen fully clear.
+      if (result.decision === "block" || (asset.visibility === "message" && result.decision !== "clear")) {
         await withTenant(ctx, (tx) => tx.update(mediaAssets).set({ status: "rejected" }).where(eq(mediaAssets.id, asset.id)));
-        await recordSecurityEvent({ type: "media.nsfw_blocked", severity: "warning", userId: actor.userId, workspaceId: m.workspaceId, ipHash: meta.ipHash, metadata: { scores: result.scores } });
-        throw new AppError("VALIDATION", "Esta imagem não é permitida na comunidade.");
+        await recordSecurityEvent({ type: "media.nsfw_blocked", severity: "warning", userId: actor.userId, workspaceId: m.workspaceId, ipHash: meta.ipHash, metadata: { scores: result.scores, visibility: asset.visibility } });
+        throw new AppError("VALIDATION", asset.visibility === "message" ? "Esta imagem não pode ser enviada em mensagens." : "Esta imagem não é permitida na comunidade.");
       }
       screening = { decision: result.decision, scores: result.scores };
     }

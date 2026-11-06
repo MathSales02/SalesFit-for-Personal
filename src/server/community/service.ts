@@ -8,6 +8,7 @@ import {
   follows,
   mediaAssets,
   memberBlocks,
+  messages,
   postLikes,
   posts,
   reports,
@@ -23,6 +24,7 @@ import { audit } from "../security/audit";
 import { enforceRateLimit } from "../security/rate-limit";
 import { playbackUrls } from "../media/service";
 import { getSessionSummary } from "../workouts/service";
+import { notify, type NotifyItem } from "../notifications/service";
 
 export const FEED_PAGE = 20;
 const MAX_LINKS_POST = 3;
@@ -105,6 +107,17 @@ export async function createPost(actor: Actor, input: { body: string | null; ima
       })
       .returning({ id: posts.id });
     await audit(tx, { action: "community.post_created", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "post", targetId: p!.id, metadata: { status }, ipHash: meta.ipHash });
+    if (input.announcement && status === "published") {
+      const students = await tx
+        .select({ id: workspaceMembers.id })
+        .from(workspaceMembers)
+        .where(and(eq(workspaceMembers.workspaceId, m.workspaceId), eq(workspaceMembers.role, "student"), eq(workspaceMembers.status, "active")));
+      await notify(
+        tx,
+        ctx,
+        students.map((s) => ({ recipientMemberId: s.id, type: "announcement" as const, actorMemberId: m.memberId, targetId: p!.id, dedupeKey: `announcement:${p!.id}` })),
+      );
+    }
     return { postId: p!.id, status };
   });
 }
@@ -313,9 +326,13 @@ export async function toggleLike(actor: Actor, postId: string): Promise<{ liked:
   await enforceRateLimit("like_user", actor.userId);
   return withTenant(ctx, async (tx) => {
     await assertCommunityOpen(tx, actor, m.workspaceId);
-    await loadVisiblePost(tx, m.memberId, m.workspaceId, postId);
+    const target = await loadVisiblePost(tx, m.memberId, m.workspaceId, postId);
     const removed = await tx.delete(postLikes).where(and(eq(postLikes.postId, postId), eq(postLikes.memberId, m.memberId))).returning({ postId: postLikes.postId });
-    if (removed.length === 0) await tx.insert(postLikes).values({ postId, memberId: m.memberId, workspaceId: m.workspaceId }).onConflictDoNothing();
+    if (removed.length === 0) {
+      await tx.insert(postLikes).values({ postId, memberId: m.memberId, workspaceId: m.workspaceId }).onConflictDoNothing();
+      // Like → unlike → like produces one notification (same dedupe key).
+      await notify(tx, ctx, [{ recipientMemberId: target.authorMemberId, type: "post_liked", actorMemberId: m.memberId, targetId: postId, dedupeKey: `like:${postId}:${m.memberId}` }]);
+    }
     const [p] = await tx.select({ likeCount: posts.likeCount }).from(posts).where(eq(posts.id, postId));
     return { liked: removed.length === 0, likeCount: p?.likeCount ?? 0 };
   });
@@ -328,19 +345,27 @@ export async function addComment(actor: Actor, input: { postId: string; parentCo
   if (countLinks(input.body) > MAX_LINKS_COMMENT) throw new AppError("VALIDATION", `Use no máximo ${MAX_LINKS_COMMENT} links por comentário.`);
   await withTenant(ctx, async (tx) => {
     await assertCommunityOpen(tx, actor, m.workspaceId);
-    await loadVisiblePost(tx, m.memberId, m.workspaceId, input.postId);
+    const target = await loadVisiblePost(tx, m.memberId, m.workspaceId, input.postId);
+    let parentAuthor: string | null = null;
     if (input.parentCommentId) {
       const [parent] = await tx
-        .select({ id: comments.id })
+        .select({ id: comments.id, authorMemberId: comments.authorMemberId })
         .from(comments)
         .where(and(eq(comments.id, input.parentCommentId), eq(comments.postId, input.postId), isNull(comments.parentCommentId), eq(comments.status, "published")));
       if (!parent) throw Errors.notFound();
+      parentAuthor = parent.authorMemberId;
     }
     const [c] = await tx
       .insert(comments)
       .values({ workspaceId: m.workspaceId, postId: input.postId, authorMemberId: m.memberId, parentCommentId: input.parentCommentId, body: input.body })
       .returning({ id: comments.id });
     await audit(tx, { action: "community.comment_created", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "comment", targetId: c!.id, ipHash: meta.ipHash });
+    const items: NotifyItem[] = [];
+    if (parentAuthor) items.push({ recipientMemberId: parentAuthor, type: "comment_replied", actorMemberId: m.memberId, targetId: input.postId, dedupeKey: `reply:${c!.id}` });
+    if (target.authorMemberId !== parentAuthor) {
+      items.push({ recipientMemberId: target.authorMemberId, type: "post_commented", actorMemberId: m.memberId, targetId: input.postId, dedupeKey: `comment:${c!.id}` });
+    }
+    await notify(tx, ctx, items);
   });
 }
 
@@ -355,6 +380,7 @@ export async function removePost(actor: Actor, postId: string, meta: RequestMeta
     if (p.status === "removed") return;
     await tx.update(posts).set({ status: "removed", removedAt: new Date(), removedByUserId: actor.userId, pinned: isAuthor ? undefined : false }).where(eq(posts.id, postId));
     await audit(tx, { action: isAuthor ? "community.post_deleted" : "community.post_removed_by_trainer", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "post", targetId: postId, ipHash: meta.ipHash });
+    if (!isAuthor) await notify(tx, ctx, [{ recipientMemberId: p.authorMemberId, type: "post_removed", actorMemberId: m.memberId, targetId: postId, dedupeKey: `removed:${postId}` }]);
   });
 }
 
@@ -390,6 +416,7 @@ export async function setFollow(actor: Actor, memberId: string, follow: boolean)
       const [blocked] = await tx.select({ b: sql<boolean>`app_block_between(${m.memberId}::uuid, ${memberId}::uuid)` }).from(sql`(select 1) x`);
       if (blocked?.b) throw Errors.notFound();
       await tx.insert(follows).values({ followerMemberId: m.memberId, followedMemberId: memberId, workspaceId: m.workspaceId }).onConflictDoNothing();
+      await notify(tx, ctx, [{ recipientMemberId: memberId, type: "new_follower", actorMemberId: m.memberId, targetId: m.memberId, dedupeKey: `follow:${m.memberId}` }]);
     } else {
       await tx.delete(follows).where(and(eq(follows.followerMemberId, m.memberId), eq(follows.followedMemberId, memberId)));
     }
@@ -420,16 +447,22 @@ export async function setBlock(actor: Actor, memberId: string, block: boolean, m
 /** One report per member and target. The trainer reviews reports in the moderation queue. */
 export async function report(
   actor: Actor,
-  input: { targetType: "post" | "comment" | "member"; targetId: string; reason: "spam" | "harassment" | "nudity" | "hate" | "unsafe_training" | "other"; details: string | null },
+  input: { targetType: "post" | "comment" | "member" | "message"; targetId: string; reason: "spam" | "harassment" | "nudity" | "hate" | "unsafe_training" | "other"; details: string | null },
   meta: RequestMeta,
 ) {
   assertCan(actor, "community.read");
   const { m, ctx } = scope(actor);
   await enforceRateLimit("comment_create_user", actor.userId);
   await withTenant(ctx, async (tx) => {
-    const table = input.targetType === "post" ? posts : input.targetType === "comment" ? comments : workspaceMembers;
+    // A message can be reported only by someone who can read it (a participant, via RLS),
+    // and only messages sent by the other person.
+    const table = input.targetType === "post" ? posts : input.targetType === "comment" ? comments : input.targetType === "message" ? messages : workspaceMembers;
     const [target] = await tx.select({ id: table.id }).from(table).where(and(eq(table.id, input.targetId), eq(table.workspaceId, m.workspaceId)));
     if (!target) throw Errors.notFound();
+    if (input.targetType === "message") {
+      const [own] = await tx.select({ id: messages.id }).from(messages).where(and(eq(messages.id, input.targetId), eq(messages.senderMemberId, m.memberId)));
+      if (own) throw new AppError("VALIDATION", "Você não pode denunciar a própria mensagem.");
+    }
     const inserted = await tx
       .insert(reports)
       .values({ workspaceId: m.workspaceId, reporterMemberId: m.memberId, targetType: input.targetType, targetId: input.targetId, reason: input.reason, details: input.details })
@@ -508,8 +541,19 @@ export async function getModerationQueue(actor: Actor) {
     const memberPreviews = memberIds.length
       ? await tx.select({ id: workspaceMembers.id, text: users.displayName }).from(workspaceMembers).innerJoin(users, eq(users.id, workspaceMembers.userId)).where(inArray(workspaceMembers.id, memberIds))
       : [];
+    // Reported messages: the trainer cannot read conversations, so only the reported
+    // message itself is read, from the system context (the reporter disclosed it).
+    const messageIds = open.filter((r) => r.targetType === "message").map((r) => r.targetId);
+    let messagePreviews: { id: string; text: string | null; status?: string }[] = [];
+    if (messageIds.length) {
+      await setTenantContext(tx, { ...ctx, isSystem: true });
+      messagePreviews = (
+        await tx.select({ id: messages.id, body: messages.body, deletedAt: messages.deletedAt }).from(messages).where(and(inArray(messages.id, messageIds), eq(messages.workspaceId, m.workspaceId)))
+      ).map((x) => ({ id: x.id, text: x.deletedAt ? "(mensagem apagada pelo autor)" : x.body ?? "(foto)" }));
+      await setTenantContext(tx, ctx);
+    }
     const preview = new Map<string, { text: string | null; status?: string; postId?: string }>(
-      [...postPreviews, ...commentPreviews, ...memberPreviews].map((x) => [x.id, x]),
+      [...postPreviews, ...commentPreviews, ...memberPreviews, ...messagePreviews].map((x) => [x.id, x]),
     );
     const [{ n: openCount } = { n: 0 }] = await tx.select({ n: count() }).from(reports).where(and(eq(reports.workspaceId, m.workspaceId), eq(reports.status, "open")));
     return { pending: pending as PostRow[], reasons: new Map(reasons.map((r) => [r.id, r.reviewReason])), reports: open.map((r) => ({ ...r, preview: preview.get(r.targetId) ?? null })), openCount };
@@ -526,9 +570,18 @@ export async function moderatePost(actor: Actor, postId: string, decision: "appr
       .update(posts)
       .set(decision === "approve" ? { status: "published", reviewReason: null } : { status: "removed", removedAt: new Date(), removedByUserId: actor.userId })
       .where(and(eq(posts.id, postId), eq(posts.workspaceId, m.workspaceId), eq(posts.status, "pending_review")))
-      .returning({ id: posts.id });
+      .returning({ id: posts.id, authorMemberId: posts.authorMemberId });
     if (res.length === 0) throw Errors.notFound();
     await audit(tx, { action: decision === "approve" ? "community.post_approved" : "community.post_rejected", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "post", targetId: postId, ipHash: meta.ipHash });
+    await notify(tx, ctx, [
+      {
+        recipientMemberId: res[0]!.authorMemberId,
+        type: decision === "approve" ? "post_approved" : "post_removed",
+        actorMemberId: m.memberId,
+        targetId: postId,
+        dedupeKey: `${decision === "approve" ? "approved" : "removed"}:${postId}`,
+      },
+    ]);
   });
 }
 
@@ -541,7 +594,12 @@ export async function resolveReport(actor: Actor, reportId: string, decision: "r
     if (!r) throw Errors.notFound();
     if (decision === "remove_content") {
       if (r.targetType === "post") {
-        await tx.update(posts).set({ status: "removed", removedAt: new Date(), removedByUserId: actor.userId, pinned: false }).where(and(eq(posts.id, r.targetId), eq(posts.workspaceId, m.workspaceId)));
+        const [removed] = await tx
+          .update(posts)
+          .set({ status: "removed", removedAt: new Date(), removedByUserId: actor.userId, pinned: false })
+          .where(and(eq(posts.id, r.targetId), eq(posts.workspaceId, m.workspaceId)))
+          .returning({ authorMemberId: posts.authorMemberId });
+        if (removed) await notify(tx, ctx, [{ recipientMemberId: removed.authorMemberId, type: "post_removed", actorMemberId: m.memberId, targetId: r.targetId, dedupeKey: `removed:${r.targetId}` }]);
       } else if (r.targetType === "comment") {
         await tx.update(comments).set({ status: "removed", removedAt: new Date(), removedByUserId: actor.userId }).where(and(eq(comments.id, r.targetId), eq(comments.workspaceId, m.workspaceId)));
       }

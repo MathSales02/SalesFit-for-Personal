@@ -17,6 +17,7 @@ import { assertCan, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import type { RequestMeta } from "../http/request-meta";
 import { audit } from "../security/audit";
+import { notify } from "../notifications/service";
 
 function scope(actor: Actor) {
   const m = requireMembership(actor);
@@ -270,6 +271,25 @@ export async function publishDraft(actor: Actor, programId: string, meta: Reques
     if (n === 0) throw new AppError("VALIDATION", "Adicione pelo menos um exercício antes de publicar.");
     await tx.update(programVersions).set({ status: "published", publishedAt: new Date() }).where(eq(programVersions.id, draft.id));
     await audit(tx, { action: "programs.published", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "program", targetId: programId, metadata: { version: draft.number }, ipHash: meta.ipHash });
+    if (draft.number > 1) {
+      const following = await tx
+        .select({ memberId: programAssignments.memberId, name: programs.name })
+        .from(programAssignments)
+        .innerJoin(programs, eq(programs.id, programAssignments.programId))
+        .where(and(eq(programAssignments.programId, programId), eq(programAssignments.status, "active")));
+      await notify(
+        tx,
+        ctx,
+        following.map((f) => ({
+          recipientMemberId: f.memberId,
+          type: "program_updated" as const,
+          actorMemberId: m.memberId,
+          targetId: programId,
+          data: { programName: f.name, version: draft.number },
+          dedupeKey: `program_updated:${programId}:${draft.number}`,
+        })),
+      );
+    }
     return draft.number;
   });
 }
@@ -359,6 +379,19 @@ export async function assignProgram(
       })),
     );
     await audit(tx, { action: "programs.assigned", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "program", targetId: input.programId, metadata: { members: memberIds.length }, ipHash: meta.ipHash });
+    const [prog] = await tx.select({ name: programs.name }).from(programs).where(eq(programs.id, input.programId));
+    await notify(
+      tx,
+      ctx,
+      memberIds.map((memberId) => ({
+        recipientMemberId: memberId,
+        type: "program_assigned" as const,
+        actorMemberId: m.memberId,
+        targetId: input.programId,
+        data: { programName: prog?.name ?? "" },
+        dedupeKey: `assigned:${input.programId}:${input.startsOn}`,
+      })),
+    );
     return memberIds.length;
   });
 }

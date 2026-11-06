@@ -78,7 +78,7 @@ f42e903 Phase 3C: body measurements and private progress photos
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Fase 4A concluída e no GitHub** (backend, interface e teste no navegador). **Próximo: 4B**, com mensagens diretas (aluno ↔ treinador sempre; aluno ↔ aluno salvo se o treinador desligar; bloqueio impede conversa) e notificações (curtidas, comentários, mensagens, treino atribuído, posts aprovados).
+**Fase 4A concluída.** **Fase 4B: backend pronto e no GitHub** (mensagens diretas e notificações, 156 testes). Falta a interface da 4B: páginas de Mensagens (lista, conversa com atualização periódica e envio de foto) e Notificações (lista, marcar como lida, preferências), selos de não lidas no menu, teste no navegador, commit.
 
 ## 4. Stack e decisões principais
 

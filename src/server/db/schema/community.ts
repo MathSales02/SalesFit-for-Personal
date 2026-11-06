@@ -49,7 +49,8 @@ export const posts = pgTable(
     pinned: boolean("pinned").notNull().default(false),
     likeCount: integer("like_count").notNull().default(0),
     commentCount: integer("comment_count").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // Millisecond precision: cursor values round-trip exactly through JavaScript dates.
+    createdAt: timestamp("created_at", { withTimezone: true, precision: 3 }).notNull().defaultNow(),
     removedAt: timestamp("removed_at", { withTimezone: true }),
     removedByUserId: uuid("removed_by_user_id").references(() => users.id, { onDelete: "set null" }),
   },

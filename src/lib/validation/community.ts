@@ -46,7 +46,7 @@ export const REPORT_REASONS = [
 ] as const;
 
 export const reportSchema = z.strictObject({
-  targetType: z.enum(["post", "comment", "member"]),
+  targetType: z.enum(["post", "comment", "member", "message"]),
   targetId: z.uuid(),
   reason: z.enum(["spam", "harassment", "nudity", "hate", "unsafe_training", "other"]),
   details: text(500, "Detalhes"),

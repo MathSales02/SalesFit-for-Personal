@@ -19,7 +19,8 @@ export const workoutSessions = pgTable(
     versionId: uuid("version_id").notNull(),
     dayId: uuid("day_id").notNull(),
     status: sessionStatus("status").notNull().default("in_progress"),
-    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    // Millisecond precision: history cursors round-trip exactly through JavaScript dates.
+    startedAt: timestamp("started_at", { withTimezone: true, precision: 3 }).notNull().defaultNow(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     durationSeconds: integer("duration_seconds"),
     /** Student's own note about the session (e.g. "senti o ombro"). Not health data by design; kept short. */

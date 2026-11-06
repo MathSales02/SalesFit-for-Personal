@@ -127,6 +127,27 @@
       "when": 1793943204697,
       "tag": "0017_post_counter_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793965709937,
+      "tag": "0018_messaging",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793965711963,
+      "tag": "0019_messaging_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793966163845,
+      "tag": "0020_cursor_precision",
+      "breakpoints": true
     }
   ]
 }

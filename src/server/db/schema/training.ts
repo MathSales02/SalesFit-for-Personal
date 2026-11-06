@@ -6,7 +6,7 @@ import { workspaces } from "./tenancy";
 
 export const mediaKind = pgEnum("media_kind", ["video", "image"]);
 export const mediaStatus = pgEnum("media_status", ["pending", "ready", "rejected", "deleted"]);
-export const mediaVisibility = pgEnum("media_visibility", ["workspace", "private", "community"]);
+export const mediaVisibility = pgEnum("media_visibility", ["workspace", "private", "community", "message"]);
 export const mediaModeration = pgEnum("media_moderation", ["not_checked", "clear", "review"]);
 
 /**
