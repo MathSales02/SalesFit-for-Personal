@@ -27,6 +27,18 @@ services:
     ports: ["127.0.0.1:${REDIS_PORT:-6389}:6379"]
     volumes: [redisdata:/data]
 
+  storage:
+    image: chrislusf/seaweedfs:4.50
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/init/entrypoint.sh"]
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?set in .env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?set in .env}
+    ports: ["127.0.0.1:${S3_PORT:-8333}:8333"]
+    volumes:
+      - storagedata:/data
+      - ./docker/seaweedfs/entrypoint.sh:/init/entrypoint.sh:ro
+
   mailpit:
     image: axllent/mailpit:latest
     restart: unless-stopped
@@ -35,3 +47,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  storagedata:

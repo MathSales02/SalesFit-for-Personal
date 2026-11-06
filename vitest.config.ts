@@ -32,6 +32,12 @@ export default defineConfig({
       MAIL_FROM: "Cadência <test@cadencia.local>",
       PII_HASH_SECRET: "test-secret-test-secret-test-secret-1234",
       TRUSTED_PROXY_HOPS: "0",
+      S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://127.0.0.1:8333",
+      S3_PUBLIC_ENDPOINT: process.env.S3_ENDPOINT ?? "http://127.0.0.1:8333",
+      S3_REGION: process.env.S3_REGION ?? "us-east-1",
+      S3_BUCKET: process.env.TEST_S3_BUCKET ?? "cadencia-media-test",
+      S3_ACCESS_KEY: process.env.S3_ACCESS_KEY ?? "ci-access-key",
+      S3_SECRET_KEY: process.env.S3_SECRET_KEY ?? "ci-secret-key-0000",
     },
   },
 });

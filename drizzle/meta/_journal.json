@@ -29,6 +29,20 @@
       "when": 1793937112283,
       "tag": "0003_students_security",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793938505981,
+      "tag": "0004_exercises_media",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793938507905,
+      "tag": "0005_exercises_media_security",
+      "breakpoints": true
     }
   ]
 }

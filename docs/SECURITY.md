@@ -27,6 +27,7 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 | Consent records (versioned, append-only) | `consents` table | Signup flow |
 | Health data: RLS lets the trainer read only while consent is active; no admin clause; reads audited; student can erase | `drizzle/0003_students_security.sql`, `server/students/students.ts` | `tests/students.test.ts` |
 | Invitations: hashed single-use tokens, 7-day expiry, email must match for existing accounts, seat limit race-safe | `server/students/invitations.ts` | `tests/students.test.ts` (incl. concurrent last-seat race) |
+| Uploads: allowlisted types, signed POST bound to key/type/size, magic-byte verification after upload, rejected files deleted and logged, storage quota with lock, private bucket, 15-min signed playback | `server/media/service.ts`, `server/storage/*` | `tests/media-exercises.test.ts` (spoofed file, oversize, cross-workspace playback) |
 | Cross-tenant integrity: composite foreign keys (member_id, workspace_id) | `0003_students_security.sql` | `tests/students.test.ts` |
 | Secrets only via environment; validated at startup | `server/env.ts`, `.env.example` | — |
 | Local services bound to 127.0.0.1; Redis password; least-privilege DB roles | `docker-compose.yml`, `docker/postgres/init.sh` | — |
@@ -35,7 +36,8 @@ Target: OWASP ASVS Level 2, OWASP Top 10, OWASP API Security Top 10. Status refl
 ## Not yet implemented (planned)
 
 - MFA (TOTP). Schema flag exists; required for platform admins before launch. — Phase 7
-- File upload pipeline: signature sniffing, size limits, private bucket, signed URLs, malware scan hook. — Phase 2
+- Malware scanning of uploads (hook point marked in `server/media/service.ts`). — Phase 7
+- Production bucket CORS allowlist (local storage reflects any origin; uploads still need a valid signature). — deployment
 - Audited break-glass access for admins to sensitive data. — Phase 6
 - Payment webhook signature verification and idempotency (`billing_events`). — Phase 6
 - Data subject requests (export, deletion) and retention jobs for `login_attempts`, `security_events`, revoked sessions. — Phase 6/7

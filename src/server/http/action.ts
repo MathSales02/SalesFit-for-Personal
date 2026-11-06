@@ -33,6 +33,13 @@ export function parseForm<S extends z.ZodType>(schema: S, form: FormData): z.inf
   return parsed.data;
 }
 
+/** Validates a non-form action argument (actions called directly from client code). */
+export function parseInput<S extends z.ZodType>(schema: S, value: unknown): z.infer<S> {
+  const parsed = schema.safeParse(value);
+  if (!parsed.success) throw Errors.validation({ _form: ["Dados inválidos."] });
+  return parsed.data;
+}
+
 /** Runs an action body and maps errors to a safe ActionResult. */
 export async function runAction<T>(name: string, fn: () => Promise<ActionResult<T>>): Promise<ActionResult<T>> {
   try {

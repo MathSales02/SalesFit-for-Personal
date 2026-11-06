@@ -13,9 +13,10 @@ Requirements: Node.js 22+, Docker Desktop.
 ```bash
 cp .env.example .env          # then replace every "change-me" with a long random value
 npm install
-npm run infra:up              # Postgres, Redis and Mailpit, bound to 127.0.0.1
+npm run infra:up              # Postgres, Redis, object storage and Mailpit, bound to 127.0.0.1
 npm run db:migrate            # main database
 npm run db:migrate -- --test  # test database
+npm run storage:init          # private media bucket (add -- --test for the test bucket)
 npm run dev                   # http://localhost:3000
 ```
 

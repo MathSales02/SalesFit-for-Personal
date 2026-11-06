@@ -31,15 +31,17 @@ export async function proxy(request: NextRequest) {
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const dev = process.env.NODE_ENV !== "production";
+  // Private media storage: the browser uploads to it with signed forms and plays signed URLs from it.
+  const storage = storageOrigin();
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     // Inline style attributes are needed by React; scripts remain nonce-locked.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data:",
+    `img-src 'self' blob: data:${storage}`,
     "font-src 'self'",
-    `connect-src 'self'${dev ? " ws:" : ""}`,
-    "media-src 'self' blob:",
+    `connect-src 'self'${storage}${dev ? " ws:" : ""}`,
+    `media-src 'self' blob:${storage}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -53,6 +55,14 @@ export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
   return response;
+}
+
+function storageOrigin(): string {
+  try {
+    return ` ${new URL(process.env.S3_PUBLIC_ENDPOINT ?? "").origin}`;
+  } catch {
+    return "";
+  }
 }
 
 export const config = {

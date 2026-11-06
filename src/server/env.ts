@@ -10,6 +10,12 @@ const schema = z
     MAIL_FROM: z.string().min(3),
     TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     PII_HASH_SECRET: z.string().min(32),
+    S3_ENDPOINT: z.url(),
+    S3_PUBLIC_ENDPOINT: z.url(),
+    S3_REGION: z.string().min(1).default("us-east-1"),
+    S3_BUCKET: z.string().regex(/^[a-z0-9][a-z0-9.-]{2,62}$/),
+    S3_ACCESS_KEY: z.string().min(8),
+    S3_SECRET_KEY: z.string().min(16),
     /** Optional JSON object overriding entries of RATE_LIMITS, e.g. {"login_ip":{"limit":50,"windowSec":600}} */
     RATE_LIMIT_OVERRIDES: z.string().optional(),
   })

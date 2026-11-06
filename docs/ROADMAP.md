@@ -20,10 +20,13 @@ Done (2A):
 - Health records with explicit, revocable consent; student can view, edit and delete their own; trainer reads are audited
 - 18 new tests (77 total)
 
-Next (2B):
-1. Exercise library (platform defaults + trainer's own)
-2. Media pipeline: S3-compatible private storage (MinIO locally), upload validation, signed URLs
-3. Program builder: days, exercises, sets/reps/load/rest/tempo, drag and drop, duplicate, templates, versioning, assignment
+Done (2B-1):
+- Exercise library: 35 platform exercises (pt-BR) plus each trainer's own; copy to customize; search and muscle-group filter; archive
+- Private video uploads: signed direct-to-storage form (exact key, type and size), server-side size and file-signature check, rejected files deleted, plan storage quota, 15-minute signed playback URLs
+- 16 new tests (93 total)
+
+Next (2B-2):
+1. Program builder: days, exercises, sets/reps/load/rest/tempo, drag and drop, duplicate, templates, versioning, assignment
 
 ## Phase 3 — Student experience
 
