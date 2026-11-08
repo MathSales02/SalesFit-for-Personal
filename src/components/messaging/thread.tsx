@@ -213,7 +213,7 @@ export function Thread({
       </div>
 
       {canSend ? (
-        <div className="sticky bottom-16 border-t border-line bg-chalk pt-3 sm:bottom-0">
+        <div className="sticky bottom-[var(--tabbar-h,0px)] border-t border-line bg-chalk pt-3">
           {image && (
             <div className="relative mb-2 inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}

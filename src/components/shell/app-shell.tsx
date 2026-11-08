@@ -25,7 +25,7 @@ import {
   IconUsers,
 } from "./icons";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { HeaderIconLink, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
+import { HeaderIconLink, MoreTab, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
 type Badges = { messages: number; notifications: number };
@@ -129,7 +129,7 @@ export async function AppShell({
 
   if (variant === "student") {
     return (
-      <div className="min-h-dvh pb-20 xl:pb-0 bg-chalk">
+      <div className="min-h-dvh bg-chalk pb-20 [--tabbar-h:4rem] xl:pb-0 xl:[--tabbar-h:0px]">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
             <Link href="/aluno" aria-label="SalesFit, início">
@@ -167,8 +167,12 @@ export async function AppShell({
   if (variant === "trainer") {
     const account = main.filter((i) => i.href === "/conta");
     const nav = main.filter((i) => i.href !== "/conta");
+    // Phones and tablets: a bottom tab bar like the student's. Messages and notifications stay in the header.
+    const TAB_HREFS = ["/treinador", "/treinador/alunos", "/treinador/treinos", "/treinador/comunidade"];
+    const tabs = main.filter((i) => TAB_HREFS.includes(i.href)).map((i) => (i.href === "/treinador" ? { ...i, label: "Início" } : i));
+    const more = main.filter((i) => !TAB_HREFS.includes(i.href) && !header.some((h) => h.href === i.href));
     return (
-      <div className="min-h-dvh bg-chalk lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)]">
+      <div className="min-h-dvh bg-chalk pb-20 [--tabbar-h:4rem] lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:pb-0 lg:[--tabbar-h:0px]">
         {/* Desktop: a floating icon rail, as in the reference dashboard. */}
         <aside className="sticky top-0 hidden h-dvh py-4 pl-4 lg:block">
           <div className="flex h-full flex-col items-center gap-5 rounded-[var(--radius-panel)] bg-paper py-5 shadow-[var(--shadow-card)]">
@@ -209,7 +213,7 @@ export async function AppShell({
           </div>
         </aside>
 
-        <header className="relative flex h-14 items-center justify-between gap-2 border-b border-line bg-paper px-4 lg:hidden">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b border-line bg-paper/95 px-4 lg:hidden">
           <Link href="/treinador" aria-label="SalesFit, início">
             <Logo />
           </Link>
@@ -218,19 +222,6 @@ export async function AppShell({
             {header.map((i) => (
               <HeaderIconLink key={i.href} item={i} />
             ))}
-            <details className="group">
-              <summary className="grid size-10 cursor-pointer list-none place-items-center rounded-full text-ink-soft hover:bg-turf-tint/60" aria-label="Menu">
-                <span className="size-[22px]">
-                  <IconMenu />
-                </span>
-              </summary>
-              <nav aria-label="Principal" className="absolute inset-x-0 top-14 z-20 flex flex-col gap-1 border-b border-line bg-paper px-4 py-3 shadow-[var(--shadow-raised)]">
-                {main.map((i) => (
-                  <SideNavLink key={i.href} item={i} />
-                ))}
-                <LogoutButton tone="light" />
-              </nav>
-            </details>
           </div>
         </header>
 
@@ -238,6 +229,13 @@ export async function AppShell({
           <BillingBanner actor={actor} />
           {children}
         </main>
+
+        <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-paper lg:hidden">
+          {tabs.map((i) => (
+            <TabNavLink key={i.href} item={i} />
+          ))}
+          <MoreTab items={more} footer={<LogoutButton tone="light" />} />
+        </nav>
       </div>
     );
   }

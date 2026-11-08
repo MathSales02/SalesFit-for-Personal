@@ -273,7 +273,7 @@ export function ProgramBuilder({ programId, initialDays, catalog }: { programId:
         <ExercisePicker catalog={catalog} onPick={addExercise} disabled={day.rows.length >= MAX_EXERCISES_PER_DAY} />
       </section>
 
-      <div className="sticky bottom-0 z-10 -mx-4 flex flex-col gap-3 border-t border-line bg-chalk/95 px-4 py-3 backdrop-blur sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:rounded-[var(--radius-panel)] sm:border">
+      <div className="sticky bottom-[var(--tabbar-h,0px)] z-10 -mx-4 flex flex-col gap-3 border-t border-line bg-chalk/95 px-4 py-3 backdrop-blur sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:rounded-[var(--radius-panel)] sm:border">
         <div className="text-sm" aria-live="polite">
           {status ? (
             <span className={status.tone === "error" ? "font-semibold text-danger" : "font-semibold text-turf"}>{status.text}</span>

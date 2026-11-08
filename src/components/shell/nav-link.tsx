@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
@@ -138,5 +139,71 @@ export function RailLink({ item }: { item: NavItem }) {
         <UnreadText n={item.badge} />
       </span>
     </Link>
+  );
+}
+
+/**
+ * Last slot of the mobile tab bar: opens a sheet with the remaining destinations.
+ * Closes on navigation, Esc or a tap outside. `footer` holds extra controls (sign out).
+ */
+export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.ReactNode }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const active = items.some((i) => isActive(pathname, i.href));
+  const unread = items.reduce((n, i) => n + (i.badge ?? 0), 0);
+
+  // Close after moving to another page.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onDown = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={root} className="flex min-w-0 flex-1">
+      {open && (
+        <div id="more-menu" className="absolute inset-x-3 bottom-full mb-2 flex flex-col gap-1 rounded-[var(--radius-panel)] border border-line bg-paper p-2 shadow-[var(--shadow-card)]">
+          {items.map((i) => (
+            <SideNavLink key={i.href} item={i} />
+          ))}
+          {footer}
+        </div>
+      )}
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="more-menu"
+        onClick={() => setOpen((v) => !v)}
+        className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[0.66rem] tracking-[-0.01em] font-medium transition-colors ${
+          active || open ? "text-turf font-semibold" : "text-muted hover:text-ink"
+        }`}
+      >
+        <span className="relative size-5">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="size-5">
+            <circle cx="5" cy="12" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="19" cy="12" r="2" />
+          </svg>
+          {unread ? <span aria-hidden="true" className="absolute -top-1 -right-1.5 size-2 rounded-full bg-turf-solid" /> : null}
+        </span>
+        Mais
+        <UnreadText n={unread} />
+      </button>
+    </div>
   );
 }
