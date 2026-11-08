@@ -129,7 +129,7 @@ export default async function TrainerOverviewPage() {
           {o.students.active === 0 ? (
             <p className="text-sm text-muted">Quando seus alunos começarem a treinar, quem ficar mais de 7 dias sem treino aparece aqui.</p>
           ) : activity.inactive.length === 0 ? (
-            <p className="text-sm text-muted">Todos os alunos ativos treinaram nos últimos 7 dias. 👏</p>
+            <p className="text-sm text-muted">Todos os alunos ativos treinaram nos últimos 7 dias.</p>
           ) : (
             <>
               <p className="-mt-2 mb-3 text-sm text-muted">

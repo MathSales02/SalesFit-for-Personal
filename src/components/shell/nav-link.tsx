@@ -79,7 +79,7 @@ export function TabNavLink({ item }: { item: NavItem }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`relative flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium transition-colors ${
+      className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[0.66rem] tracking-[-0.01em] font-medium transition-colors ${
         active ? "text-turf font-semibold" : "text-muted hover:text-ink"
       }`}
     >

@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Sora } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 
-const barlow = Barlow({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-barlow", display: "swap" });
-const barlowCondensed = Barlow_Condensed({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-barlow-condensed", display: "swap" });
+// Variable font (all weights in one file), self-hosted by next/font: no request to Google from the browser.
+const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Cadência", template: "%s · Cadência" },
@@ -12,13 +12,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = { themeColor: "#123f30", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#eef1f6", width: "device-width", initialScale: 1 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Reading the request headers makes every page dynamic, which the per-request CSP nonce requires.
   await headers();
   return (
-    <html lang="pt-BR" className={`${barlow.variable} ${barlowCondensed.variable}`}>
+    <html lang="pt-BR" className={sora.variable}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

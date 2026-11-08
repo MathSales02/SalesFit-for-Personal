@@ -128,14 +128,14 @@ export async function AppShell({
 
   if (variant === "student") {
     return (
-      <div className="min-h-dvh pb-20 sm:pb-0 bg-chalk">
+      <div className="min-h-dvh pb-20 xl:pb-0 bg-chalk">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
             <Link href="/aluno" aria-label="Cadência, início">
               <Logo />
             </Link>
             <div className="flex items-center gap-1">
-              <nav aria-label="Principal" className="hidden items-center gap-1 sm:flex">
+              <nav aria-label="Principal" className="hidden items-center gap-1 xl:flex">
                 {main.map((i) => (
                   <SideNavLink key={i.href} item={i} />
                 ))}
@@ -143,7 +143,7 @@ export async function AppShell({
               {header.map((i) => (
                 <HeaderIconLink key={i.href} item={i} />
               ))}
-              <span className="hidden sm:block">
+              <span className="hidden xl:block">
                 <LogoutButton tone="light" />
               </span>
             </div>
@@ -152,7 +152,7 @@ export async function AppShell({
         <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
         <nav
           aria-label="Principal"
-          className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-paper sm:hidden"
+          className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-paper xl:hidden"
         >
           {main.map((i) => (
             <TabNavLink key={i.href} item={i} />

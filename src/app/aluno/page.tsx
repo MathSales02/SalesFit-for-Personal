@@ -62,12 +62,14 @@ export default async function StudentHomePage() {
           <p className="mt-1.5 text-sm text-muted">{actor.membership?.workspaceName} · seu resumo de hoje</p>
         </div>
         {ranking && (
-          <Link href="/aluno/ranking" className={`${buttonClass("primary")} hidden sm:inline-flex`}>
-            <span className="size-4">
-              <IconTrophy />
-            </span>
-            Ranking
-          </Link>
+          <span className="hidden sm:block">
+            <Link href="/aluno/ranking" className={buttonClass("primary")}>
+              <span className="size-4">
+                <IconTrophy />
+              </span>
+              Ranking
+            </Link>
+          </span>
         )}
       </header>
 

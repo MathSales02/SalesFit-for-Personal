@@ -106,8 +106,13 @@
   --color-dark-card: #1c1c1e;
   --color-dark-border: #2a2a2d;
 
-  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+
+  /* Sora is a variable font: slightly lighter "bold" keeps headings confident without shouting. */
+  --font-weight-medium: 480;
+  --font-weight-semibold: 570;
+  --font-weight-bold: 640;
 
   --radius-control: 12px;
   --radius-panel: 24px;
@@ -143,4 +148,13 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/*
+ * Display type (titles and big numbers): Sora is wide, so it is set tighter.
+ * Unlayered on purpose so it wins over the utility layer for every .font-display.
+ */
+.font-display {
+  letter-spacing: -0.035em;
+  font-feature-settings: "tnum" 1, "ss01" 1;
 }
