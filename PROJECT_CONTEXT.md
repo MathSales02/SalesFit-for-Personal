@@ -84,6 +84,29 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
+**Deploy em andamento (08/11/2026): Railway, beta fechado, Asaas sandbox, sem domínio próprio.**
+- Projeto Railway **cadenciafit** (ambiente production) com os serviços:
+  - `web`: o app, a partir do GitHub `main`, com `Dockerfile` e `railway.json`. Antes de cada publicação roda as migrações; o teste de saúde é `/api/health`.
+  - `Postgres` e `Redis`.
+  - Bucket `media`, região iad (EUA).
+- Endereço: https://web-production-329fe.up.railway.app.
+- **Feito:**
+  - Usuários do banco `cadencia_owner` e `cadencia_app` e o banco `cadencia`, criados com `scripts/provision-db.ts`. O TCP Proxy foi aberto só para isso e removido em seguida.
+  - Variáveis do `web`: chaves novas geradas (`PII_HASH_SECRET`, `MFA_ENCRYPTION_KEY`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`), endereços do banco, Redis e bucket por referência, e o Asaas sandbox (a mesma chave e o mesmo token do `.env` local).
+  - Ajustes no código: `metadataBase` vindo do `APP_URL` e Redis com `family: 0` (a rede interna do Railway é IPv6).
+- **Parou em:** o usuário criou a variável de e-mail com o nome errado (`SMPT_URL`) e ainda não aplicou. O certo é `SMTP_URL=smtps://matheusssales0218%40gmail.com:<senha de app>@smtp.gmail.com:465`.
+- **Próximos passos:**
+  1. Conferir o formato de `SMTP_URL` sem exibir a senha.
+  2. Publicar e acompanhar os logs.
+  3. Testar o upload de fotos e vídeos no bucket do Railway. Ele precisa aceitar envio direto do navegador e CORS; se não aceitar, usar o AWS S3.
+  4. Configurar o webhook do Asaas sandbox para `/api/webhooks/asaas`.
+  5. Criar o administrador (`npm run admin:create`, via `railway run`).
+  6. Testar cadastro e e-mail.
+  7. Agendar a rotina de limpeza.
+  8. Política de privacidade: dados hospedados nos EUA.
+- **Até 01/12/2026:** migrar o `railway.json` para `.railway/railway.ts` (formato antigo descontinuado).
+- **Observação:** o sistema de permissões bloqueia registrar chave SSH e ler credenciais; use referências `${{servico.VAR}}` e `--stdin`.
+
 **Estado em 08/11/2026 (último commit `a08032e`):** as 7 fases estão prontas e a **landing page nova** está no GitHub, com o CI verde.
 
 **Landing page (nome comercial CadênciaFit).** Relatório completo em `docs/landing/RELATORIO.md`.
