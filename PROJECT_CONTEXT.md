@@ -99,6 +99,9 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
   - Bucket testado com `scripts/storage-check.ts`: CORS, envio assinado, limite de tamanho, leitura assinada e acesso negado sem assinatura, tudo OK. Não precisa de AWS.
   - Webhook do Asaas sandbox criado (scripts/asaas-webhook.ts).
   - Administrador matheusssales0218@gmail.com criado (passo único no pre-deploy do Railway, já desfeito; senha enviada ao usuário, que vai trocá-la).
+  - Termos e política de privacidade completos (versão 2026-11-08, responsável Matheus dos Santos Sales) e rotina de limpeza agendada (serviço `retention`, cron 06:00 UTC, testada).
+- **E-mail:** o plano Hobby do Railway bloqueia SMTP (o Gmail dava "Connection timeout"). O app agora envia pela API da Brevo quando `BREVO_API_KEY` está definida (commit 255287c). Falta o usuário criar a conta na Brevo, verificar o remetente (o Gmail) e colocar `BREVO_API_KEY` no serviço `web`.
+- **Publicação automática:** não existe. O Railway não tem acesso ao repositório pelo GitHub App (o `deploymentTriggerCreate` falha). Até o usuário liberar o repositório `cadencia` no Railway App do GitHub, publique com `railway api` `serviceInstanceDeployV2(serviceId, environmentId, commitSha)` nos serviços `web` e `retention`.
 - **Falta:** o usuário entrar como admin, ativar a verificação em duas etapas, trocar a senha e testar o cadastro com e-mail.
 - **Depois:**
   - Agendar a rotina de limpeza (serviço cron no Railway rodando `npm run jobs:retention`).
