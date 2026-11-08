@@ -157,7 +157,7 @@ export function Thread({
         {items.map((m) => (
           <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
             <div
-              className={`max-w-[80%] rounded-[var(--radius-panel)] px-3.5 py-2 ${m.deleted ? "border border-dashed border-line-strong bg-transparent text-muted italic" : m.mine ? "bg-turf text-white" : "border border-line bg-paper"}`}
+              className={`max-w-[80%] rounded-[var(--radius-panel)] px-3.5 py-2 ${m.deleted ? "border border-dashed border-line-strong bg-transparent text-muted italic" : m.mine ? "bg-turf-solid text-white" : "border border-line bg-paper"}`}
             >
               {m.deleted ? (
                 "Mensagem apagada"
@@ -218,7 +218,7 @@ export function Thread({
             <div className="relative mb-2 inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={image.preview} alt="Prévia da foto" className="max-h-32 rounded-[var(--radius-control)]" />
-              <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-ink/80 px-2 text-sm font-bold text-white" aria-label="Remover foto">
+              <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-black/75 px-2 text-sm font-bold text-white" aria-label="Remover foto">
                 ×
               </button>
             </div>
@@ -258,7 +258,7 @@ export function Thread({
               aria-label="Mensagem"
               className="min-h-11 min-w-0 flex-1 resize-none rounded-[var(--radius-control)] border border-line-strong bg-paper px-3 py-2.5 outline-none focus:border-turf"
             />
-            <button type="button" onClick={send} disabled={pending || uploading || (!body.trim() && !image)} className="h-11 shrink-0 rounded-[var(--radius-control)] bg-turf px-4 font-semibold text-white disabled:opacity-50">
+            <button type="button" onClick={send} disabled={pending || uploading || (!body.trim() && !image)} className="h-11 shrink-0 rounded-[var(--radius-control)] bg-turf-solid px-4 font-semibold text-white disabled:opacity-50">
               Enviar
             </button>
           </div>

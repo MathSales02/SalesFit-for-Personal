@@ -20,7 +20,7 @@ export function PeriodTabs({ basePath, current }: { basePath: string; current: s
           key={p.key}
           href={p.key === "semana" ? basePath : `${basePath}?periodo=${p.key}`}
           aria-current={p.key === current ? "page" : undefined}
-          className={`rounded-full px-4 py-1.5 text-sm font-semibold ${p.key === current ? "bg-ink text-white" : "text-ink-soft hover:text-ink"}`}
+          className={`rounded-full px-4 py-1.5 text-sm font-semibold ${p.key === current ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
         >
           {p.label}
         </Link>

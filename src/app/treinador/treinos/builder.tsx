@@ -170,7 +170,7 @@ export function ProgramBuilder({ programId, initialDays, catalog }: { programId:
             aria-selected={i === active}
             onClick={() => setActive(i)}
             className={`h-10 rounded-[var(--radius-control)] border px-3.5 text-sm font-semibold ${
-              i === active ? "border-turf bg-turf text-white" : "border-line-strong bg-paper text-ink-soft hover:border-ink-soft"
+              i === active ? "border-turf-solid bg-turf-solid text-white" : "border-line-strong bg-paper text-ink-soft hover:border-ink-soft"
             }`}
           >
             {d.name || "Sem nome"} <span className={i === active ? "text-white/70" : "text-muted"}>· {d.rows.length}</span>

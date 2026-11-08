@@ -109,6 +109,13 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 **Fase 7B concluída:** limpeza diária de dados antigos (`npm run jobs:retention`, para agendar 1x por dia em produção).
 
+**Visual (nov/2026):**
+- Painéis do aluno e do treinador em cartões, no estilo da referência, com o laranja como destaque.
+- Fonte Sora.
+- Tema claro e escuro: segue o aparelho por padrão; dá para fixar no botão de sol/lua ou em Conta → Aparência.
+- Contraste verificado (WCAG 2.2 AA) nos dois temas, com testes de navegador.
+- Texto sobre laranja só em preto ou branco.
+
 **Fase 7 concluída. As 7 fases do plano estão prontas.** A 7C trouxe testes de navegador com acessibilidade rodando no GitHub, mensagens em tempo real (SSE + Redis) e o guia de deploy (`docs/DEPLOY.md`).
 
 **Em andamento (fora destas sessões):** um redesenho visual com tema escuro e laranja e um navbar "liquid glass", em `globals.css`, `page.tsx`, `app-shell.tsx`, `nav-link.tsx`, `button-styles.ts` e `liquid-glass-navbar*.tsx`. Ainda não está no Git. Antes de commitar, resolver:

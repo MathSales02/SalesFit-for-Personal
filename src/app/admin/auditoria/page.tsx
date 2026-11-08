@@ -28,7 +28,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
           <input name="acao" defaultValue={action} placeholder="Ação (ex.: admin. ou auth.login)" maxLength={60} className="h-11 w-full rounded-[var(--radius-control)] border border-line-strong bg-paper px-3" />
         </label>
         {workspaceId && <input type="hidden" name="consultoria" value={workspaceId} />}
-        <button type="submit" className="h-11 rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-white">
+        <button type="submit" className="h-11 rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-paper">
           Filtrar
         </button>
       </form>

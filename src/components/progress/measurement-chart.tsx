@@ -95,7 +95,7 @@ export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
                 setMetric(k);
                 setActive(null);
               }}
-              className={`h-9 rounded-[var(--radius-control)] border px-3 text-sm font-semibold ${k === metric ? "border-turf bg-turf text-white" : "border-line-strong bg-paper text-ink-soft"}`}
+              className={`h-9 rounded-[var(--radius-control)] border px-3 text-sm font-semibold ${k === metric ? "border-turf-solid bg-turf-solid text-white" : "border-line-strong bg-paper text-ink-soft"}`}
             >
               {label}
             </button>

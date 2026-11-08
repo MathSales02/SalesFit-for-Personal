@@ -63,7 +63,7 @@ export default async function TrainerOverviewPage() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Hero: the consultancy at a glance */}
-        <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-ink shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
+        <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-on-accent shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
           <HeroDecoration />
           <div className="relative">
             <Pill tone="dark">{o.subscription ? (STATUS_LABEL[o.subscription.status] ?? o.subscription.status) : "Sem assinatura"}</Pill>
@@ -87,8 +87,8 @@ export default async function TrainerOverviewPage() {
                   {used}/{max}
                 </span>
               </div>
-              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-ink/15" role="progressbar" aria-valuemin={0} aria-valuemax={max} aria-valuenow={used} aria-label="Vagas usadas">
-                <div className="h-full rounded-full bg-ink" style={{ width: `${max ? Math.min(100, (used / max) * 100) : 0}%` }} />
+              <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-on-accent/15" role="progressbar" aria-valuemin={0} aria-valuemax={max} aria-valuenow={used} aria-label="Vagas usadas">
+                <div className="h-full rounded-full bg-on-accent" style={{ width: `${max ? Math.min(100, (used / max) * 100) : 0}%` }} />
               </div>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -96,7 +96,7 @@ export default async function TrainerOverviewPage() {
                 Ver alunos →
               </Link>
               {o.subscription?.status === "trialing" && (
-                <Link href="/treinador/assinatura" className="inline-flex h-11 items-center rounded-full bg-paper/70 px-5 font-semibold text-ink hover:bg-paper">
+                <Link href="/treinador/assinatura" className="inline-flex h-11 items-center rounded-full bg-white/70 px-5 font-semibold text-on-accent hover:bg-white">
                   Ver planos
                 </Link>
               )}
@@ -158,7 +158,7 @@ export default async function TrainerOverviewPage() {
             <ol className="flex flex-col gap-2">
               {top.map((r) => (
                 <li key={r.memberId} className="flex items-center gap-3 rounded-full bg-chalk py-1.5 pr-4 pl-1.5">
-                  <span className={`grid size-8 place-items-center rounded-full text-sm font-bold ${r.position === 1 ? "bg-signal" : "bg-paper"}`}>{r.position}</span>
+                  <span className={`grid size-8 place-items-center rounded-full text-sm font-bold ${r.position === 1 ? "bg-signal text-on-accent" : "bg-paper"}`}>{r.position}</span>
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold">{r.name}</span>
                   <span className="text-sm font-semibold tabular-nums">{r.points} pts</span>
                 </li>

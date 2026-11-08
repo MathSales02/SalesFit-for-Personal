@@ -28,7 +28,7 @@ export default async function BillingEventsPage({ searchParams }: { searchParams
             key={s ?? "all"}
             href={s ? `/admin/cobranca?situacao=${s}` : "/admin/cobranca"}
             aria-current={s === status ? "page" : undefined}
-            className={`rounded-full border px-3 py-1 ${s === status ? "border-ink bg-ink text-white" : "border-line bg-paper"}`}
+            className={`rounded-full border px-3 py-1 ${s === status ? "border-ink bg-ink text-paper" : "border-line bg-paper"}`}
           >
             {s ? STATUS_LABEL[s] : "Todos"}
           </Link>

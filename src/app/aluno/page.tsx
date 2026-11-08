@@ -75,7 +75,7 @@ export default async function StudentHomePage() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Hero: today's training */}
-        <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-ink shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
+        <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-on-accent shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
           <HeroDecoration />
           <div className="relative max-w-md">
             <Pill tone="dark">{open ? "Em andamento" : "Seu treino"}</Pill>
@@ -84,7 +84,7 @@ export default async function StudentHomePage() {
                 <h2 id="hero-h" className="mt-4 font-display text-4xl leading-[0.95] font-bold sm:text-5xl">
                   {open.dayName} em andamento
                 </h2>
-                <p className="mt-3 text-[0.95rem] font-medium text-ink/80">Continue de onde parou. Suas séries já estão salvas.</p>
+                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">Continue de onde parou. Suas séries já estão salvas.</p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Link href={`/aluno/treino/${open.id}`} className={buttonClass("primary")}>
                     Continuar treino →
@@ -97,7 +97,7 @@ export default async function StudentHomePage() {
                 <h2 id="hero-h" className="mt-4 font-display text-4xl leading-[0.95] font-bold sm:text-5xl">
                   {program.name}
                 </h2>
-                <p className="mt-3 text-[0.95rem] font-medium text-ink/80">
+                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">
                   {program.content.days.length} {program.content.days.length === 1 ? "dia de treino" : "dias de treino"} · desde {fmtDate(program.startsOn)}
                   {program.endsOn ? ` até ${fmtDate(program.endsOn)}` : ""}
                 </p>
@@ -112,7 +112,7 @@ export default async function StudentHomePage() {
                 <h2 id="hero-h" className="mt-4 font-display text-4xl leading-[0.95] font-bold sm:text-5xl">
                   Seu programa chega em breve
                 </h2>
-                <p className="mt-3 text-[0.95rem] font-medium text-ink/80">Quando seu treinador atribuir um programa, ele aparece aqui com vídeos, séries e orientações.</p>
+                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">Quando seu treinador atribuir um programa, ele aparece aqui com vídeos, séries e orientações.</p>
               </>
             )}
           </div>

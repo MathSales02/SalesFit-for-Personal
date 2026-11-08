@@ -58,7 +58,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
               </h2>
               {videoUrl && (
                 // Captions are not available for trainer uploads yet; the written instructions cover the same content.
-                <video src={videoUrl} controls preload="metadata" playsInline className="mb-4 aspect-video w-full rounded-[var(--radius-panel)] bg-ink" />
+                <video src={videoUrl} controls preload="metadata" playsInline className="mb-4 aspect-video w-full rounded-[var(--radius-panel)] bg-black" />
               )}
               <VideoUploader exerciseId={e.id} hasVideo={!!e.videoAssetId} />
               {e.videoAssetId && (

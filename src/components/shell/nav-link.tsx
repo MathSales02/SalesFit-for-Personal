@@ -10,15 +10,11 @@ function isActive(pathname: string, href: string) {
 }
 
 /** Unread count. Visually a pill; screen readers hear the count through <UnreadText>. */
-function Badge({ n, tone = "light" }: { n?: number; tone?: "light" | "dark" }) {
+// Same colours on light and dark surfaces: dark orange with white text (5.2:1).
+function Badge({ n }: { n?: number; tone?: "light" | "dark" }) {
   if (!n) return null;
   return (
-    <span
-      aria-hidden="true"
-      className={`grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[0.7rem] leading-none font-bold ${
-        tone === "dark" ? "bg-turf text-white" : "bg-turf text-white"
-      }`}
-    >
+    <span aria-hidden="true" className="grid h-5 min-w-5 place-items-center rounded-full bg-turf-solid px-1.5 text-[0.7rem] leading-none font-bold text-white">
       {n > 99 ? "99+" : n}
     </span>
   );
@@ -123,7 +119,7 @@ export function RailLink({ item }: { item: NavItem }) {
       href={item.href}
       aria-current={active ? "page" : undefined}
       className={`group relative grid size-11 place-items-center rounded-full transition-colors ${
-        active ? "bg-signal text-ink shadow-sm" : "text-ink-soft hover:bg-turf-tint hover:text-turf"
+        active ? "bg-signal text-on-accent shadow-sm" : "text-ink-soft hover:bg-turf-tint hover:text-turf"
       }`}
     >
       <span className="size-5">{item.icon}</span>

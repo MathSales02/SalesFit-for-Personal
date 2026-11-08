@@ -164,7 +164,7 @@ export function WorkoutPlayer({
               aria-current={i === index ? "step" : undefined}
               aria-label={`${i + 1}. ${e.exerciseName}${complete ? ", concluído" : ""}`}
               className={`grid size-10 shrink-0 place-items-center rounded-full border text-sm font-bold ${
-                i === index ? "border-turf bg-turf text-white" : complete ? "border-turf bg-turf-tint text-turf" : "border-line-strong bg-paper text-ink-soft"
+                i === index ? "border-turf-solid bg-turf-solid text-white" : complete ? "border-turf bg-turf-tint text-turf" : "border-line-strong bg-paper text-ink-soft"
               }`}
             >
               {complete && i !== index ? "✓" : i + 1}
@@ -195,7 +195,7 @@ export function WorkoutPlayer({
         {(ex.videoUrl || ex.instructions) && (
           <details className="mt-3">
             <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-            {ex.videoUrl && <video src={ex.videoUrl} controls playsInline preload="none" className="mt-2 aspect-video w-full rounded-[var(--radius-control)] bg-ink" />}
+            {ex.videoUrl && <video src={ex.videoUrl} controls playsInline preload="none" className="mt-2 aspect-video w-full rounded-[var(--radius-control)] bg-black" />}
             {ex.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{ex.instructions}</p>}
           </details>
         )}
@@ -230,7 +230,7 @@ export function WorkoutPlayer({
                 </label>
                 {isLogged ? (
                   <div className="flex gap-1">
-                    <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] bg-turf px-3 font-semibold text-white" aria-label={`Atualizar série ${n}`}>
+                    <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] bg-turf-solid px-3 font-semibold text-white" aria-label={`Atualizar série ${n}`}>
                       ✓
                     </button>
                     <button type="button" onClick={() => undo(n)} className="h-11 px-2 text-sm font-semibold text-ink-soft" aria-label={`Desfazer série ${n}`}>
@@ -326,7 +326,7 @@ function RestTimer({ endsAt, total, onAdd, onClose }: { endsAt: number; total: n
     return () => clearInterval(t);
   }, [endsAt]);
   return (
-    <div role="region" aria-label="Descanso" className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-ink px-4 py-3 text-white sm:bottom-0">
+    <div role="region" aria-label="Descanso" className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-night px-4 py-3 text-white sm:bottom-0">
       <div className="mx-auto flex max-w-3xl items-center gap-4">
         <div className="flex-1">
           <p className="text-xs font-semibold text-white/60" aria-live="polite">
@@ -354,7 +354,7 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="finish-h" className="fixed inset-0 z-30 flex items-end bg-ink/50 sm:items-center sm:justify-center">
+    <div role="dialog" aria-modal="true" aria-labelledby="finish-h" className="fixed inset-0 z-30 flex items-end bg-black/60 sm:items-center sm:justify-center">
       <div className="w-full max-w-lg rounded-t-[var(--radius-panel)] bg-paper p-5 sm:rounded-[var(--radius-panel)]">
         <h2 id="finish-h" className="font-display text-2xl font-bold">
           Concluir treino
@@ -371,7 +371,7 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
                 type="button"
                 aria-pressed={effort === n}
                 onClick={() => setEffort(n)}
-                className={`h-10 rounded-[var(--radius-control)] border font-semibold tabular-nums ${effort === n ? "border-turf bg-turf text-white" : "border-line-strong"}`}
+                className={`h-10 rounded-[var(--radius-control)] border font-semibold tabular-nums ${effort === n ? "border-turf-solid bg-turf-solid text-white" : "border-line-strong"}`}
               >
                 {n}
               </button>

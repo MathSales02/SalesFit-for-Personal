@@ -45,7 +45,7 @@ export function BigNumber({ value, unit, label }: { value: React.ReactNode; unit
 }
 
 export function Pill({ children, tone = "accent" }: { children: React.ReactNode; tone?: "accent" | "soft" | "dark" }) {
-  const cls = tone === "accent" ? "bg-signal text-ink" : tone === "dark" ? "bg-ink text-paper" : "bg-chalk text-ink";
+  const cls = tone === "accent" ? "bg-signal text-on-accent" : tone === "dark" ? "bg-ink text-paper" : "bg-chalk text-ink";
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${cls}`}>{children}</span>;
 }
 
@@ -127,7 +127,7 @@ export function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md"
 /** Decorative rings for the hero card (no stock photos). */
 export function HeroDecoration() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 200 200" className="pointer-events-none absolute -right-10 -bottom-16 size-72 text-ink/10 sm:size-80">
+    <svg aria-hidden="true" viewBox="0 0 200 200" className="pointer-events-none absolute -right-10 -bottom-16 size-72 text-on-accent/10 sm:size-80">
       <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" strokeWidth="14" />
       <circle cx="100" cy="100" r="62" fill="none" stroke="currentColor" strokeWidth="14" />
       <circle cx="100" cy="100" r="28" fill="currentColor" />

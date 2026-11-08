@@ -66,7 +66,7 @@ export function PhotoUploader({ today }: { today: string }) {
       </div>
       <label
         htmlFor={id}
-        className={`inline-flex h-11 cursor-pointer items-center justify-center self-start rounded-[var(--radius-control)] bg-turf px-4 font-semibold text-white hover:bg-turf-hover ${busy ? "pointer-events-none opacity-60" : ""}`}
+        className={`inline-flex h-11 cursor-pointer items-center justify-center self-start rounded-[var(--radius-control)] bg-turf-solid px-4 font-semibold text-white hover:bg-turf-solid-hover ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
         {busy ? "Enviando…" : "Adicionar foto"}
       </label>

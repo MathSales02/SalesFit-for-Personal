@@ -1,82 +1,89 @@
 @import "tailwindcss";
 
 /*
- * Design system: airy light surfaces, big rounded white cards, black primary
- * buttons and orange as the accent.
- *  - turf   (#C2410C): orange for TEXT, links, active states. 5.2:1 on white (WCAG AA).
- *  - signal (#F97316): bright orange for FILLS only (bars, pills, highlights),
- *    always with dark text on top. Never use it for small text on white.
+ * Design system: airy surfaces, big rounded cards, orange as the accent.
+ * Two themes: light (default) and dark. The theme follows the device unless
+ * the person picks one (html.light / html.dark, set from a cookie on the server).
+ *
+ * Text on orange is only ever black or white (contrast checked, WCAG 2.2 AA):
+ *  - signal     #F97316  bright orange FILL, with on-accent (black) text: 6.3:1
+ *  - turf-solid #C2410C  dark orange FILL, with white text: 5.2:1
+ *  - turf                orange TEXT on page surfaces (light #C2410C, dark #FB923C)
+ *  - night               dark panels that stay dark in both themes, with white text
  */
 
 :root {
-  /* LIGHT MODE (Default) */
-  --color-chalk: #eef1f6;
-  /* Fundo principal */
-  --color-paper: #ffffff;
-  /* Superfícies e Cards */
+  color-scheme: light;
+  --color-chalk: #eef1f6;          /* page background */
+  --color-paper: #ffffff;          /* cards and surfaces */
   --color-surface-subtle: #f0f0f0;
-  /* Superfícies secundárias */
-  --color-ink: #18181b;
-  /* Texto principal */
-  --color-ink-soft: #52525b;
-  /* Texto secundário */
-  --color-muted: #6b6b75;
-  /* Texto atenuado (4.6:1 sobre branco) */
+  --color-ink: #18181b;            /* main text: 17.7:1 on paper */
+  --color-ink-soft: #52525b;       /* secondary text: 7.7:1 */
+  --color-muted: #6b6b75;          /* muted text: 5.3:1 on paper, 4.6:1 on chalk */
   --color-line: #e4e7ec;
-  /* Bordas */
   --color-line-strong: #d4d4d8;
-  /* Bordas de controle */
-  --color-turf: #c2410c;
-  /* Laranja para texto e links (contraste AA) */
+  --color-turf: #c2410c;           /* orange text and links: 5.2:1 */
   --color-turf-hover: #9a3412;
-  --color-turf-tint: #ffedd5;
-  /* Fundo laranja suave */
+  --color-turf-tint: #ffedd5;      /* soft orange background (turf text on it: 4.5:1) */
   --color-signal: #f97316;
-  /* Laranja vivo: só preenchimentos, com texto escuro */
   --color-signal-tint: #ffedd5;
-  /* Destaque suave */
-  --color-danger: #dc2626;
-  /* Alertas / perigo */
+  --color-danger: #b91c1c;         /* 6.5:1 on paper, 5.9:1 on danger-tint */
   --color-danger-tint: #fee2e2;
   --color-success: #c2410c;
+  --color-night: #18181b;
 
   --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
 }
 
-.dark,
-[data-theme="dark"] {
-  /* DARK MODE PREMIUM */
-  --color-chalk: #0c0c0d;
-  /* Fundo principal */
-  --color-paper: #1c1c1e;
-  /* Cards e superfícies */
-  --color-surface-subtle: #151515;
-  /* Superfícies secundárias */
-  --color-ink: #f5f5f5;
-  /* Texto principal */
-  --color-ink-soft: #a1a1aa;
-  /* Texto secundário */
-  --color-muted: #71717a;
-  /* Texto atenuado */
-  --color-line: #2a2a2d;
-  /* Bordas */
-  --color-line-strong: #3f3f46;
-  /* Bordas de destaque */
-  --color-turf: #fb923c;
-  /* Laranja para texto no escuro */
+/* Dark values. Applied when the person picked dark, or follows a dark device. */
+:root.dark {
+  color-scheme: dark;
+  --color-chalk: #0f0f11;
+  --color-paper: #1c1c1f;
+  --color-surface-subtle: #161618;
+  --color-ink: #f4f4f5;            /* 15.5:1 on paper */
+  --color-ink-soft: #c8c8d0;       /* 10.2:1 */
+  --color-muted: #a1a1aa;          /* 6.6:1 */
+  --color-line: #2e2e33;
+  --color-line-strong: #45454d;
+  --color-turf: #fb923c;           /* 7.5:1 */
   --color-turf-hover: #fdba74;
-  --color-turf-tint: rgba(249, 115, 22, 0.14);
-  /* Orange tint para dark */
-  --color-signal: #fb923c;
-  /* Destaques e streaks */
-  --color-signal-tint: rgba(251, 146, 60, 0.18);
-  --color-danger: #ef4444;
-  --color-danger-tint: rgba(239, 68, 68, 0.15);
-  --color-success: #f97316;
+  --color-turf-tint: #3f2a1e;      /* turf text on it: 5.9:1 */
+  --color-signal: #f97316;
+  --color-signal-tint: #3f2a1e;
+  --color-danger: #f87171;         /* 6.2:1 */
+  --color-danger-tint: #3b282a;
+  --color-success: #fb923c;
+  --color-night: #2a2a2f;          /* white text: 14.3:1 */
 
-  --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --color-chalk: #0f0f11;
+    --color-paper: #1c1c1f;
+    --color-surface-subtle: #161618;
+    --color-ink: #f4f4f5;
+    --color-ink-soft: #c8c8d0;
+    --color-muted: #a1a1aa;
+    --color-line: #2e2e33;
+    --color-line-strong: #45454d;
+    --color-turf: #fb923c;
+    --color-turf-hover: #fdba74;
+    --color-turf-tint: #3f2a1e;
+    --color-signal: #f97316;
+    --color-signal-tint: #3f2a1e;
+    --color-danger: #f87171;
+    --color-danger-tint: #3b282a;
+    --color-success: #fb923c;
+    --color-night: #2a2a2f;
+
+    --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  }
 }
 
 @theme {
@@ -96,6 +103,11 @@
   --color-danger: var(--color-danger);
   --color-danger-tint: var(--color-danger-tint);
   --color-success: var(--color-success);
+  --color-night: var(--color-night);
+  /* Same in both themes: text on the bright orange, and the dark orange that carries white text. */
+  --color-on-accent: #18181b;
+  --color-turf-solid: #c2410c;
+  --color-turf-solid-hover: #9a3412;
 
   --color-orange-primary: #f97316;
   --color-orange-hover: #ea580c;

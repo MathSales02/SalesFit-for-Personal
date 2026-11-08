@@ -98,7 +98,7 @@ export default async function WorkspaceAdminPage({ params }: { params: Promise<{
               <>
                 <p className="mb-4 text-sm text-muted">Aberto até {fmtDateTime.format(grant.expiresAt)}. Cada consulta fica registrada.</p>
                 <div className="flex flex-wrap items-start gap-3">
-                  <Link href={`/admin/consultorias/${w.id}/suporte`} className="inline-flex h-11 items-center rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-white">
+                  <Link href={`/admin/consultorias/${w.id}/suporte`} className="inline-flex h-11 items-center rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-paper">
                     Ver dados de suporte
                   </Link>
                   <CloseSupportForm workspaceId={w.id} />

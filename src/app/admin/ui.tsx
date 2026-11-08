@@ -59,7 +59,7 @@ export function SearchForm({ placeholder, defaultValue, children }: { placeholde
         <input name="q" defaultValue={defaultValue} maxLength={100} placeholder={placeholder} className="h-11 w-full rounded-[var(--radius-control)] border border-line-strong bg-paper px-3" />
       </label>
       {children}
-      <button type="submit" className="h-11 rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-white">
+      <button type="submit" className="h-11 rounded-[var(--radius-control)] bg-ink px-4 font-semibold text-paper">
         Buscar
       </button>
     </form>

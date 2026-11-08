@@ -8,7 +8,7 @@ export function RankingTable({ rows, showHidden = false, frozen = false, empty }
       {rows.map((r) => (
         <li key={r.memberId} className={`flex items-center gap-3 px-4 py-3 ${r.isMe ? "bg-turf-tint" : ""}`}>
           <span
-            className={`grid size-9 shrink-0 place-items-center rounded-full font-display text-lg font-bold tabular-nums ${r.position <= 3 && r.points > 0 ? "bg-signal text-ink" : "text-muted"}`}
+            className={`grid size-9 shrink-0 place-items-center rounded-full font-display text-lg font-bold tabular-nums ${r.position <= 3 && r.points > 0 ? "bg-signal text-on-accent" : "text-muted"}`}
             aria-label={`${r.position}º lugar`}
           >
             {r.position}

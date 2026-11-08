@@ -7,6 +7,9 @@ import { Notice } from "@/components/ui/notice";
 import { PageHeading } from "@/components/ui/page-heading";
 import { listActiveSessions } from "@/server/auth/service";
 import { requirePageActor } from "@/server/http/next";
+import { cookies } from "next/headers";
+import { ThemePicker } from "@/components/theme/theme-picker";
+import { parseTheme, THEME_COOKIE } from "@/lib/theme";
 import { ChangePasswordForm, DeleteAccountForm, RevokeOthersButton, RevokeSessionButton } from "./forms";
 
 export const metadata: Metadata = { title: "Conta e segurança" };
@@ -24,6 +27,7 @@ function deviceLabel(ua: string | null) {
 export default async function AccountPage() {
   const actor = await requirePageActor(undefined, { allowInactive: true });
   const sessions = await listActiveSessions(actor.userId);
+  const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
     <AppShell actor={actor}>
@@ -62,6 +66,14 @@ export default async function AccountPage() {
             ))}
           </nav>
         )}
+      </section>
+
+      <section aria-labelledby="look-h" className="border-b border-line py-10">
+        <h2 id="look-h" className="text-lg font-semibold">
+          Aparência
+        </h2>
+        <p className="mt-1 mb-5 text-sm text-muted">&quot;Seguir o sistema&quot; usa o tema claro ou escuro do seu aparelho.</p>
+        <ThemePicker current={theme} />
       </section>
 
       <section aria-labelledby="password-h" className="border-b border-line py-10">

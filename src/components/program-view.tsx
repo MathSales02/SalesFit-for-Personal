@@ -48,7 +48,7 @@ export function ProgramView({
                       {(showInstructions && (e.instructions || video)) && (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-                          {video && <video src={video} controls preload="none" playsInline className="mt-2 aspect-video w-full max-w-xl rounded-[var(--radius-control)] bg-ink" />}
+                          {video && <video src={video} controls preload="none" playsInline className="mt-2 aspect-video w-full max-w-xl rounded-[var(--radius-control)] bg-black" />}
                           {e.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{e.instructions}</p>}
                         </details>
                       )}

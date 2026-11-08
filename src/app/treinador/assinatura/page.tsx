@@ -64,7 +64,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         </div>
       )}
 
-      <section aria-label="Situação" className="rounded-[var(--radius-panel)] bg-ink p-6 text-white">
+      <section aria-label="Situação" className="rounded-[var(--radius-panel)] bg-night p-6 text-white">
         <p className="text-sm font-semibold text-signal">{s?.planName ?? "Sem plano"}</p>
         <p className="mt-1 font-display text-3xl font-bold">{headline}</p>
         <p className="mt-2 text-sm text-white/70">
@@ -86,7 +86,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             href={openInvoice.invoiceUrl!}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-5 inline-flex h-11 items-center rounded-[var(--radius-control)] bg-signal px-4 font-semibold text-ink"
+            className="mt-5 inline-flex h-11 items-center rounded-[var(--radius-control)] bg-signal px-4 font-semibold text-on-accent"
           >
             Pagar {formatBRL(openInvoice.valueCents)} (vence {fmtDay(openInvoice.dueDate)})
           </a>

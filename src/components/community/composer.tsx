@@ -73,7 +73,7 @@ export function Composer({ name, canAnnounce }: { name: string; canAnnounce: boo
           {/* Local preview of the file the user just picked. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image.preview} alt="Prévia da foto" className="max-h-48 rounded-[var(--radius-control)]" />
-          <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-ink/80 px-2 text-sm font-bold text-white" aria-label="Remover foto">
+          <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-black/75 px-2 text-sm font-bold text-white" aria-label="Remover foto">
             ×
           </button>
         </div>
@@ -104,7 +104,7 @@ export function Composer({ name, canAnnounce }: { name: string; canAnnounce: boo
           type="button"
           onClick={submit}
           disabled={pending || uploading || (!body.trim() && !image)}
-          className="h-10 rounded-[var(--radius-control)] bg-turf px-4 text-sm font-semibold text-white disabled:opacity-50"
+          className="h-10 rounded-[var(--radius-control)] bg-turf-solid px-4 text-sm font-semibold text-white disabled:opacity-50"
         >
           {pending ? "Publicando…" : "Publicar"}
         </button>

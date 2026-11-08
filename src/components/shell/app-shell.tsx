@@ -24,6 +24,7 @@ import {
   IconUser,
   IconUsers,
 } from "./icons";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { HeaderIconLink, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
@@ -140,6 +141,7 @@ export async function AppShell({
                   <SideNavLink key={i.href} item={i} />
                 ))}
               </nav>
+              <ThemeToggle />
               {header.map((i) => (
                 <HeaderIconLink key={i.href} item={i} />
               ))}
@@ -179,6 +181,7 @@ export async function AppShell({
               ))}
             </nav>
             <div className="flex flex-col items-center gap-2 border-t border-line pt-4">
+              <ThemeToggle className="size-11" />
               {account.map((i) => (
                 <RailLink key={i.href} item={i} />
               ))}
@@ -211,6 +214,7 @@ export async function AppShell({
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             {header.map((i) => (
               <HeaderIconLink key={i.href} item={i} />
             ))}

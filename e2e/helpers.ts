@@ -21,11 +21,11 @@ export async function mailLink(to: string, part: string, subject?: string): Prom
   throw new Error(`no ${part} mail for ${to}`);
 }
 
-/** Fails on serious or critical accessibility violations (WCAG 2.1 A/AA rules). */
+/** Fails on serious or critical accessibility violations (WCAG 2.2 A/AA rules). */
 export async function expectAccessible(page: Page, label: string) {
   // Local escape hatch while a visual redesign is in progress; never set in CI.
   if (process.env.E2E_SKIP_A11Y && !process.env.CI) return;
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   const summary = bad.map((v) => `${v.id} (${v.impact}): ${v.nodes.length} × ${v.nodes[0]?.target.join(" ")}`);
   expect(summary, `accessibility on ${label}`).toEqual([]);

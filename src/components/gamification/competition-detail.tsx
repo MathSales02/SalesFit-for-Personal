@@ -24,7 +24,7 @@ export async function CompetitionDetail({ actor, competitionId, backHref }: { ac
       <Link href={backHref} className="text-sm font-semibold text-turf hover:underline">
         ← Ranking
       </Link>
-      <section className="mt-4 rounded-[var(--radius-panel)] bg-ink p-6 text-white">
+      <section className="mt-4 rounded-[var(--radius-panel)] bg-night p-6 text-white">
         <p className="text-sm font-semibold text-signal">{competitionStatusLabel(status)}</p>
         <h1 className="mt-1 font-display text-3xl leading-tight font-bold break-words">{c.title}</h1>
         <p className="mt-2 text-sm text-white/70">

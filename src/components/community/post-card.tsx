@@ -34,7 +34,7 @@ export function WorkoutBlock({ w }: { w: NonNullable<FeedPost["workout"]> }) {
         <ul className="mt-2 flex flex-col gap-1">
           {w.records.map((r) => (
             <li key={r.exerciseName} className="flex items-center gap-2 text-sm">
-              <span className="rounded bg-signal px-1.5 py-0.5 text-xs font-bold text-ink">Recorde</span>
+              <span className="rounded bg-signal px-1.5 py-0.5 text-xs font-bold text-on-accent">Recorde</span>
               <span className="font-medium">{r.exerciseName}</span>
               <span className="text-ink-soft tabular-nums">
                 {r.reps} × {kg(r.loadKg)} kg
@@ -97,7 +97,7 @@ export function PostCard({ post, basePath, canModerate, linkToPost = true }: { p
             <Link href={profileHref} className="hover:underline">
               {post.author.name}
             </Link>
-            {post.author.role === "trainer" && <span className="ml-2 rounded bg-turf px-1.5 py-0.5 align-middle text-[0.7rem] font-semibold text-white">Treinador</span>}
+            {post.author.role === "trainer" && <span className="ml-2 rounded bg-turf-solid px-1.5 py-0.5 align-middle text-[0.7rem] font-semibold text-white">Treinador</span>}
           </p>
           <p className="text-xs text-muted">
             {post.pinned ? "Aviso fixado · " : ""}
@@ -214,7 +214,7 @@ export function ReportForm({ targetType, targetId, onDone }: { targetType: "post
         <button
           type="button"
           disabled={pending}
-          className="h-10 rounded-[var(--radius-control)] bg-ink px-4 text-sm font-semibold text-white"
+          className="h-10 rounded-[var(--radius-control)] bg-ink px-4 text-sm font-semibold text-paper"
           onClick={() =>
             startTransition(async () => {
               const res = await reportAction({ targetType, targetId, reason, details });

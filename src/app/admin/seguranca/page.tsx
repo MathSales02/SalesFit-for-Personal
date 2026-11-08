@@ -29,7 +29,7 @@ export default async function SecurityEventsPage({ searchParams }: { searchParam
             key={s ?? "all"}
             href={s ? `/admin/seguranca?gravidade=${s}` : "/admin/seguranca"}
             aria-current={s === severity ? "page" : undefined}
-            className={`rounded-full border px-3 py-1 ${s === severity ? "border-ink bg-ink text-white" : "border-line bg-paper"}`}
+            className={`rounded-full border px-3 py-1 ${s === severity ? "border-ink bg-ink text-paper" : "border-line bg-paper"}`}
           >
             {s ? SEVERITY_LABEL[s] : "Todos"}
           </Link>
