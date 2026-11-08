@@ -84,9 +84,9 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Deploy em andamento (08/11/2026): Railway, beta fechado, Asaas sandbox, sem domínio próprio.**
+**Site no ar (08/11/2026): Railway, beta fechado, Asaas sandbox, sem domínio próprio.**
 - Projeto Railway **cadenciafit** (ambiente production) com os serviços:
-  - `web`: o app, a partir do GitHub `main`, com `Dockerfile` e `railway.json`. Antes de cada publicação roda as migrações; o teste de saúde é `/api/health`.
+  - `web`: o app, a partir do GitHub `main`, com o `Dockerfile`. O Railway ignorou o `railway.json`; as configurações (migrações antes de publicar, teste de saúde em `/api/health`) foram aplicadas direto no serviço pela API (`environmentStageChanges` + `environmentPatchCommitStaged`).
   - `Postgres` e `Redis`.
   - Bucket `media`, região iad (EUA).
 - Endereço: https://web-production-329fe.up.railway.app.
@@ -94,18 +94,18 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
   - Usuários do banco `cadencia_owner` e `cadencia_app` e o banco `cadencia`, criados com `scripts/provision-db.ts`. O TCP Proxy foi aberto só para isso e removido em seguida.
   - Variáveis do `web`: chaves novas geradas (`PII_HASH_SECRET`, `MFA_ENCRYPTION_KEY`, `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`), endereços do banco, Redis e bucket por referência, e o Asaas sandbox (a mesma chave e o mesmo token do `.env` local).
   - Ajustes no código: `metadataBase` vindo do `APP_URL` e Redis com `family: 0` (a rede interna do Railway é IPv6).
-- **Parou em:** o usuário criou a variável de e-mail com o nome errado (`SMPT_URL`) e ainda não aplicou. O certo é `SMTP_URL=smtps://matheusssales0218%40gmail.com:<senha de app>@smtp.gmail.com:465`.
-- **Próximos passos:**
-  1. Conferir o formato de `SMTP_URL` sem exibir a senha.
-  2. Publicar e acompanhar os logs.
-  3. Testar o upload de fotos e vídeos no bucket do Railway. Ele precisa aceitar envio direto do navegador e CORS; se não aceitar, usar o AWS S3.
-  4. Configurar o webhook do Asaas sandbox para `/api/webhooks/asaas`.
-  5. Criar o administrador (`npm run admin:create`, via `railway run`).
-  6. Testar cadastro e e-mail.
-  7. Agendar a rotina de limpeza.
-  8. Política de privacidade: dados hospedados nos EUA.
-- **Até 01/12/2026:** migrar o `railway.json` para `.railway/railway.ts` (formato antigo descontinuado).
-- **Observação:** o sistema de permissões bloqueia registrar chave SSH e ler credenciais; use referências `${{servico.VAR}}` e `--stdin`.
+  - `SMTP_URL` (Gmail, senha de app) criada pelo usuário e conferida.
+  - Migrações aplicadas; páginas públicas respondem 200; preços vêm do banco.
+  - Bucket testado com `scripts/storage-check.ts`: CORS, envio assinado, limite de tamanho, leitura assinada e acesso negado sem assinatura, tudo OK. Não precisa de AWS.
+- **Parou em: o usuário vai rodar quando chegar em casa** (o sistema de permissões não deixa o Claude mexer no Asaas nem criar admin):
+  1. Webhook do Asaas: `railway run --service web -- npx tsx scripts/asaas-webhook.ts`.
+  2. Administrador: `railway ssh --service web` e, dentro do servidor, `ADMIN_PASSWORD='...' npm run admin:create -- matheusssales0218@gmail.com "Matheus"`.
+  3. Teste de cadastro em `/cadastro`, conferindo se o e-mail chega.
+- **Depois:**
+  - Agendar a rotina de limpeza (serviço cron no Railway rodando `npm run jobs:retention`).
+  - Política de privacidade: dados hospedados nos EUA.
+  - Decidir entre apagar o `railway.json` ou migrar para `.railway/railway.ts`, antes de 01/12/2026. A migração precisa do pacote npm `railway`, cuja instalação foi bloqueada pelo sistema de permissões.
+- **Observação:** o sistema de permissões bloqueia registrar chave SSH, ler credenciais, instalar pacotes de terceiros e mexer na conta do Asaas. Use referências `${{servico.VAR}}` e `--stdin`.
 
 **Estado em 08/11/2026 (último commit `a08032e`):** as 7 fases estão prontas e a **landing page nova** está no GitHub, com o CI verde.
 
