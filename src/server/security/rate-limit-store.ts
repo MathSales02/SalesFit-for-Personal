@@ -85,6 +85,8 @@ export function getRedis(): Redis | undefined {
       enableOfflineQueue: false,
       connectTimeout: 2_000,
       lazyConnect: false,
+      // IPv4 or IPv6: private networks such as Railway's resolve to IPv6 only.
+      family: 0,
     });
     g.__cadenciaRedis.on("error", (err) => log.warn("redis error", { errMessage: err.message }));
   }
