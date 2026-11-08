@@ -35,7 +35,8 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.1fr_0.9fr_0.9fr_1.4fr]">
         <div>
           <BrandLogo />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--lp-text-2)]">Treinos, evolução e constância para personal trainers e seus alunos.</p>
+          <p className="mt-4 text-base font-semibold text-[var(--lp-text)]">Evolução é constância.</p>
+          <p className="mt-2 max-w-xs text-sm leading-relaxed text-[var(--lp-text-2)]">Treinos, evolução e constância para personal trainers e seus alunos.</p>
         </div>
         <nav aria-label="Seções do site">
           <h2 className="text-sm font-semibold text-white">Página</h2>

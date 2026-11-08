@@ -13,7 +13,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </Link>
         <div className="max-w-md">
           <p className="font-display text-[3.4rem] leading-[0.95] font-bold tracking-tight">
-            Constância se constrói junto.
+            Evolução é constância.
           </p>
           <p className="mt-5 max-w-sm text-lg leading-relaxed text-on-accent/80">
             Seus alunos treinam, registram e se motivam em comunidade. Você acompanha a evolução de cada um em um só lugar.
