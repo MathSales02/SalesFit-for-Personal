@@ -7,11 +7,16 @@ import "./globals.css";
 // Variable font (all weights in one file), self-hosted by next/font: no request to Google from the browser.
 const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
 
-export const metadata: Metadata = {
-  title: { default: "Cadência", template: "%s · Cadência" },
-  description: "Plataforma para personal trainers e alunos: treinos, evolução e comunidade.",
-  robots: { index: false, follow: false },
-};
+// A function, so APP_URL is read on the server at request time (not at build time):
+// share images (og:image) then point to the real site.
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+    title: { default: "Cadência", template: "%s · Cadência" },
+    description: "Plataforma para personal trainers e alunos: treinos, evolução e comunidade.",
+    robots: { index: false, follow: false },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [

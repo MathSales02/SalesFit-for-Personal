@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+.next
+.next-e2e
+.env
+.env.*
+!.env.example
+.agents
+.landing-media-tmp
+test-results
+playwright-report
+workout-fitness.jpg
+skills-lock.json
+npm-debug.log*
