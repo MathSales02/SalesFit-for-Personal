@@ -162,6 +162,25 @@
   }
 }
 
+/* Theme-aware logo (components/ui/logo.tsx): the light-background or dark-background file. */
+.logo-on-dark {
+  display: none;
+}
+:root.dark .logo-on-light {
+  display: none;
+}
+:root.dark .logo-on-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .logo-on-light {
+    display: none;
+  }
+  :root:not(.light) .logo-on-dark {
+    display: block;
+  }
+}
+
 /*
  * Display type (titles and big numbers): Sora is wide, so it is set tighter.
  * Unlayered on purpose so it wins over the utility layer for every .font-display.

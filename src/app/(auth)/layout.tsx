@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-signal px-12 py-12 text-on-accent lg:flex">
         <Link href="/" aria-label="Cadência, página inicial">
-          <Logo tone="dark" />
+          <Logo tone="orange" height={36} />
         </Link>
         <div className="max-w-md">
           <p className="font-display text-[3.4rem] leading-[0.95] font-bold tracking-tight">

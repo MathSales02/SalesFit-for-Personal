@@ -1,0 +1,33 @@
+SALESFIT: ARQUIVOS DE MARCA (Direção B · Curva & Ponto)
+
+svg/  Vetores (formato principal). O wordmark está contornado, então não precisa de fonte instalada.
+png/  PNG com fundo transparente: logos com 2400 px de largura, símbolos e ícone de app com 1024 px.
+      favicon.ico (16/32/48), favicon-16.png, favicon-32.png, favicon-180.png (apple-touch-icon).
+
+VERSÕES
+  cor-fundo-claro       símbolo laranja + nome carvão + ponto laranja
+  cor-fundo-escuro      símbolo laranja + nome branco + ponto laranja
+  branco-sobre-laranja  tudo em branco, para usar sobre #F2690F
+  mono-preto / mono-branco   1 cor (gravação, carimbo, fundo com foto)
+  simbolo-favicon       traço reforçado, para 24 px ou menos
+
+PALETA
+  Laranja SalesFit  #F2690F  RGB 242,105,15   símbolo, ponto, botões
+  Laranja Profundo  #A94706  RGB 169,71,6     texto laranja sobre fundo claro
+  Carvão            #0E0F11  RGB 14,15,17     texto, fundos escuros
+  Grafite           #2A2D32  RGB 42,45,50     superfícies do modo escuro
+  Areia             #EEEAE4  RGB 238,234,228  fundos de seção
+  Off-white         #F7F5F2  RGB 247,245,242  fundo padrão
+  Cinza Pedra       #6B6F76  RGB 107,111,118  texto secundário
+
+TIPOGRAFIA
+  Manrope (Google Fonts, OFL). 500 texto · 600 interface · 700 títulos · 800 display.
+  Escala: Display 64/800/-4% · Título 1 40/700/-3% · Título 2 28/700/-2% · Corpo 17/500 · Legenda 13/600/+2%
+
+REGRAS ESSENCIAIS
+  Área de proteção: 2x (x = diâmetro do ponto do símbolo).
+  Mínimos: horizontal 120 px / 30 mm · vertical 64 px / 18 mm · símbolo 16 px / 5 mm.
+  Não distorcer, rotacionar, recolorir o ponto, aplicar efeitos nem redigitar o nome.
+  Botão principal: fundo laranja #F2690F com texto carvão #0E0F11 (contraste 6,2:1).
+
+O manual completo e os mockups estão no canvas "SalesFit — Três direções de marca", página "Etapa 2".

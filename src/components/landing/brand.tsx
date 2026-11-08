@@ -1,18 +1,8 @@
-/** CadênciaFit wordmark: the app's four rhythm bars, with "fit" in orange. */
+import { Logo } from "@/components/ui/logo";
+
+/** SalesFit logo on the landing's dark surfaces (navbar glass, footer). */
 export function BrandLogo({ className = "" }: { className?: string }) {
-  return (
-    <span className={`inline-flex items-end gap-2 text-white ${className}`}>
-      <svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true" className="shrink-0">
-        <rect x="0" y="10" width="4" height="10" rx="1" fill="currentColor" />
-        <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" />
-        <rect x="12" y="0" width="4" height="20" rx="1" fill="currentColor" />
-        <rect x="18" y="7" width="4" height="13" rx="1" fill="#f97316" />
-      </svg>
-      <span className="font-display text-[1.35rem] leading-none font-semibold tracking-[-0.04em]">
-        cadência<span className="text-[var(--lp-orange-on-dark)]">fit</span>
-      </span>
-    </span>
-  );
+  return <Logo tone="dark" className={className} />;
 }
 
 /**

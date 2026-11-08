@@ -1,16 +1,53 @@
-/** Wordmark: four bars of rising and falling height, a training rhythm. */
-export function Logo({ tone = "ink", className = "", compact = false }: { tone?: "ink" | "light" | "dark"; className?: string; compact?: boolean }) {
-  // ink: orange wordmark on light surfaces; light: white on dark; dark: near-black on bright orange.
-  const color = tone === "light" ? "text-white" : tone === "dark" ? "text-on-accent" : "text-turf";
+/* eslint-disable @next/next/no-img-element -- brand SVGs are served as files, never resized or recolored */
+
+const DIR = "/brand/SalesFit-marca/svg";
+
+/**
+ * Background the logo sits on:
+ *  - light: off-white / white surfaces (orange symbol, charcoal name)
+ *  - dark: charcoal / graphite surfaces (orange symbol, white name)
+ *  - orange: on #F2690F (all white)
+ *  - auto: follows the app theme (light or dark)
+ */
+export type LogoTone = "light" | "dark" | "orange" | "auto";
+type Layout = "horizontal" | "vertical" | "symbol";
+
+const FILE: Record<Exclude<LogoTone, "auto">, Record<Layout, string>> = {
+  light: { horizontal: "horizontal-cor-fundo-claro", vertical: "vertical-cor-fundo-claro", symbol: "simbolo-laranja" },
+  dark: { horizontal: "horizontal-cor-fundo-escuro", vertical: "vertical-cor-fundo-escuro", symbol: "simbolo-laranja" },
+  orange: { horizontal: "horizontal-branco-sobre-laranja", vertical: "vertical-branco-sobre-laranja", symbol: "simbolo-branco" },
+};
+
+// Width / height of each artwork (from the SVG viewBox).
+const RATIO: Record<Layout, number> = { horizontal: 11269 / 2880, vertical: 7669 / 6952, symbol: 1 };
+
+/**
+ * The SalesFit logo, always from the official files. Size by height; the minimums
+ * (horizontal 120 px wide, vertical 64 px, symbol 16 px) are enforced.
+ * Clear space around it is left to the parent (at least 2× the symbol's dot).
+ */
+export function Logo({
+  tone = "auto",
+  layout = "horizontal",
+  height = 32,
+  className = "",
+}: {
+  tone?: LogoTone;
+  layout?: Layout;
+  height?: number;
+  className?: string;
+}) {
+  const minWidth = layout === "horizontal" ? 120 : layout === "vertical" ? 64 : 16;
+  const h = Math.max(height, minWidth / RATIO[layout]);
+  const w = Math.round(h * RATIO[layout]);
+  const img = (t: Exclude<LogoTone, "auto">, extra = "") => (
+    <img src={`${DIR}/salesfit-${FILE[t][layout]}.svg`} alt="SalesFit" width={w} height={Math.round(h)} className={`block max-w-none ${extra}`} />
+  );
+  if (tone !== "auto" || layout === "symbol") return <span className={`inline-block ${className}`}>{img(tone === "auto" ? "light" : tone)}</span>;
   return (
-    <span className={`inline-flex items-end gap-2 ${color} ${className}`}>
-      <svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true" className="shrink-0">
-        <rect x="0" y="10" width="4" height="10" rx="1" fill="currentColor" />
-        <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" />
-        <rect x="12" y="0" width="4" height="20" rx="1" fill="currentColor" />
-        <rect x="18" y="7" width="4" height="13" rx="1" fill={tone === "dark" ? "#ffffff" : "var(--color-signal)"} />
-      </svg>
-      <span className={compact ? "sr-only" : "font-display text-[1.45rem] leading-none font-bold tracking-tight"}>cadência</span>
+    <span className={`inline-block ${className}`}>
+      {img("light", "logo-on-light")}
+      {img("dark", "logo-on-dark")}
     </span>
   );
 }

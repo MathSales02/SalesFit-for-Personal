@@ -173,7 +173,7 @@ export async function AppShell({
         <aside className="sticky top-0 hidden h-dvh py-4 pl-4 lg:block">
           <div className="flex h-full flex-col items-center gap-5 rounded-[var(--radius-panel)] bg-paper py-5 shadow-[var(--shadow-card)]">
             <Link href="/treinador" aria-label="Cadência, início" className="grid size-11 place-items-center">
-              <Logo compact />
+              <Logo layout="symbol" height={28} />
             </Link>
             <nav aria-label="Principal" className="flex flex-1 flex-col items-center gap-2">
               {nav.map((i) => (
@@ -247,11 +247,11 @@ export async function AppShell({
     <div className="min-h-dvh bg-chalk lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
       <aside
         className={`hidden flex-col gap-6 px-4 py-6 lg:flex ${
-          dark ? "border-r border-[#2A2A2D] bg-[#0C0C0D]" : "border-r border-line bg-paper"
+          dark ? "border-r border-white/10 bg-night" : "border-r border-line bg-paper"
         }`}
       >
         <Link href={main[0]!.href} className="px-3" aria-label="Cadência, início">
-          <Logo tone={dark ? "light" : "ink"} />
+          <Logo tone={dark ? "dark" : "auto"} />
         </Link>
         <div className={`px-3 ${dark ? "text-white" : ""}`}>
           <p className={`text-[0.7rem] uppercase tracking-wider font-bold ${dark ? "text-turf" : "text-muted"}`}>
@@ -277,10 +277,10 @@ export async function AppShell({
       {/* Small screens: logo, badge icons and expandable menu */}
       <header
         className={`relative flex h-14 items-center justify-between gap-2 border-b px-4 lg:hidden ${
-          dark ? "border-[#2A2A2D] bg-[#0C0C0D]" : "border-line bg-paper"
+          dark ? "border-white/10 bg-night" : "border-line bg-paper"
         }`}
       >
-        <Logo tone={dark ? "light" : "ink"} />
+        <Logo tone={dark ? "dark" : "auto"} />
         <div className="flex items-center gap-1">
           {header.map((i) => (
             <HeaderIconLink key={i.href} item={i} />
@@ -299,7 +299,7 @@ export async function AppShell({
             <nav
               aria-label="Principal"
               className={`absolute inset-x-0 top-14 z-20 flex flex-col gap-1 border-b px-4 py-3 shadow-[var(--shadow-raised)] ${
-                dark ? "border-[#2A2A2D] bg-[#0C0C0D]" : "border-line bg-paper"
+                dark ? "border-white/10 bg-night" : "border-line bg-paper"
               }`}
             >
               {main.map((i) => (

@@ -39,7 +39,7 @@ export function SideNavLink({
   const cls =
     tone === "dark"
       ? active
-        ? "bg-white/10 text-turf font-semibold shadow-sm"
+        ? "bg-white/10 text-white font-semibold shadow-sm"
         : "text-white/65 hover:bg-white/5 hover:text-white"
       : active
         ? "bg-turf-tint text-turf font-semibold shadow-sm"
@@ -51,7 +51,7 @@ export function SideNavLink({
       aria-label={iconOnly ? withCount(item.label, item.badge) : undefined}
       className={`${base} ${cls}`}
     >
-      <span className="size-5 shrink-0">{item.icon}</span>
+      <span className={`size-5 shrink-0 ${tone === "dark" && active ? "text-signal" : ""}`}>{item.icon}</span>
       {iconOnly ? (
         item.badge ? (
           <span className="absolute top-0.5 right-0.5">
@@ -63,6 +63,8 @@ export function SideNavLink({
           <span className="flex-1">{item.label}</span>
           <UnreadText n={item.badge} />
           <Badge n={item.badge} tone={tone} />
+          {/* Dark sidebar: a small orange dot marks the current page. */}
+          {tone === "dark" && active ? <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-signal" /> : null}
         </>
       )}
     </Link>
