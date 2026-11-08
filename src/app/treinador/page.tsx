@@ -193,7 +193,7 @@ export default async function TrainerOverviewPage() {
 
       {support.length > 0 && (
         <Card title="Acessos de suporte nos últimos 90 dias" labelledBy="support-h">
-          <p className="-mt-2 text-sm text-muted">A equipe do Cadência só acessa com motivo registrado, por tempo limitado e sem ver saúde, fotos ou mensagens.</p>
+          <p className="-mt-2 text-sm text-muted">A equipe do SalesFit só acessa com motivo registrado, por tempo limitado e sem ver saúde, fotos ou mensagens.</p>
           <ul className="mt-3 flex flex-col gap-2 text-sm">
             {support.map((g) => (
               <li key={g.id}>

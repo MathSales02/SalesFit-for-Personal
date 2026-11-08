@@ -1,4 +1,4 @@
-# Cadência
+# SalesFit
 
 Platform for personal trainers and their students: training, progress, community and consistency-based rewards.
 

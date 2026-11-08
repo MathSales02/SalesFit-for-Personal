@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     return new Response(JSON.stringify(data, null, 2), {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="cadencia-meus-dados-${day}.json"`,
+        "Content-Disposition": `attachment; filename="salesfit-meus-dados-${day}.json"`,
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
       },

@@ -10,8 +10,8 @@ export default function TermsPage() {
   return (
     <LegalPage title="Termos de uso" version={LEGAL_DOCUMENT_VERSION}>
       <p>
-        Estes termos regem o uso do CadênciaFit, plataforma online para personal trainers acompanharem treinos, evolução e constância dos seus alunos.
-        O CadênciaFit é operado por {R.name} (contato: <a href={`mailto:${R.email}`}>{R.email}</a>, WhatsApp {R.whatsapp}). Ao criar uma conta ou
+        Estes termos regem o uso do SalesFit, plataforma online para personal trainers acompanharem treinos, evolução e constância dos seus alunos.
+        O SalesFit é operado por {R.name} (contato: <a href={`mailto:${R.email}`}>{R.email}</a>, WhatsApp {R.whatsapp}). Ao criar uma conta ou
         aceitar um convite, você concorda com estes termos e com a <Link href="/privacidade">Política de privacidade</Link>.
       </p>
 
@@ -38,14 +38,14 @@ export default function TermsPage() {
           Prescrever treinos é atividade do profissional de educação física. O treinador é o responsável técnico pelos treinos, orientações e
           avaliações que registra, e deve estar habilitado para exercer a profissão.
         </li>
-        <li>O treinador deve informar seus alunos sobre o uso do CadênciaFit e só registrar dados de que realmente precisa para o acompanhamento.</li>
+        <li>O treinador deve informar seus alunos sobre o uso do SalesFit e só registrar dados de que realmente precisa para o acompanhamento.</li>
         <li>Vídeos, imagens e textos que o treinador enviar devem ser dele ou ter autorização de uso.</li>
         <li>O treinador modera a comunidade da sua consultoria e responde pelo uso que faz das ferramentas de moderação.</li>
       </ul>
 
       <h2>4. Saúde e segurança</h2>
       <p>
-        O CadênciaFit é uma ferramenta de organização e acompanhamento. Ele não faz diagnóstico, não prescreve tratamentos e não substitui
+        O SalesFit é uma ferramenta de organização e acompanhamento. Ele não faz diagnóstico, não prescreve tratamentos e não substitui
         avaliação médica. Antes de iniciar ou intensificar treinos, procure liberação médica quando necessário. Siga as orientações do seu treinador,
         respeite seus limites e interrompa o exercício se sentir dor, tontura ou mal-estar.
       </p>
@@ -67,7 +67,7 @@ export default function TermsPage() {
 
       <h2>6. Seu conteúdo</h2>
       <p>
-        O que você envia continua sendo seu. Você autoriza o CadênciaFit a guardar, processar e exibir esse conteúdo apenas para prestar o serviço,
+        O que você envia continua sendo seu. Você autoriza o SalesFit a guardar, processar e exibir esse conteúdo apenas para prestar o serviço,
         dentro da sua consultoria e conforme as permissões que você escolher. Não usamos seu conteúdo para publicidade.
       </p>
 
@@ -103,14 +103,14 @@ export default function TermsPage() {
 
       <h2>8. Disponibilidade</h2>
       <p>
-        Trabalhamos para manter o CadênciaFit disponível e seguro, mas podem ocorrer interrupções para manutenção, atualizações ou por falhas de
+        Trabalhamos para manter o SalesFit disponível e seguro, mas podem ocorrer interrupções para manutenção, atualizações ou por falhas de
         terceiros (hospedagem, internet, provedores de pagamento). Manutenções programadas serão avisadas sempre que possível. Recomendamos baixar
         seus dados periodicamente em Conta.
       </p>
 
       <h2>9. Responsabilidade</h2>
       <p>
-        O CadênciaFit responde pelos danos que causar na prestação do serviço, nos termos da lei. Não responde por treinos, orientações e conteúdos
+        O SalesFit responde pelos danos que causar na prestação do serviço, nos termos da lei. Não responde por treinos, orientações e conteúdos
         criados por treinadores e alunos, nem por danos causados por uso em desacordo com estes termos. Nada aqui afasta os direitos garantidos pelo
         Código de Defesa do Consumidor.
       </p>
@@ -125,7 +125,7 @@ export default function TermsPage() {
       <h2>11. Mudanças nestes termos</h2>
       <p>
         Quando estes termos mudarem, a data da versão acima será atualizada. Mudanças relevantes serão avisadas por e-mail ou dentro do app com
-        antecedência razoável. Continuar usando o CadênciaFit depois disso significa concordar com a nova versão.
+        antecedência razoável. Continuar usando o SalesFit depois disso significa concordar com a nova versão.
       </p>
 
       <h2>12. Lei aplicável e foro</h2>

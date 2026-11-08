@@ -126,7 +126,7 @@ export default async function AccountPage() {
         <h2 id="privacy-h" className="text-lg font-semibold">
           Seus dados (LGPD)
         </h2>
-        <p className="mt-1 max-w-xl text-sm text-muted">Baixe uma cópia de tudo o que o Cadência guarda sobre você, em um arquivo que outros sistemas conseguem ler.</p>
+        <p className="mt-1 max-w-xl text-sm text-muted">Baixe uma cópia de tudo o que o SalesFit guarda sobre você, em um arquivo que outros sistemas conseguem ler.</p>
         <a href="/conta/meus-dados" download className={`${buttonClass("secondary")} mt-5`}>
           Baixar meus dados
         </a>

@@ -71,7 +71,7 @@ async function loadVisible(tx: Tx, workspaceId: string, exerciseId: string) {
 
 async function loadOwn(tx: Tx, workspaceId: string, exerciseId: string) {
   const e = await loadVisible(tx, workspaceId, exerciseId);
-  if (e.workspaceId !== workspaceId) throw new AppError("FORBIDDEN", "Exercícios da biblioteca Cadência não podem ser editados. Faça uma cópia.");
+  if (e.workspaceId !== workspaceId) throw new AppError("FORBIDDEN", "Exercícios da biblioteca SalesFit não podem ser editados. Faça uma cópia.");
   return e;
 }
 

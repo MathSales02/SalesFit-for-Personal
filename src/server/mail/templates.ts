@@ -15,7 +15,7 @@ function layout(title: string, paragraphs: string[], action?: { label: string; u
   return `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;color:#0e0f11;background:#f7f5f2;padding:24px">
   <div style="max-width:520px;margin:0 auto;background:#ffffff;padding:32px;border-radius:16px">
   <h1 style="font-size:20px;margin:0 0 20px">${escapeHtml(title)}</h1>${body}${button}
-  <p style="margin:24px 0 0;font-size:12px;color:#6b6f76">Cadência · Você recebeu este e-mail porque ele está associado a uma conta na plataforma.</p>
+  <p style="margin:24px 0 0;font-size:12px;color:#6b6f76">SalesFit · Você recebeu este e-mail porque ele está associado a uma conta na plataforma.</p>
   </div></body></html>`;
 }
 
@@ -50,7 +50,7 @@ export function passwordResetEmail(to: string, token: string): Mail {
 export function invitationEmail(to: string, trainerName: string, workspaceName: string, token: string): Mail {
   const url = `${env().APP_URL}/convite?token=${token}`;
   const p = [
-    `${trainerName} convidou você para treinar com ${workspaceName} na Cadência.`,
+    `${trainerName} convidou você para treinar com ${workspaceName} no SalesFit.`,
     "Lá você encontra seus treinos, registra sua evolução e participa da comunidade da consultoria. O convite vale por 7 dias.",
   ];
   return { to, subject: `Convite de ${workspaceName}`, text: textLayout(p, url), html: layout("Você foi convidado", p, { label: "Aceitar convite", url }) };
@@ -67,7 +67,7 @@ export function passwordChangedEmail(to: string): Mail {
 export function supportAccessEmail(to: string, workspaceName: string, reason: string, minutes: number): Mail {
   const url = `${env().APP_URL}/treinador`;
   const p = [
-    `A equipe do Cadência abriu um acesso de suporte temporário à consultoria ${workspaceName}, válido por ${minutes} minutos.`,
+    `A equipe do SalesFit abriu um acesso de suporte temporário à consultoria ${workspaceName}, válido por ${minutes} minutos.`,
     `Motivo informado: ${reason}`,
     "O acesso é somente leitura e não inclui dados de saúde, fotos, mensagens nem publicações. Tudo fica registrado e aparece na sua visão geral.",
     "Se você não reconhece este pedido, responda a este e-mail.",

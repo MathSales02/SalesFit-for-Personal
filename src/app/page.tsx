@@ -13,7 +13,7 @@ import "@/components/landing/landing.css";
 import { TRIAL_DAYS } from "@/server/auth/service";
 import { listPublicPlans } from "@/server/billing/public-plans";
 
-const TITLE = "CadênciaFit: treinos, evolução e constância para personal trainers";
+const TITLE = "SalesFit: treinos, evolução e constância para personal trainers";
 const DESCRIPTION =
   "Monte treinos, acompanhe a evolução dos alunos e mantenha a turma motivada com ranking e comunidade. Teste grátis por 14 dias, sem cartão.";
 
@@ -24,10 +24,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: "CadênciaFit",
+    siteName: "SalesFit",
     title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: "/landing/og.jpg", width: 1200, height: 630, alt: "CadênciaFit" }],
+    images: [{ url: "/landing/og.jpg", width: 1200, height: 630, alt: "SalesFit" }],
   },
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: ["/landing/og.jpg"] },
 };

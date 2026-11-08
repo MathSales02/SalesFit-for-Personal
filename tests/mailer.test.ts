@@ -5,8 +5,8 @@ const mail = { to: "aluno@example.com", subject: "Confirme seu e-mail", text: "t
 
 describe("mail over the Brevo API", () => {
   it("reads the sender from MAIL_FROM", () => {
-    expect(parseFrom("CadênciaFit <time@example.com>")).toEqual({ name: "CadênciaFit", email: "time@example.com" });
-    expect(parseFrom('"Cadência" <a@b.com>')).toEqual({ name: "Cadência", email: "a@b.com" });
+    expect(parseFrom("SalesFit <time@example.com>")).toEqual({ name: "SalesFit", email: "time@example.com" });
+    expect(parseFrom('"SalesFit" <a@b.com>')).toEqual({ name: "SalesFit", email: "a@b.com" });
     expect(parseFrom("a@b.com")).toEqual({ email: "a@b.com" });
   });
 
@@ -16,11 +16,11 @@ describe("mail over the Brevo API", () => {
       call = { url, init };
       return new Response(JSON.stringify({ messageId: "x" }), { status: 201 });
     }) as unknown as typeof fetch;
-    await sendViaBrevo("key-0123456789abcdefghij", "CadênciaFit <time@example.com>", mail, fake);
+    await sendViaBrevo("key-0123456789abcdefghij", "SalesFit <time@example.com>", mail, fake);
     expect(call!.url).toBe("https://api.brevo.com/v3/smtp/email");
     expect((call!.init.headers as Record<string, string>)["api-key"]).toBe("key-0123456789abcdefghij");
     const body = JSON.parse(call!.init.body as string);
-    expect(body).toMatchObject({ sender: { name: "CadênciaFit", email: "time@example.com" }, to: [{ email: "aluno@example.com" }], subject: mail.subject, htmlContent: mail.html, textContent: mail.text });
+    expect(body).toMatchObject({ sender: { name: "SalesFit", email: "time@example.com" }, to: [{ email: "aluno@example.com" }], subject: mail.subject, htmlContent: mail.html, textContent: mail.text });
   });
 
   it("fails loudly when Brevo refuses", async () => {

@@ -14,11 +14,11 @@ const manrope = Manrope({ subsets: ["latin"], weight: ["500", "600", "700", "800
 export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
-    title: { default: "Cadência", template: "%s · Cadência" },
+    title: { default: "SalesFit", template: "%s · SalesFit" },
     description: "Plataforma para personal trainers e alunos: treinos, evolução e comunidade.",
     robots: { index: false, follow: false },
     // Installed on iPhone (Add to Home Screen): opens full screen with this name.
-    appleWebApp: { capable: true, title: "CadênciaFit", statusBarStyle: "black" },
+    appleWebApp: { capable: true, title: "SalesFit", statusBarStyle: "black" },
   };
 }
 

@@ -4,8 +4,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "CadênciaFit",
-    short_name: "CadênciaFit",
+    name: "SalesFit",
+    short_name: "SalesFit",
     description: "Treinos, evolução e comunidade para personal trainers e alunos.",
     lang: "pt-BR",
     // Logged-in users land in their own area; others are sent to the login page.
@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0f0f11",
-    theme_color: "#0f0f11",
+    background_color: "#f7f5f2",
+    theme_color: "#f2690f",
     categories: ["health", "fitness", "lifestyle"],
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

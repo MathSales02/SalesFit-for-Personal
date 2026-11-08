@@ -49,7 +49,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeading title="Assinatura" description="Plano da sua consultoria no Cadência." />
+      <PageHeading title="Assinatura" description="Plano da sua consultoria no SalesFit." />
 
       {sp.cobranca === "gerada" && (
         <div className="mb-6">

@@ -9,18 +9,18 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Política de privacidade" version={LEGAL_DOCUMENT_VERSION}>
       <p>
-        Esta política explica quais dados pessoais o CadênciaFit trata, por que, com quem compartilha e como você exerce seus direitos, conforme a
+        Esta política explica quais dados pessoais o SalesFit trata, por que, com quem compartilha e como você exerce seus direitos, conforme a
         Lei Geral de Proteção de Dados (Lei 13.709/2018, &quot;LGPD&quot;).
       </p>
 
       <h2>1. Quem é o responsável</h2>
       <p>
-        O CadênciaFit é operado por {R.name}, que é o controlador dos dados e também o encarregado pelo tratamento de dados pessoais. Contato
+        O SalesFit é operado por {R.name}, que é o controlador dos dados e também o encarregado pelo tratamento de dados pessoais. Contato
         para qualquer assunto de privacidade: <a href={`mailto:${R.email}`}>{R.email}</a> ou WhatsApp {R.whatsapp}.
       </p>
       <p>
         Quando um treinador cadastra e acompanha seus alunos, ele decide quais dados registra sobre eles (treinos, avaliações, observações). Nesses
-        casos, o treinador também é responsável por esses dados perante seus alunos, e o CadênciaFit os trata para prestar o serviço a ele.
+        casos, o treinador também é responsável por esses dados perante seus alunos, e o SalesFit os trata para prestar o serviço a ele.
       </p>
 
       <h2>2. Quais dados tratamos</h2>
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Cobrança (treinadores):</strong> plano contratado e situação dos pagamentos. O CPF ou CNPJ informado no pagamento é enviado
-          diretamente ao Asaas e não fica guardado no CadênciaFit. Dados de cartão são digitados no ambiente do Asaas; o CadênciaFit nunca os recebe.
+          diretamente ao Asaas e não fica guardado no SalesFit. Dados de cartão são digitados no ambiente do Asaas; o SalesFit nunca os recebe.
         </li>
         <li>
           <strong>Segurança:</strong> registros de acesso e de tentativas de login. O endereço IP e o e-mail nesses registros são guardados apenas em
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
           quando quiser.
         </li>
         <li>
-          <strong>Prestadores de serviço</strong>, só para fazer o CadênciaFit funcionar:
+          <strong>Prestadores de serviço</strong>, só para fazer o SalesFit funcionar:
           <ul>
             <li>Railway (hospedagem do sistema, do banco de dados e dos arquivos), nos Estados Unidos;</li>
             <li>Google (envio de e-mails do sistema, pelo Gmail), nos Estados Unidos;</li>
@@ -114,7 +114,7 @@ export default function PrivacyPage() {
 
       <h2>7. Análise automática de imagens</h2>
       <p>
-        Imagens enviadas para a comunidade passam por uma verificação automática, feita no próprio servidor do CadênciaFit, para bloquear nudez.
+        Imagens enviadas para a comunidade passam por uma verificação automática, feita no próprio servidor do SalesFit, para bloquear nudez.
         Nenhuma imagem é enviada a terceiros para isso. Se uma imagem sua for bloqueada por engano, você pode pedir revisão humana pelo contato acima
         (art. 20 da LGPD).
       </p>
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
 
       <h2>11. Crianças e adolescentes</h2>
       <p>
-        Treinadores precisam ter 18 anos ou mais. Alunos com menos de 18 anos só podem usar o CadênciaFit com a autorização do responsável legal,
+        Treinadores precisam ter 18 anos ou mais. Alunos com menos de 18 anos só podem usar o SalesFit com a autorização do responsável legal,
         obtida pelo treinador antes do convite. O tratamento de dados de menores segue o melhor interesse deles (art. 14 da LGPD).
       </p>
 

@@ -34,13 +34,13 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
       </Link>
       <PageHeading
         title={e.name}
-        description={[MUSCLE_GROUP_LABEL[e.muscleGroup], e.equipment, e.own ? "Sua biblioteca" : "Biblioteca Cadência"].filter(Boolean).join(" · ")}
+        description={[MUSCLE_GROUP_LABEL[e.muscleGroup], e.equipment, e.own ? "Sua biblioteca" : "Biblioteca SalesFit"].filter(Boolean).join(" · ")}
       />
 
       {!e.own ? (
         <div className="max-w-2xl">
           {e.instructions && <p className="leading-relaxed whitespace-pre-line text-ink-soft">{e.instructions}</p>}
-          <p className="mt-6 mb-4 text-sm text-muted">Exercícios da biblioteca Cadência não podem ser editados. Faça uma cópia para ajustar o texto e incluir seu vídeo.</p>
+          <p className="mt-6 mb-4 text-sm text-muted">Exercícios da biblioteca SalesFit não podem ser editados. Faça uma cópia para ajustar o texto e incluir seu vídeo.</p>
           <CopyExerciseButton exerciseId={e.id} />
         </div>
       ) : (

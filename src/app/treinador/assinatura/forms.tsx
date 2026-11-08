@@ -48,7 +48,7 @@ export function CheckoutForm({ plans, needsTaxId, defaultPlanId }: { plans: Plan
                 name="cpfCnpj"
                 inputMode="numeric"
                 maxLength={20}
-                hint="Exigido para emitir a cobrança. Não fica guardado no Cadência."
+                hint="Exigido para emitir a cobrança. Não fica guardado no SalesFit."
                 errors={fieldErrors(s, "cpfCnpj")}
               />
             </div>

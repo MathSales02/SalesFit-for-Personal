@@ -4,7 +4,7 @@ import { Logo } from "@/components/ui/logo";
 export function LegalPage({ title, version, children }: { title: string; version: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-2xl px-5 py-10">
-      <Link href="/" aria-label="CadênciaFit, página inicial">
+      <Link href="/" aria-label="SalesFit, página inicial">
         <Logo />
       </Link>
       <h1 className="mt-10 font-display text-4xl font-bold">{title}</h1>

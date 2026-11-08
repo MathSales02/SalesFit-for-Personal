@@ -33,7 +33,7 @@ export function faqItems({ trialDays, trialStudents }: { trialDays: number; tria
     },
     {
       q: "Meus alunos pagam alguma coisa?",
-      a: "Não. Eles entram pelo convite que você envia e usam o CadênciaFit sem custo. O plano é da sua consultoria.",
+      a: "Não. Eles entram pelo convite que você envia e usam o SalesFit sem custo. O plano é da sua consultoria.",
     },
     {
       q: "Funciona no celular?",

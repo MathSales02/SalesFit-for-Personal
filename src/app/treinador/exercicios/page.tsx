@@ -21,7 +21,7 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeading title="Exercícios" description="Sua biblioteca e a biblioteca Cadência. Copie qualquer exercício para ajustar o texto e incluir seu próprio vídeo." />
+      <PageHeading title="Exercícios" description="Sua biblioteca e a biblioteca SalesFit. Copie qualquer exercício para ajustar o texto e incluir seu próprio vídeo." />
 
       <details className="group mb-8 rounded-[var(--radius-panel)] border border-line bg-paper">
         <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 font-semibold">
@@ -78,8 +78,8 @@ export default async function ExercisesPage({ searchParams }: { searchParams: Pr
         )}
       </form>
 
-      <ExerciseSection title="Sua biblioteca" rows={own} empty={filtered ? "Nada encontrado na sua biblioteca." : "Você ainda não criou exercícios. Crie um ou copie da biblioteca Cadência."} />
-      <ExerciseSection title="Biblioteca Cadência" rows={platform} empty="Nada encontrado." />
+      <ExerciseSection title="Sua biblioteca" rows={own} empty={filtered ? "Nada encontrado na sua biblioteca." : "Você ainda não criou exercícios. Crie um ou copie da biblioteca SalesFit."} />
+      <ExerciseSection title="Biblioteca SalesFit" rows={platform} empty="Nada encontrado." />
     </>
   );
 }

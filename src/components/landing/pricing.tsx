@@ -43,7 +43,7 @@ export function Pricing({ plans, trial, trialDays }: { plans: PublicPlan[]; tria
                     <li>
                       <strong className={featured ? "text-white" : "text-[var(--lp-dark)]"}>{gb(p.storageQuotaMb)}</strong> para vídeos e fotos
                     </li>
-                    <li>Todos os recursos do CadênciaFit</li>
+                    <li>Todos os recursos do SalesFit</li>
                   </ul>
                   <Link
                     href="/cadastro"
@@ -68,7 +68,7 @@ export function Pricing({ plans, trial, trialDays }: { plans: PublicPlan[]; tria
         <h3 className="mt-16 text-xl font-semibold">Compare os planos</h3>
         <div className="mt-5 hidden overflow-hidden rounded-[var(--lp-radius)] bg-white md:block">
           <table className="w-full text-left text-[0.95rem]">
-            <caption className="sr-only">Comparação dos planos do CadênciaFit</caption>
+            <caption className="sr-only">Comparação dos planos do SalesFit</caption>
             <thead>
               <tr className="border-b border-[var(--lp-line-light)]">
                 <th scope="col" className="px-5 py-4 font-semibold">

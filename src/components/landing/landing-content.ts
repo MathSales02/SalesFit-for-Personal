@@ -9,7 +9,7 @@
  *    the same source the checkout charges.
  */
 
-export const BRAND = "CadênciaFit";
+export const BRAND = "SalesFit";
 
 export const CONTACT = {
   email: "matheusssales0218@gmail.com",

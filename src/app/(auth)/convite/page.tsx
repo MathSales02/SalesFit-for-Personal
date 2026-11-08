@@ -27,7 +27,7 @@ export default async function InvitationPage({ searchParams }: { searchParams: P
   if (!preview) return <Invalid />;
 
   const actor = await currentActor();
-  const heading = <AuthHeading title={preview.workspaceName}>convidou você para treinar na Cadência.</AuthHeading>;
+  const heading = <AuthHeading title={preview.workspaceName}>convidou você para treinar no SalesFit.</AuthHeading>;
 
   if (!preview.accountExists) {
     return (

@@ -29,7 +29,7 @@ export default defineConfig({
       REDIS_URL: "",
       APP_URL: process.env.APP_URL ?? "http://localhost:3000",
       SMTP_URL: process.env.SMTP_URL ?? "smtp://127.0.0.1:1025",
-      MAIL_FROM: "Cadência <test@cadencia.local>",
+      MAIL_FROM: "SalesFit <test@cadencia.local>",
       PII_HASH_SECRET: "test-secret-test-secret-test-secret-1234",
       MFA_ENCRYPTION_KEY: "test-mfa-key-test-mfa-key-test-mfa-key-1234",
       TRUSTED_PROXY_HOPS: "0",

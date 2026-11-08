@@ -13,7 +13,7 @@ export default async function UnavailablePage() {
     <section className="mx-auto max-w-md py-10">
       <h1 className="font-display text-3xl font-bold">{actor.membership.workspaceName} está temporariamente indisponível</h1>
       <p className="mt-3 leading-relaxed text-muted">
-        A assinatura da consultoria no Cadência está pausada. Seus treinos, histórico e fotos continuam guardados e voltam assim que seu treinador regularizar.
+        A assinatura da consultoria no SalesFit está pausada. Seus treinos, histórico e fotos continuam guardados e voltam assim que seu treinador regularizar.
       </p>
       <Link href="/conta" className={`${buttonClass("secondary")} mt-6`}>
         Minha conta e meus dados

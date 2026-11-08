@@ -180,7 +180,7 @@ export function Navbar() {
         data-hero-anim=""
         className="lp-glass pointer-events-auto relative mx-auto flex h-16 max-w-6xl items-center gap-3 rounded-full pr-2 pl-5 transition-[height] duration-300 data-[compact]:h-14"
       >
-        <Link href="/" aria-label="CadênciaFit, início" className="shrink-0">
+        <Link href="/" aria-label="SalesFit, início" className="shrink-0">
           <BrandLogo />
         </Link>
 

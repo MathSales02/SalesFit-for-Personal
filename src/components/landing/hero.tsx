@@ -40,7 +40,7 @@ export function Hero({ trialDays }: { trialDays: number }) {
               Seus alunos no ritmo. Sua consultoria em ordem.
             </h1>
             <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-[var(--lp-text-2)]">
-              Treino no celular do aluno, evolução acompanhada de perto e um ranking que premia constância. Tudo no CadênciaFit.
+              Treino no celular do aluno, evolução acompanhada de perto e um ranking que premia constância. Tudo no SalesFit.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
@@ -70,7 +70,7 @@ export function Hero({ trialDays }: { trialDays: number }) {
             <MockCheckinToast />
           </div>
         </div>
-        <p className="absolute right-5 bottom-4 hidden text-xs text-white/70 xl:block">Telas reais do CadênciaFit com dados de exemplo.</p>
+        <p className="absolute right-5 bottom-4 hidden text-xs text-white/70 xl:block">Telas reais do SalesFit com dados de exemplo.</p>
       </section>
     </HeroMotion>
   );

@@ -1,4 +1,4 @@
-// CadênciaFit service worker. Pages always come from the network (they hold private,
+// SalesFit service worker. Pages always come from the network (they hold private,
 // per-user data, so nothing is cached); only a small offline page is kept for when
 // the connection drops.
 const CACHE = "cadencia-v1";

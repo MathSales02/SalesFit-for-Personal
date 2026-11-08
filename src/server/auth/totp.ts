@@ -72,7 +72,7 @@ export function matchTotp(secret: string, code: string, now = Date.now()): numbe
 }
 
 /** otpauth:// URI for the QR code. */
-export function otpauthUri(secret: string, account: string, issuer = "Cadência") {
+export function otpauthUri(secret: string, account: string, issuer = "SalesFit") {
   const label = encodeURIComponent(`${issuer}:${account}`);
   return `otpauth://totp/${label}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=${TOTP_STEP_SEC}`;
 }

@@ -132,7 +132,7 @@ export async function AppShell({
       <div className="min-h-dvh pb-20 xl:pb-0 bg-chalk">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
-            <Link href="/aluno" aria-label="Cadência, início">
+            <Link href="/aluno" aria-label="SalesFit, início">
               <Logo />
             </Link>
             <div className="flex items-center gap-1">
@@ -172,7 +172,7 @@ export async function AppShell({
         {/* Desktop: a floating icon rail, as in the reference dashboard. */}
         <aside className="sticky top-0 hidden h-dvh py-4 pl-4 lg:block">
           <div className="flex h-full flex-col items-center gap-5 rounded-[var(--radius-panel)] bg-paper py-5 shadow-[var(--shadow-card)]">
-            <Link href="/treinador" aria-label="Cadência, início" className="grid size-11 place-items-center">
+            <Link href="/treinador" aria-label="SalesFit, início" className="grid size-11 place-items-center">
               <Logo layout="symbol" height={28} />
             </Link>
             <nav aria-label="Principal" className="flex flex-1 flex-col items-center gap-2">
@@ -210,7 +210,7 @@ export async function AppShell({
         </aside>
 
         <header className="relative flex h-14 items-center justify-between gap-2 border-b border-line bg-paper px-4 lg:hidden">
-          <Link href="/treinador" aria-label="Cadência, início">
+          <Link href="/treinador" aria-label="SalesFit, início">
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
@@ -250,7 +250,7 @@ export async function AppShell({
           dark ? "border-r border-white/10 bg-night" : "border-r border-line bg-paper"
         }`}
       >
-        <Link href={main[0]!.href} className="px-3" aria-label="Cadência, início">
+        <Link href={main[0]!.href} className="px-3" aria-label="SalesFit, início">
           <Logo tone={dark ? "dark" : "auto"} />
         </Link>
         <div className={`px-3 ${dark ? "text-white" : ""}`}>
@@ -258,7 +258,7 @@ export async function AppShell({
             {dark ? "Administração" : "Consultoria"}
           </p>
           <p className="mt-0.5 truncate font-semibold text-sm">
-            {dark ? "Cadência Platform" : actor.membership?.workspaceName}
+            {dark ? "SalesFit Platform" : actor.membership?.workspaceName}
           </p>
         </div>
         <nav aria-label="Principal" className="flex flex-col gap-1">

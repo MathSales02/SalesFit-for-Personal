@@ -196,7 +196,7 @@ function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; 
       customer,
       value: plan.priceCents / 100,
       nextDueDate,
-      description: `Cadência: plano ${plan.name}`,
+      description: `SalesFit: plano ${plan.name}`,
       externalReference: m.workspaceId,
     });
     onCreated(created.id);
