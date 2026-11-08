@@ -1,29 +1,30 @@
 /*
- * CadênciaFit landing page. Everything here is scoped to .lp: the app's tokens,
+ * SalesFit landing page. Everything here is scoped to .lp: the app's tokens,
  * themes and global styles are not changed.
  *
  * Contrast (WCAG 2.2 AA), measured:
- *   --lp-text   on --lp-ink   17.2:1     --lp-text-2 on --lp-ink   9.6:1
- *   --lp-dark   on --lp-bone  16.0:1     --lp-dark-2 on --lp-bone  6.7:1
- *   --lp-orange-ink on --lp-bone 4.9:1   --lp-orange-on-dark on --lp-ink 7.9:1
- *   black on --lp-orange 6.3:1 (text on orange is only ever black)
+ *   --lp-text   on --lp-ink   17.6:1     --lp-text-2 on --lp-ink   9.6:1
+ *   --lp-dark   on --lp-bone  17.6:1     --lp-dark-2 on --lp-bone  4.6:1
+ *   --lp-orange-ink on --lp-bone 5.4:1   --lp-orange-on-dark on --lp-ink 6.2:1
+ *   charcoal on --lp-orange 6.2:1 (text on orange is never white)
  */
 
 .lp {
-  --lp-ink: #0e0e10;
-  --lp-ink-2: #17171a;
-  --lp-ink-3: #232327;
+  /* SalesFit palette. */
+  --lp-ink: #0e0f11;               /* charcoal */
+  --lp-ink-2: #17191c;
+  --lp-ink-3: #2a2d32;             /* graphite */
   --lp-line-dark: rgba(255, 255, 255, 0.1);
-  --lp-bone: #f4f2ee;
-  --lp-bone-2: #e8e4dc;
-  --lp-line-light: rgba(24, 24, 27, 0.12);
-  --lp-text: #f4f4f5;
-  --lp-text-2: #b4b4bc;
-  --lp-dark: #18181b;
-  --lp-dark-2: #55555d;
-  --lp-orange: #f97316;
-  --lp-orange-ink: #c2410c;
-  --lp-orange-on-dark: #fb923c;
+  --lp-bone: #f7f5f2;              /* off-white */
+  --lp-bone-2: #eeeae4;            /* sand */
+  --lp-line-light: rgba(14, 15, 17, 0.12);
+  --lp-text: #f7f5f2;
+  --lp-text-2: #b6b8bd;
+  --lp-dark: #0e0f11;
+  --lp-dark-2: #6b6f76;            /* stone */
+  --lp-orange: #f2690f;
+  --lp-orange-ink: #a94706;        /* orange text on light surfaces */
+  --lp-orange-on-dark: #f2690f;    /* 6.2:1 on charcoal */
   --lp-radius: 24px;
   /* Motion tokens: one beat = 0.5 s (120 bpm). */
   --lp-beat: 0.5s;
@@ -38,7 +39,7 @@
 
 .lp ::selection {
   background: var(--lp-orange);
-  color: #000;
+  color: var(--lp-ink);
 }
 
 .lp :focus-visible {
@@ -74,23 +75,23 @@
 /* App screenshots rendered in HTML: always the app's light theme, whatever the visitor's theme is. */
 .lp-app {
   color-scheme: light;
-  --color-chalk: #eef1f6;
+  --color-chalk: #f7f5f2;
   --color-paper: #ffffff;
-  --color-surface-subtle: #f0f0f0;
-  --color-ink: #18181b;
-  --color-ink-soft: #52525b;
-  --color-muted: #6b6b75;
-  --color-line: #e4e7ec;
-  --color-line-strong: #d4d4d8;
-  --color-turf: #c2410c;
-  --color-turf-hover: #9a3412;
-  --color-turf-tint: #ffedd5;
-  --color-signal: #f97316;
-  --color-signal-tint: #ffedd5;
+  --color-surface-subtle: #eeeae4;
+  --color-ink: #0e0f11;
+  --color-ink-soft: #2a2d32;
+  --color-muted: #6b6f76;
+  --color-line: #e2ded7;
+  --color-line-strong: #cfc9bf;
+  --color-turf: #a94706;
+  --color-turf-hover: #8a3a05;
+  --color-turf-tint: #fce6d6;
+  --color-signal: #f2690f;
+  --color-signal-tint: #fce6d6;
   --color-danger: #b91c1c;
   --color-danger-tint: #fee2e2;
-  --color-night: #18181b;
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  --color-night: #0e0f11;
+  --shadow-card: 0 1px 2px rgba(14, 15, 17, 0.06), 0 18px 40px -18px rgba(0, 0, 0, 0.45);
   color: var(--color-ink);
 }
 
@@ -99,7 +100,7 @@
 /* ------------------------------------------------------------------ */
 .lp-glass {
   /* Opaque enough for white text over any background (no backdrop-filter support). */
-  background: rgba(14, 14, 16, 0.86);
+  background: rgba(14, 15, 17, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.14),
@@ -110,12 +111,12 @@
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .lp-glass {
     /* 58% tint keeps white text ≥ 4.5:1 even over the light sections. */
-    background: rgba(14, 14, 16, 0.58);
+    background: rgba(14, 15, 17, 0.58);
     -webkit-backdrop-filter: blur(16px) saturate(170%);
     backdrop-filter: blur(16px) saturate(170%);
   }
   .lp-glass[data-compact] {
-    background: rgba(14, 14, 16, 0.78);
+    background: rgba(14, 15, 17, 0.78);
   }
   /* Chromium only (detected in JS): the SVG displacement bends what is behind the glass. */
   .lp-glass[data-liquid] {

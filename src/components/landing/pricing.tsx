@@ -30,7 +30,7 @@ export function Pricing({ plans, trial, trialDays }: { plans: PublicPlan[]; tria
               const featured = p.code === recommended;
               return (
                 <li key={p.code} data-card="" className={`relative flex flex-col rounded-[var(--lp-radius)] p-6 ${featured ? "bg-[var(--lp-ink)] text-white" : "bg-white text-[var(--lp-dark)]"}`}>
-                  {featured && <span className="absolute -top-3 left-6 rounded-full bg-[var(--lp-orange)] px-3 py-1 text-xs font-bold text-black">Recomendado</span>}
+                  {featured && <span className="absolute -top-3 left-6 rounded-full bg-[var(--lp-orange)] px-3 py-1 text-xs font-bold text-[var(--lp-ink)]">Recomendado</span>}
                   <h3 className="text-lg font-semibold">{p.name}</h3>
                   <p className="mt-4 flex flex-wrap items-baseline gap-x-1">
                     <span className="lp-display text-[2.4rem] lg:text-[2.1rem] xl:text-[2.3rem]">{brl(p.priceCents)}</span>
@@ -48,7 +48,7 @@ export function Pricing({ plans, trial, trialDays }: { plans: PublicPlan[]; tria
                   <Link
                     href="/cadastro"
                     className={`mt-7 inline-flex h-12 items-center justify-center rounded-full font-semibold transition-colors ${
-                      featured ? "bg-[var(--lp-orange)] text-black hover:bg-white" : "bg-[var(--lp-dark)] text-white hover:bg-[var(--lp-orange)] hover:text-black"
+                      featured ? "bg-[var(--lp-orange)] text-[var(--lp-ink)] hover:bg-white" : "bg-[var(--lp-dark)] text-white hover:bg-[var(--lp-orange)] hover:text-[var(--lp-ink)]"
                     }`}
                   >
                     Começar com {p.name}

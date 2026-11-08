@@ -6,20 +6,20 @@ import { BRAND, CONTACT, NAV, SOCIAL } from "./landing-content";
 /** Final call to action: the bright orange band (black text, 6.3:1) that hands over to the footer. */
 export function FinalCta({ trialDays }: { trialDays: number }) {
   return (
-    <section aria-labelledby="cta-h" className="relative overflow-hidden bg-[var(--lp-orange)] text-black">
-      <Beats className="pointer-events-none absolute -right-10 bottom-0 h-[85%] w-[55%] text-black/10" on={[0, 1, 2, 3, 4, 5, 6]} heights={[40, 70, 55, 100, 80, 45, 60]} />
+    <section aria-labelledby="cta-h" className="relative overflow-hidden bg-[var(--lp-orange)] text-[var(--lp-ink)]">
+      <Beats className="pointer-events-none absolute -right-10 bottom-0 h-[85%] w-[55%] text-[var(--lp-ink)]/10" on={[0, 1, 2, 3, 4, 5, 6]} heights={[40, 70, 55, 100, 80, 45, 60]} />
       <div className="relative mx-auto max-w-6xl px-5 py-24 sm:px-8 sm:py-32">
         <h2 id="cta-h" className="lp-display max-w-4xl text-[2.9rem] sm:text-[5rem]">
           A próxima semana dos seus alunos começa aqui.
         </h2>
-        <p className="mt-6 max-w-xl text-lg font-medium text-black/80">
+        <p className="mt-6 max-w-xl text-lg font-medium text-[var(--lp-ink)]/80">
           {trialDays} dias com todos os recursos, sem cartão. Monte o primeiro programa hoje e convide seus alunos.
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/cadastro" className="inline-flex h-13 items-center rounded-full bg-black px-7 text-base font-semibold text-white transition-colors hover:bg-white hover:text-black">
+          <Link href="/cadastro" className="inline-flex h-13 items-center rounded-full bg-[var(--lp-ink)] px-7 text-base font-semibold text-white transition-colors hover:bg-white hover:text-[var(--lp-ink)]">
             Criar minha conta grátis
           </Link>
-          <Link href="/entrar" className="inline-flex h-13 items-center rounded-full border border-black/40 px-6 text-base font-semibold text-black transition-colors hover:bg-black/10">
+          <Link href="/entrar" className="inline-flex h-13 items-center rounded-full border border-[var(--lp-ink)]/40 px-6 text-base font-semibold text-[var(--lp-ink)] transition-colors hover:bg-black/10">
             Já tenho conta
           </Link>
         </div>

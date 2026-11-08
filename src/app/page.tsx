@@ -36,7 +36,7 @@ export default async function LandingPage() {
   const { paid, trial } = await listPublicPlans();
   return (
     <LandingRoot>
-      <a href="#conteudo" className="sr-only z-[60] rounded-full bg-white px-4 py-2 font-semibold text-black focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
+      <a href="#conteudo" className="sr-only z-[60] rounded-full bg-white px-4 py-2 font-semibold text-[var(--lp-ink)] focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
         Pular para o conteúdo
       </a>
       <Navbar />

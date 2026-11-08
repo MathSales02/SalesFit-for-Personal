@@ -1,61 +1,64 @@
 @import "tailwindcss";
 
 /*
- * Design system: airy surfaces, big rounded cards, orange as the accent.
- * Two themes: light (default) and dark. The theme follows the device unless
- * the person picks one (html.light / html.dark, set from a cookie on the server).
+ * SalesFit design system. Two themes: light (default) and dark. The theme follows the
+ * device unless the person picks one (html.light / html.dark, set from a cookie on the server).
  *
- * Text on orange is only ever black or white (contrast checked, WCAG 2.2 AA):
- *  - signal     #F97316  bright orange FILL, with on-accent (black) text: 6.3:1
- *  - turf-solid #C2410C  dark orange FILL, with white text: 5.2:1
- *  - turf                orange TEXT on page surfaces (light #C2410C, dark #FB923C)
- *  - night               dark panels that stay dark in both themes, with white text
+ * Brand palette: Laranja #F2690F · Laranja Profundo #A94706 · Carvão #0E0F11 ·
+ * Grafite #2A2D32 · Areia #EEEAE4 · Off-white #F7F5F2 · Cinza Pedra #6B6F76.
+ *
+ * Contrast rules (WCAG 2.2 AA):
+ *  - signal     #F2690F  orange FILL, always with on-accent (charcoal) text: 6.2:1. Never white text.
+ *  - turf                orange TEXT and links (light #A94706: 5.4:1 on off-white; dark #F79A5E: 6.4:1 on graphite)
+ *  - turf-solid #A94706  deep orange FILL, with white text: 5.9:1
+ *  - #F2690F as text only at 24 px or more, in icons, charts and decoration.
+ *  - Stone gray (muted) on sand is 4.2:1: secondary text belongs on white cards or off-white.
  */
 
 :root {
   color-scheme: light;
-  --color-chalk: #eef1f6;          /* page background */
-  --color-paper: #ffffff;          /* cards and surfaces */
-  --color-surface-subtle: #f0f0f0;
-  --color-ink: #18181b;            /* main text: 17.7:1 on paper */
-  --color-ink-soft: #52525b;       /* secondary text: 7.7:1 */
-  --color-muted: #6b6b75;          /* muted text: 5.3:1 on paper, 4.6:1 on chalk */
-  --color-line: #e4e7ec;
-  --color-line-strong: #d4d4d8;
-  --color-turf: #c2410c;           /* orange text and links: 5.2:1 */
-  --color-turf-hover: #9a3412;
-  --color-turf-tint: #ffedd5;      /* soft orange background (turf text on it: 4.5:1) */
-  --color-signal: #f97316;
-  --color-signal-tint: #ffedd5;
+  --color-chalk: #f7f5f2;          /* page background: off-white */
+  --color-paper: #ffffff;          /* cards: white, so muted text stays above 4.5:1 */
+  --color-surface-subtle: #eeeae4; /* sand: section backgrounds */
+  --color-ink: #0e0f11;            /* charcoal: main text, 17.6:1 on off-white */
+  --color-ink-soft: #2a2d32;       /* graphite: secondary emphasis, 12.7:1 */
+  --color-muted: #6b6f76;          /* stone: secondary text, 5.1:1 on paper, 4.6:1 on chalk */
+  --color-line: #e2ded7;
+  --color-line-strong: #cfc9bf;
+  --color-turf: #a94706;           /* deep orange text and links */
+  --color-turf-hover: #8a3a05;
+  --color-turf-tint: #fce6d6;      /* soft orange background (turf text on it: 4.9:1) */
+  --color-signal: #f2690f;
+  --color-signal-tint: #fce6d6;
   --color-danger: #b91c1c;         /* 6.5:1 on paper, 5.9:1 on danger-tint */
   --color-danger-tint: #fee2e2;
-  --color-success: #c2410c;
-  --color-night: #18181b;
+  --color-success: #a94706;
+  --color-night: #0e0f11;
 
-  --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+  --shadow-raised: 0 1px 3px 0 rgba(14, 15, 17, 0.08), 0 1px 2px -1px rgba(14, 15, 17, 0.08);
+  --shadow-card: 0 1px 2px rgba(14, 15, 17, 0.04), 0 8px 24px -12px rgba(14, 15, 17, 0.12);
 }
 
 /* Dark values. Applied when the person picked dark, or follows a dark device. */
 :root.dark {
   color-scheme: dark;
-  --color-chalk: #0f0f11;
-  --color-paper: #1c1c1f;
-  --color-surface-subtle: #161618;
-  --color-ink: #f4f4f5;            /* 15.5:1 on paper */
-  --color-ink-soft: #c8c8d0;       /* 10.2:1 */
-  --color-muted: #a1a1aa;          /* 6.6:1 */
-  --color-line: #2e2e33;
-  --color-line-strong: #45454d;
-  --color-turf: #fb923c;           /* 7.5:1 */
-  --color-turf-hover: #fdba74;
-  --color-turf-tint: #3f2a1e;      /* turf text on it: 5.9:1 */
-  --color-signal: #f97316;
-  --color-signal-tint: #3f2a1e;
-  --color-danger: #f87171;         /* 6.2:1 */
+  --color-chalk: #0e0f11;          /* charcoal */
+  --color-paper: #2a2d32;          /* graphite */
+  --color-surface-subtle: #1b1d21;
+  --color-ink: #f7f5f2;            /* 12.7:1 on paper */
+  --color-ink-soft: #d6d2cb;
+  --color-muted: #a4a7ad;          /* 5.7:1 on paper */
+  --color-line: #3a3e44;
+  --color-line-strong: #4a4f56;
+  --color-turf: #f79a5e;           /* 6.4:1 on paper */
+  --color-turf-hover: #fab585;
+  --color-turf-tint: #3a2618;      /* turf text on it: 6.6:1 */
+  --color-signal: #f2690f;
+  --color-signal-tint: #3a2618;
+  --color-danger: #f87171;
   --color-danger-tint: #3b282a;
-  --color-success: #fb923c;
-  --color-night: #2a2a2f;          /* white text: 14.3:1 */
+  --color-success: #f79a5e;
+  --color-night: #2a2d32;
 
   --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
@@ -63,23 +66,23 @@
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     color-scheme: dark;
-    --color-chalk: #0f0f11;
-    --color-paper: #1c1c1f;
-    --color-surface-subtle: #161618;
-    --color-ink: #f4f4f5;
-    --color-ink-soft: #c8c8d0;
-    --color-muted: #a1a1aa;
-    --color-line: #2e2e33;
-    --color-line-strong: #45454d;
-    --color-turf: #fb923c;
-    --color-turf-hover: #fdba74;
-    --color-turf-tint: #3f2a1e;
-    --color-signal: #f97316;
-    --color-signal-tint: #3f2a1e;
+    --color-chalk: #0e0f11;
+    --color-paper: #2a2d32;
+    --color-surface-subtle: #1b1d21;
+    --color-ink: #f7f5f2;
+    --color-ink-soft: #d6d2cb;
+    --color-muted: #a4a7ad;
+    --color-line: #3a3e44;
+    --color-line-strong: #4a4f56;
+    --color-turf: #f79a5e;
+    --color-turf-hover: #fab585;
+    --color-turf-tint: #3a2618;
+    --color-signal: #f2690f;
+    --color-signal-tint: #3a2618;
     --color-danger: #f87171;
     --color-danger-tint: #3b282a;
-    --color-success: #fb923c;
-    --color-night: #2a2a2f;
+    --color-success: #f79a5e;
+    --color-night: #2a2d32;
 
     --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
@@ -104,19 +107,10 @@
   --color-danger-tint: var(--color-danger-tint);
   --color-success: var(--color-success);
   --color-night: var(--color-night);
-  /* Same in both themes: text on the bright orange, and the dark orange that carries white text. */
-  --color-on-accent: #18181b;
-  --color-turf-solid: #c2410c;
-  --color-turf-solid-hover: #9a3412;
-
-  --color-orange-primary: #f97316;
-  --color-orange-hover: #ea580c;
-  --color-orange-light: #fb923c;
-  --color-orange-muted: #fed7aa;
-  --color-dark-bg: #0c0c0d;
-  --color-dark-surface: #151515;
-  --color-dark-card: #1c1c1e;
-  --color-dark-border: #2a2a2d;
+  /* Same in both themes: charcoal text on the bright orange, and the deep orange that carries white text. */
+  --color-on-accent: #0e0f11;
+  --color-turf-solid: #a94706;
+  --color-turf-solid-hover: #8a3a05;
 
   --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;

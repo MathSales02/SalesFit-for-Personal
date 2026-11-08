@@ -91,7 +91,7 @@ export function MockCheckinToast() {
 /** Phone-shaped frame for mobile screens. */
 export function PhoneFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-[2.6rem] border border-white/15 bg-[#0b0b0d] p-2.5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] ${className}`}>
+    <div className={`rounded-[2.6rem] border border-white/15 bg-[#0e0f11] p-2.5 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)] ${className}`}>
       <div className="overflow-hidden rounded-[2.1rem]">{children}</div>
     </div>
   );
@@ -134,7 +134,7 @@ export function MockPlayer() {
           <span className="block text-xs text-white/70">Descanso</span>
           <span className="font-display text-2xl font-bold tabular-nums">0:42</span>
         </span>
-        <span className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#18181b]">Pular</span>
+        <span className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#0e0f11]">Pular</span>
       </div>
     </AppFrame>
   );

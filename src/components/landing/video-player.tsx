@@ -103,7 +103,7 @@ export function VideoPlayer({ src, poster, width, height, label }: { src: string
         }}
         aria-label={playing ? `Pausar vídeo: ${label}` : `Reproduzir vídeo: ${label}`}
         aria-pressed={playing}
-        className="absolute right-3 bottom-3 grid size-11 cursor-pointer place-items-center rounded-full bg-black/75 text-white ring-1 ring-white/20 backdrop-blur hover:bg-black"
+        className="absolute right-3 bottom-3 grid size-11 cursor-pointer place-items-center rounded-full bg-black/75 text-white ring-1 ring-white/20 backdrop-blur hover:bg-[var(--lp-ink)]"
       >
         {playing ? (
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -119,7 +119,7 @@ export function VideoPlayer({ src, poster, width, height, label }: { src: string
       <span
         ref={cursor}
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 left-0 -mt-9 -ml-9 grid size-18 place-items-center rounded-full bg-[var(--lp-orange)] text-xs font-semibold text-black opacity-0"
+        className="pointer-events-none absolute top-0 left-0 -mt-9 -ml-9 grid size-18 place-items-center rounded-full bg-[var(--lp-orange)] text-xs font-semibold text-[var(--lp-ink)] opacity-0"
       >
         {playing ? "Pausar" : "Assistir"}
       </span>

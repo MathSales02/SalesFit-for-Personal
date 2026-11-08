@@ -215,7 +215,7 @@ export function Navbar() {
         <Link
           ref={cta}
           href="/cadastro"
-          className="hidden h-11 items-center rounded-full bg-[var(--lp-orange)] px-5 text-[0.92rem] font-semibold whitespace-nowrap text-black transition-colors hover:bg-white sm:inline-flex"
+          className="hidden h-11 items-center rounded-full bg-[var(--lp-orange)] px-5 text-[0.92rem] font-semibold whitespace-nowrap text-[var(--lp-ink)] transition-colors hover:bg-white sm:inline-flex"
         >
           Começar grátis
         </Link>
@@ -265,7 +265,7 @@ export function Navbar() {
             <Link href="/entrar" className="grid h-12 place-items-center rounded-full border border-white/20 font-semibold text-white">
               Entrar
             </Link>
-            <Link href="/cadastro" className="grid h-12 place-items-center rounded-full bg-[var(--lp-orange)] font-semibold text-black">
+            <Link href="/cadastro" className="grid h-12 place-items-center rounded-full bg-[var(--lp-orange)] font-semibold text-[var(--lp-ink)]">
               Começar grátis
             </Link>
           </div>

@@ -9,13 +9,13 @@ function escapeHtml(s: string) {
 function layout(title: string, paragraphs: string[], action?: { label: string; url: string }) {
   const body = paragraphs.map((p) => `<p style="margin:0 0 16px;line-height:1.5">${escapeHtml(p)}</p>`).join("");
   const button = action
-    ? `<p style="margin:24px 0"><a href="${escapeHtml(action.url)}" style="background:#123f30;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:600">${escapeHtml(action.label)}</a></p>
-       <p style="margin:0 0 16px;font-size:13px;color:#56635d">Se o botão não funcionar, copie este endereço no navegador:<br>${escapeHtml(action.url)}</p>`
+    ? `<p style="margin:24px 0"><a href="${escapeHtml(action.url)}" style="background:#f2690f;color:#0e0f11;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:600">${escapeHtml(action.label)}</a></p>
+       <p style="margin:0 0 16px;font-size:13px;color:#6b6f76">Se o botão não funcionar, copie este endereço no navegador:<br>${escapeHtml(action.url)}</p>`
     : "";
-  return `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;color:#14201b;background:#f3f5f2;padding:24px">
-  <div style="max-width:520px;margin:0 auto;background:#fff;padding:32px;border-radius:8px">
+  return `<!doctype html><html lang="pt-BR"><body style="font-family:Arial,sans-serif;color:#0e0f11;background:#f7f5f2;padding:24px">
+  <div style="max-width:520px;margin:0 auto;background:#ffffff;padding:32px;border-radius:16px">
   <h1 style="font-size:20px;margin:0 0 20px">${escapeHtml(title)}</h1>${body}${button}
-  <p style="margin:24px 0 0;font-size:12px;color:#56635d">Cadência · Você recebeu este e-mail porque ele está associado a uma conta na plataforma.</p>
+  <p style="margin:24px 0 0;font-size:12px;color:#6b6f76">Cadência · Você recebeu este e-mail porque ele está associado a uma conta na plataforma.</p>
   </div></body></html>`;
 }
 

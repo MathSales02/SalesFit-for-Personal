@@ -26,8 +26,8 @@ export function Hero({ trialDays }: { trialDays: number }) {
         </div>
         {/* Scrims: guarantee contrast for the text (not decoration). */}
         {/* Phones: the photo fills the top; it fades into the dark where the text sits. */}
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[62%] bg-[linear-gradient(180deg,rgba(14,14,16,0.45)_0%,rgba(14,14,16,0)_28%,rgba(14,14,16,0.35)_60%,var(--lp-ink)_100%)] sm:h-[70%] lg:hidden" />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,var(--lp-ink)_30%,rgba(14,14,16,0.86)_44%,rgba(14,14,16,0.2)_70%,rgba(14,14,16,0.35)_100%)] lg:block" />
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[62%] bg-[linear-gradient(180deg,rgba(14,15,17,0.45)_0%,rgba(14,15,17,0)_28%,rgba(14,15,17,0.35)_60%,var(--lp-ink)_100%)] sm:h-[70%] lg:hidden" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 hidden bg-[linear-gradient(90deg,var(--lp-ink)_30%,rgba(14,15,17,0.86)_44%,rgba(14,15,17,0.2)_70%,rgba(14,15,17,0.35)_100%)] lg:block" />
         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[var(--lp-ink)] to-transparent" />
 
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-end px-5 pt-32 pb-14 sm:px-8 lg:justify-center lg:pb-24">
@@ -46,7 +46,7 @@ export function Hero({ trialDays }: { trialDays: number }) {
               <Link
                 href="/cadastro"
                 data-magnetic=""
-                className="inline-flex h-13 items-center rounded-full bg-[var(--lp-orange)] px-7 text-base font-semibold text-black transition-colors hover:bg-white"
+                className="inline-flex h-13 items-center rounded-full bg-[var(--lp-orange)] px-7 text-base font-semibold text-[var(--lp-ink)] transition-colors hover:bg-white"
               >
                 Começar {trialDays} dias grátis
               </Link>
