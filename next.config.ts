@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "1mb" },
   },
+  // Only the landing page uses next/image (hero photo); serve modern formats.
+  images: { formats: ["image/avif", "image/webp"] },
+  // Demo recordings (scripts/landing-media.ts) start the dev server with this set, so the
+  // dev-mode badge stays out of the footage. Unset, nothing changes.
+  ...(process.env.NEXT_HIDE_DEV_INDICATOR ? { devIndicators: false as const } : {}),
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

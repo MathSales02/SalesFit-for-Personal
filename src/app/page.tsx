@@ -1,67 +1,56 @@
-import Link from "next/link";
-import { buttonClass } from "@/components/ui/button-styles";
-import { Logo } from "@/components/ui/logo";
+import type { Metadata } from "next";
+import { Benefits, Proof } from "@/components/landing/benefits";
+import { FinalCta, Footer } from "@/components/landing/closing";
+import { Demo } from "@/components/landing/demo";
+import { Faq } from "@/components/landing/faq";
+import { Features } from "@/components/landing/features";
+import { Hero } from "@/components/landing/hero";
+import { faqItems } from "@/components/landing/faq-content";
+import { LandingRoot } from "@/components/landing/landing-root";
+import { Navbar } from "@/components/landing/navbar";
+import { Pricing } from "@/components/landing/pricing";
+import "@/components/landing/landing.css";
+import { TRIAL_DAYS } from "@/server/auth/service";
+import { listPublicPlans } from "@/server/billing/public-plans";
 
-const POINTS = [
-  { title: "Para o treinador", text: "Alunos, fichas, vídeos de execução e evolução de cada um, numa rotina de gestão que cabe no seu dia." },
-  { title: "Para o aluno", text: "O treino do dia no celular, com séries, descanso cronometrado e o histórico do que já foi feito." },
-  { title: "Em comunidade", text: "Desafios, conquistas e um feed só da sua consultoria, que premia frequência, não exagero." },
-];
+const TITLE = "CadênciaFit: treinos, evolução e constância para personal trainers";
+const DESCRIPTION =
+  "Monte treinos, acompanhe a evolução dos alunos e mantenha a turma motivada com ranking e comunidade. Teste grátis por 14 dias, sem cartão.";
 
-export default function LandingPage() {
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "CadênciaFit",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: "/landing/og.jpg", width: 1200, height: 630, alt: "CadênciaFit" }],
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: ["/landing/og.jpg"] },
+};
+
+export default async function LandingPage() {
+  const { paid, trial } = await listPublicPlans();
   return (
-    <div className="min-h-dvh">
-      <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Logo />
-        <nav aria-label="Conta" className="flex items-center gap-2">
-          <Link href="/entrar" className={buttonClass("ghost")}>
-            Entrar
-          </Link>
-          <Link href="/cadastro" className={`${buttonClass("primary")} hidden sm:inline-flex`}>
-            Criar conta
-          </Link>
-        </nav>
-      </header>
-
-      <main>
-        <section className="mx-auto max-w-6xl px-5 pt-16 pb-20 sm:px-8 sm:pt-24">
-          <h1 className="max-w-4xl font-display text-[3.2rem] leading-[0.92] font-bold tracking-tight sm:text-[5.5rem]">
-            Seus alunos treinam mais quando treinam juntos.
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-            Cadência é a plataforma do personal trainer para montar treinos, acompanhar a evolução e manter os alunos em ritmo, com uma
-            comunidade só sua.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/cadastro" className={buttonClass("primary")}>
-              Começar 14 dias grátis
-            </Link>
-            <Link href="/entrar" className={buttonClass("secondary")}>
-              Já tenho conta
-            </Link>
-          </div>
-        </section>
-
-        <section aria-label="O que a plataforma oferece" className="border-t border-line bg-paper">
-          <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:grid-cols-3 sm:px-8">
-            {POINTS.map((p) => (
-              <div key={p.title}>
-                <h2 className="font-display text-2xl font-bold">{p.title}</h2>
-                <p className="mt-2 leading-relaxed text-ink-soft">{p.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+    <LandingRoot>
+      <a href="#conteudo" className="sr-only z-[60] rounded-full bg-white px-4 py-2 font-semibold text-black focus:not-sr-only focus:fixed focus:top-3 focus:left-3">
+        Pular para o conteúdo
+      </a>
+      <Navbar />
+      <main id="conteudo">
+        <Hero trialDays={TRIAL_DAYS} />
+        <Demo />
+        <Features />
+        <Benefits />
+        <Proof />
+        <Pricing plans={paid} trial={trial} trialDays={TRIAL_DAYS} />
+        <Faq items={faqItems({ trialDays: TRIAL_DAYS, trialStudents: trial?.maxStudents ?? null })} />
+        <FinalCta trialDays={TRIAL_DAYS} />
       </main>
-
-      <footer className="mx-auto flex max-w-6xl flex-wrap gap-6 px-5 py-8 text-sm text-muted sm:px-8">
-        <Link href="/termos" className="hover:text-ink">
-          Termos de uso
-        </Link>
-        <Link href="/privacidade" className="hover:text-ink">
-          Política de privacidade
-        </Link>
-      </footer>
-    </div>
+      <Footer />
+    </LandingRoot>
   );
 }

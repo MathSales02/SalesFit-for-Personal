@@ -1,0 +1,181 @@
+/*
+ * CadênciaFit landing page. Everything here is scoped to .lp: the app's tokens,
+ * themes and global styles are not changed.
+ *
+ * Contrast (WCAG 2.2 AA), measured:
+ *   --lp-text   on --lp-ink   17.2:1     --lp-text-2 on --lp-ink   9.6:1
+ *   --lp-dark   on --lp-bone  16.0:1     --lp-dark-2 on --lp-bone  6.7:1
+ *   --lp-orange-ink on --lp-bone 4.9:1   --lp-orange-on-dark on --lp-ink 7.9:1
+ *   black on --lp-orange 6.3:1 (text on orange is only ever black)
+ */
+
+.lp {
+  --lp-ink: #0e0e10;
+  --lp-ink-2: #17171a;
+  --lp-ink-3: #232327;
+  --lp-line-dark: rgba(255, 255, 255, 0.1);
+  --lp-bone: #f4f2ee;
+  --lp-bone-2: #e8e4dc;
+  --lp-line-light: rgba(24, 24, 27, 0.12);
+  --lp-text: #f4f4f5;
+  --lp-text-2: #b4b4bc;
+  --lp-dark: #18181b;
+  --lp-dark-2: #55555d;
+  --lp-orange: #f97316;
+  --lp-orange-ink: #c2410c;
+  --lp-orange-on-dark: #fb923c;
+  --lp-radius: 24px;
+  /* Motion tokens: one beat = 0.5 s (120 bpm). */
+  --lp-beat: 0.5s;
+  --lp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --lp-nav-h: 76px;
+
+  color-scheme: dark;
+  background: var(--lp-ink);
+  color: var(--lp-text);
+  overflow-x: clip;
+}
+
+.lp ::selection {
+  background: var(--lp-orange);
+  color: #000;
+}
+
+.lp :focus-visible {
+  outline: 2px solid var(--lp-orange);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Anchors stop below the floating navbar. */
+.lp [id] {
+  scroll-margin-top: calc(var(--lp-nav-h) + 24px);
+}
+
+/* Section surfaces */
+.lp-dark {
+  background: var(--lp-ink);
+  color: var(--lp-text);
+}
+.lp-light {
+  background: var(--lp-bone);
+  color: var(--lp-dark);
+  color-scheme: light;
+}
+
+/* Display type */
+.lp-display {
+  font-family: var(--font-display);
+  font-weight: 640;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+/* App screenshots rendered in HTML: always the app's light theme, whatever the visitor's theme is. */
+.lp-app {
+  color-scheme: light;
+  --color-chalk: #eef1f6;
+  --color-paper: #ffffff;
+  --color-surface-subtle: #f0f0f0;
+  --color-ink: #18181b;
+  --color-ink-soft: #52525b;
+  --color-muted: #6b6b75;
+  --color-line: #e4e7ec;
+  --color-line-strong: #d4d4d8;
+  --color-turf: #c2410c;
+  --color-turf-hover: #9a3412;
+  --color-turf-tint: #ffedd5;
+  --color-signal: #f97316;
+  --color-signal-tint: #ffedd5;
+  --color-danger: #b91c1c;
+  --color-danger-tint: #fee2e2;
+  --color-night: #18181b;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------------ */
+/* Liquid glass navbar                                                 */
+/* ------------------------------------------------------------------ */
+.lp-glass {
+  /* Opaque enough for white text over any background (no backdrop-filter support). */
+  background: rgba(14, 14, 16, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 32px -14px rgba(0, 0, 0, 0.65);
+  transition: background-color var(--lp-beat) var(--lp-ease-out);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .lp-glass {
+    /* 58% tint keeps white text ≥ 4.5:1 even over the light sections. */
+    background: rgba(14, 14, 16, 0.58);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+  }
+  .lp-glass[data-compact] {
+    background: rgba(14, 14, 16, 0.78);
+  }
+  /* Chromium only (detected in JS): the SVG displacement bends what is behind the glass. */
+  .lp-glass[data-liquid] {
+    backdrop-filter: url(#lp-liquid) blur(16px) saturate(170%);
+  }
+}
+/* Soft specular highlight along the top edge. */
+.lp-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 42%);
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero entrance: hidden only until the motion code takes over.        */
+/* If JavaScript is slow or fails, a CSS fallback shows them anyway.   */
+/* ------------------------------------------------------------------ */
+.lp [data-hero-anim] {
+  opacity: 0;
+  animation: lp-fallback-in 0.6s var(--lp-ease-out) 1.4s forwards;
+}
+.lp[data-motion] [data-hero-anim] {
+  animation: none;
+}
+@keyframes lp-fallback-in {
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp [data-hero-anim] {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* Cadence bars (the brand motif): seven beats, Monday to Sunday. */
+.lp-beats {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+.lp-beats > span {
+  display: block;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.25;
+  transform-origin: bottom;
+}
+.lp-beats > span[data-on] {
+  opacity: 1;
+}
+
+/* Thin scrollbars inside horizontal UI do not matter here: the page never scrolls sideways. */
+.lp-no-scrollbar {
+  scrollbar-width: none;
+}
+.lp-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -55,3 +55,7 @@ Fluxos principais num navegador real, com verificação de acessibilidade (axe, 
    ```
 
 3. Ao terminar, pare o servidor, apague `.next/e2e` e descarte as entradas `.next/e2e` que o `next dev` adiciona ao `tsconfig.json`.
+
+## Landing page
+
+Conteúdo editável em `src/components/landing/landing-content.ts`; preços e limites vêm do banco. Para regravar os vídeos de demonstração a partir do sistema real (dados fictícios, só em banco local): suba o servidor da porta 3100 como acima, com `NEXT_HIDE_DEV_INDICATOR=1`, e rode `npm run landing:media`. Detalhes em `docs/landing/RELATORIO.md`.

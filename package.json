@@ -21,15 +21,18 @@
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "jobs:retention": "node --conditions=react-server --import tsx scripts/retention.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "landing:media": "node --import tsx scripts/landing-media.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1163.0",
     "@aws-sdk/s3-presigned-post": "^3.1163.0",
     "@aws-sdk/s3-request-presigner": "^3.1163.0",
+    "@gsap/react": "^2.1.2",
     "@node-rs/argon2": "^2.2.2",
     "@tensorflow/tfjs": "^4.22.0",
     "drizzle-orm": "^0.45.4",
+    "gsap": "^3.15.1",
     "ioredis": "^6.0.0",
     "next": "^16.4.5",
     "nodemailer": "^10.3.1",
@@ -55,6 +58,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.5",
+    "ffmpeg-static": "^5.3.0",
     "tailwindcss": "^4.3.4",
     "tsx": "^4.23.15",
     "typescript": "5.9",

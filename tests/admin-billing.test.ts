@@ -160,14 +160,14 @@ describe("platform admin", () => {
   it("edits plans but keeps the trial free and available", async () => {
     const a = await admin();
     const plans = await listPlansAdmin(a);
-    const starter = plans.find((p) => p.code === "starter")!;
+    const solo = plans.find((p) => p.code === "solo")!;
     const trialPlan = plans.find((p) => p.code === "trial")!;
-    const original = { name: starter.name, priceCents: starter.priceCents, maxStudents: starter.maxStudents, storageQuotaMb: starter.storageQuotaMb, isActive: starter.isActive };
+    const original = { name: solo.name, priceCents: solo.priceCents, maxStudents: solo.maxStudents, storageQuotaMb: solo.storageQuotaMb, isActive: solo.isActive };
     try {
-      await updatePlan(a, starter.id, { ...original, priceCents: 8900 }, meta());
-      expect((await listPlansAdmin(a)).find((p) => p.id === starter.id)!.priceCents).toBe(8900);
+      await updatePlan(a, solo.id, { ...original, priceCents: 8900 }, meta());
+      expect((await listPlansAdmin(a)).find((p) => p.id === solo.id)!.priceCents).toBe(8900);
     } finally {
-      await updatePlan(a, starter.id, original, meta());
+      await updatePlan(a, solo.id, original, meta());
     }
     const t = { name: trialPlan.name, priceCents: 0, maxStudents: trialPlan.maxStudents, storageQuotaMb: trialPlan.storageQuotaMb, isActive: true };
     await expect(updatePlan(a, trialPlan.id, { ...t, isActive: false }, meta())).rejects.toThrow(AppError);

@@ -120,10 +120,10 @@ describe("checkout", () => {
   it("requires a valid CPF/CNPJ on the first purchase and only trainers can buy", async () => {
     const t = await trainer();
     const s = await studentOf(t);
-    const starter = await planId("starter");
-    await expect(startCheckout(t, { planId: starter }, meta())).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(startCheckout(t, { planId: starter, cpfCnpj: "123" }, meta())).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(startCheckout(s, { planId: starter, cpfCnpj: CPF }, meta())).rejects.toThrow(AppError);
+    const solo = await planId("solo");
+    await expect(startCheckout(t, { planId: solo }, meta())).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(startCheckout(t, { planId: solo, cpfCnpj: "123" }, meta())).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(startCheckout(s, { planId: solo, cpfCnpj: CPF }, meta())).rejects.toThrow(AppError);
     await expect(startCheckout(t, { planId: await planId("trial"), cpfCnpj: CPF }, meta())).rejects.toMatchObject({ code: "VALIDATION" });
     expect(fake.calls).toEqual([]);
   });
@@ -175,9 +175,9 @@ describe("checkout", () => {
   it("changes plan at the next renewal, ignoring the deletion of the replaced subscription", async () => {
     const t = await trainer();
     const ws = t.membership!.workspaceId;
-    const starter = await planId("starter");
+    const solo = await planId("solo");
     const pro = await planId("pro");
-    await startCheckout(t, { planId: starter, cpfCnpj: CPF }, meta());
+    await startCheckout(t, { planId: solo, cpfCnpj: CPF }, meta());
     const first = await subOf(ws);
     const firstPay = fake.payments.find((p) => p.subscription === first.providerSubscriptionId)!;
     await send(paymentEvent("PAYMENT_CONFIRMED", firstPay));
@@ -187,7 +187,7 @@ describe("checkout", () => {
     expect(fake.subs.get(first.providerSubscriptionId!)!.deleted).toBe(true);
     const changed = await subOf(ws);
     expect(changed.providerSubscriptionId).not.toBe(first.providerSubscriptionId);
-    expect(changed.planId).toBe(starter); // still the paid plan
+    expect(changed.planId).toBe(solo); // still the paid plan
     expect(changed.pendingPlanId).toBe(pro);
     // The new subscription's first charge falls on the end of the paid period.
     expect(fake.subs.get(changed.providerSubscriptionId!)!.nextDueDate).toBe(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(paid.currentPeriodEnd!));
@@ -202,7 +202,7 @@ describe("checkout", () => {
   it("marks overdue payments, then cancels keeping the paid period", async () => {
     const t = await trainer();
     const ws = t.membership!.workspaceId;
-    await startCheckout(t, { planId: await planId("starter"), cpfCnpj: CPF }, meta());
+    await startCheckout(t, { planId: await planId("solo"), cpfCnpj: CPF }, meta());
     const sub = await subOf(ws);
     const pay = fake.payments.find((p) => p.subscription === sub.providerSubscriptionId)!;
     await send(paymentEvent("PAYMENT_RECEIVED", pay));
@@ -221,7 +221,7 @@ describe("checkout", () => {
   it("undoes the Asaas subscription when saving the checkout fails", async () => {
     const t = await trainer();
     fake.badDueDate = true; // the first charge cannot be stored: the transaction fails
-    await expect(startCheckout(t, { planId: await planId("starter"), cpfCnpj: CPF }, meta())).rejects.toThrow();
+    await expect(startCheckout(t, { planId: await planId("solo"), cpfCnpj: CPF }, meta())).rejects.toThrow();
     const created = fake.calls.find((c) => c.startsWith("GET /subscriptions/"))!.split("/")[2]!;
     expect(fake.calls).toContain(`DELETE /subscriptions/${created}`);
     const sub = await subOf(t.membership!.workspaceId);
@@ -234,7 +234,7 @@ describe("checkout", () => {
     expect((await send(event("SOMETHING_NEW", {}))).status).toBe(200);
 
     const t = await trainer();
-    await startCheckout(t, { planId: await planId("starter"), cpfCnpj: CPF }, meta());
+    await startCheckout(t, { planId: await planId("solo"), cpfCnpj: CPF }, meta());
     const sub = await subOf(t.membership!.workspaceId);
     // A paid event without a usable due date fails, is kept, and answers 200 so the Asaas queue keeps flowing.
     expect((await send(event("PAYMENT_RECEIVED", { payment: { id: "pay_bad", subscription: sub.providerSubscriptionId, status: "RECEIVED", value: 79 } }))).status).toBe(200);
