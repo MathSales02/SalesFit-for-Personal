@@ -97,10 +97,9 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
   - `SMTP_URL` (Gmail, senha de app) criada pelo usuário e conferida.
   - Migrações aplicadas; páginas públicas respondem 200; preços vêm do banco.
   - Bucket testado com `scripts/storage-check.ts`: CORS, envio assinado, limite de tamanho, leitura assinada e acesso negado sem assinatura, tudo OK. Não precisa de AWS.
-- **Parou em: o usuário vai rodar quando chegar em casa** (o sistema de permissões não deixa o Claude mexer no Asaas nem criar admin):
-  1. Webhook do Asaas: `railway run --service web -- npx tsx scripts/asaas-webhook.ts`.
-  2. Administrador: `railway ssh --service web` e, dentro do servidor, `ADMIN_PASSWORD='...' npm run admin:create -- matheusssales0218@gmail.com "Matheus"`.
-  3. Teste de cadastro em `/cadastro`, conferindo se o e-mail chega.
+  - Webhook do Asaas sandbox criado (scripts/asaas-webhook.ts).
+  - Administrador matheusssales0218@gmail.com criado (passo único no pre-deploy do Railway, já desfeito; senha enviada ao usuário, que vai trocá-la).
+- **Falta:** o usuário entrar como admin, ativar a verificação em duas etapas, trocar a senha e testar o cadastro com e-mail.
 - **Depois:**
   - Agendar a rotina de limpeza (serviço cron no Railway rodando `npm run jobs:retention`).
   - Política de privacidade: dados hospedados nos EUA.
