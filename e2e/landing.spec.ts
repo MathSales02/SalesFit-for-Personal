@@ -3,6 +3,12 @@ import { expectAccessible } from "./helpers";
 
 const WIDTHS = [360, 390, 768, 1024, 1280, 1440, 1920];
 
+/** The page is interactive once every landing component has mounted (CI's dev server compiles on first visit). */
+async function ready(page: Page) {
+  await page.waitForLoadState("load");
+  await page.locator(".lp[data-motion]").waitFor({ state: "attached", timeout: 60000 });
+}
+
 function trackErrors(page: Page) {
   const errors: string[] = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -17,6 +23,7 @@ test.describe("landing page", () => {
       const page = await ctx.newPage();
       const errors = trackErrors(page);
       await page.goto("/");
+      await ready(page);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText("Seus alunos no ritmo. Sua consultoria em ordem.");
       // Walk the page so every scroll-triggered part runs.
       const height = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -36,6 +43,7 @@ test.describe("landing page", () => {
 
   test("calls to action go to real places", async ({ page }) => {
     await page.goto("/");
+    await ready(page);
     const hrefs = async (name: string | RegExp) => page.getByRole("link", { name }).evaluateAll((els) => els.map((e) => e.getAttribute("href")));
     const all = (list: (string | null)[], n: number) => {
       expect(list).toHaveLength(n);
@@ -68,6 +76,7 @@ test.describe("landing page", () => {
   test("navbar: anchors, active section, compact state", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
+    await ready(page);
     const nav = page.getByRole("navigation", { name: "Seções", exact: true });
     await nav.getByRole("link", { name: "Preços" }).click();
     await expect(page.locator("#precos")).toBeInViewport();
@@ -81,6 +90,7 @@ test.describe("landing page", () => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
     await page.goto("/");
+    await ready(page);
     const button = page.getByRole("button", { name: "Abrir menu" });
     await button.click();
     await expect(page.getByRole("button", { name: "Fechar menu" })).toHaveAttribute("aria-expanded", "true");
@@ -105,6 +115,7 @@ test.describe("landing page", () => {
   test("tabs and accordion work with the keyboard only", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/#demonstracao");
+    await ready(page);
     const demoTabs = page.getByRole("tablist", { name: "Capítulos da demonstração" });
     await demoTabs.getByRole("tab").first().focus();
     await page.keyboard.press("ArrowDown");
@@ -131,6 +142,7 @@ test.describe("landing page", () => {
   test("demo video: lazy, plays when visible, pauses off screen, keyboard play/pause", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
+    await ready(page);
     const video = page.locator("#demonstracao video");
     await expect(video).toHaveAttribute("poster", /\.webp$/);
     expect(await video.locator("source").count()).toBe(0); // nothing loaded before it is seen
@@ -151,6 +163,7 @@ test.describe("landing page", () => {
     const ctx = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
     const page = await ctx.newPage();
     await page.goto("/");
+    await ready(page);
     await expect(page.locator("header.lp-glass")).toHaveCSS("opacity", "1");
     await page.evaluate(() => document.querySelector("#demo-panel")?.scrollIntoView({ block: "center" }));
     await page.waitForTimeout(1500);
