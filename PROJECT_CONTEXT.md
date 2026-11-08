@@ -125,6 +125,11 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - `workout-fitness.jpg`: foto original; a cópia otimizada está em `src/components/landing/assets/`.
 - `.agents/` e `skills-lock.json`.
 
+**Perguntas feitas ao usuário, ainda sem resposta:**
+1. O e-mail de contato é mesmo `matheusssales0218@gmail.com`?
+2. Posso apagar `src/components/ui/liquid-glass-navbar*.tsx`?
+3. Posso corrigir o bug das subconsultas (fora da landing)?
+
 **Próximos passos possíveis:**
 - Corrigir o bug das subconsultas.
 - Preparar o deploy (Fly.io em São Paulo, conforme a recomendação abaixo).
