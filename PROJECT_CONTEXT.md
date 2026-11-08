@@ -101,12 +101,11 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
   - Administrador matheusssales0218@gmail.com criado (passo único no pre-deploy do Railway, já desfeito; senha enviada ao usuário, que vai trocá-la).
   - Termos e política de privacidade completos (versão 2026-11-08, responsável Matheus dos Santos Sales) e rotina de limpeza agendada (serviço `retention`, cron 06:00 UTC, testada).
 - **E-mail:** o plano Hobby do Railway bloqueia SMTP (o Gmail dava "Connection timeout"). O app agora envia pela API da Brevo quando `BREVO_API_KEY` está definida (commit 255287c). `BREVO_API_KEY` configurada no `web` em 08/11 e envio testado pelo site (redefinição de senha) sem erros. A chave foi colada no chat: recomendado gerar outra na Brevo e trocar.
-- **Publicação automática:** não existe. O Railway não tem acesso ao repositório pelo GitHub App (o `deploymentTriggerCreate` falha). Até o usuário liberar o repositório `cadencia` no Railway App do GitHub, publique com `railway api` `serviceInstanceDeployV2(serviceId, environmentId, commitSha)` nos serviços `web` e `retention`.
+- **Publicação automática:** ativa desde 08/11 (GitHub App do Railway instalado só no repositório `cadencia`; gatilhos no `main` para `web` e `retention`). O `railway.json` foi removido: as configurações ficam no próprio serviço e se alteram com `railway api` (`environmentStageChanges` + `environmentPatchCommitStaged`).
 - **Falta:** o usuário entrar como admin, ativar a verificação em duas etapas, trocar a senha e testar o cadastro com e-mail.
 - **Depois:**
   - Agendar a rotina de limpeza (serviço cron no Railway rodando `npm run jobs:retention`).
   - Política de privacidade: dados hospedados nos EUA.
-  - Decidir entre apagar o `railway.json` ou migrar para `.railway/railway.ts`, antes de 01/12/2026. A migração precisa do pacote npm `railway`, cuja instalação foi bloqueada pelo sistema de permissões.
 - **Observação:** o sistema de permissões bloqueia registrar chave SSH, ler credenciais, instalar pacotes de terceiros e mexer na conta do Asaas. Use referências `${{servico.VAR}}` e `--stdin`.
 
 **Estado em 08/11/2026 (último commit `a08032e`):** as 7 fases estão prontas e a **landing page nova** está no GitHub, com o CI verde.
