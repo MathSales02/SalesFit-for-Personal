@@ -32,7 +32,7 @@ export async function CompetitionDetail({ actor, competitionId, backHref }: { ac
         </p>
         {c.prize && (
           <p className="mt-4 rounded-[var(--radius-control)] bg-white/10 px-3 py-2 text-sm break-words">
-            <span className="font-semibold text-signal">Prêmio:</span> {c.prize}
+            <span className="font-semibold text-white">Prêmio:</span> {c.prize}
           </p>
         )}
         {c.description && <p className="mt-4 max-w-xl text-sm leading-relaxed whitespace-pre-line text-white/85 break-words">{c.description}</p>}
