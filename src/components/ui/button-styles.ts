@@ -2,9 +2,9 @@
 export type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 const styles: Record<Variant, string> = {
-  // Black pill, like the reference: strong contrast in any theme accent.
+  // SalesFit orange with charcoal text (6.2:1), never white text.
   primary:
-    "bg-ink text-paper hover:bg-ink/85 shadow-sm active:scale-[0.98] disabled:bg-ink/50 disabled:active:scale-100",
+    "bg-signal text-on-accent hover:brightness-95 shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:hover:brightness-100 disabled:active:scale-100",
   secondary:
     "bg-paper text-ink border border-line-strong hover:border-turf/60 hover:text-turf active:scale-[0.98] disabled:text-muted disabled:active:scale-100",
   ghost:
