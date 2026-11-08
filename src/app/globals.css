@@ -112,13 +112,35 @@
   --color-turf-solid: #a94706;
   --color-turf-solid-hover: #8a3a05;
 
-  --font-sans: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  /* Sora is a variable font: slightly lighter "bold" keeps headings confident without shouting. */
-  --font-weight-medium: 480;
-  --font-weight-semibold: 570;
-  --font-weight-bold: 640;
+  /* Manrope is loaded at 500/600/700/800 only: "normal" text uses 500, the body weight. */
+  --font-weight-normal: 500;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* SalesFit type scale: text-display, text-h1, text-h2, text-body, text-caption. */
+  --text-display: 4rem;
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 800;
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h1--font-weight: 700;
+  --text-h2: 1.75rem;
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.02em;
+  --text-h2--font-weight: 700;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.55;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.02em;
+  --text-caption--font-weight: 600;
 
   --radius-control: 12px;
   --radius-panel: 24px;
@@ -137,7 +159,9 @@
 
   body {
     @apply bg-chalk text-ink font-sans antialiased;
-    font-feature-settings: "tnum" 1;
+    font-weight: 500;
+    /* Tabular numbers everywhere: tables, metrics and values line up. */
+    font-variant-numeric: tabular-nums;
   }
 
   :focus-visible {
@@ -176,10 +200,10 @@
 }
 
 /*
- * Display type (titles and big numbers): Sora is wide, so it is set tighter.
+ * Display type (titles and big numbers), set tight as in the SalesFit scale.
  * Unlayered on purpose so it wins over the utility layer for every .font-display.
  */
 .font-display {
-  letter-spacing: -0.035em;
-  font-feature-settings: "tnum" 1, "ss01" 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }

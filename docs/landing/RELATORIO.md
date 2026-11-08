@@ -6,7 +6,7 @@ Rota `/` (`src/app/page.tsx`). Só a landing mudou, e também foram criados os p
 
 - **Ideia:** treino é ritmo. A marca usa barras verticais (os "beats"), que aparecem no logo, na barra de progresso da navbar e como textura nas seções.
 - **Cores:** fundos escuros `#0e0e10` alternando com claro `#f4f2ee`; um único acento laranja do sistema (`#F97316` para preenchimentos com texto preto, `#C2410C` para texto laranja em fundo claro). Tokens escopados em `.lp` (`landing.css`), sem vazar para o resto do app.
-- **Tipografia:** Sora (a fonte do sistema), títulos grandes e apertados (`.lp-display`).
+- **Tipografia:** Manrope (a fonte da marca SalesFit), títulos em peso 800 e apertados (`.lp-display`).
 - **Hero:** a foto de academia enviada (licenciada) como fundo, com escurecimento para manter o contraste do texto.
 - **Movimento:** GSAP com batida de 0,5 s e easing `expo.out`. Entrada do hero em sequência, contadores, parallax leve pelo ponteiro, seção de funcionalidades fixada (pin) no desktop, linhas dos benefícios reveladas por máscara, inclinação leve dos cards de preço. Com "reduzir movimento" ativado, tudo aparece de uma vez e os vídeos não tocam sozinhos.
 

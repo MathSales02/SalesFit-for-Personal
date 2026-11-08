@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Sora } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { PwaSetup } from "@/components/pwa";
 import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
 import "./globals.css";
 
-// Variable font (all weights in one file), self-hosted by next/font: no request to Google from the browser.
-const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
+// SalesFit's only typeface. Self-hosted by next/font: no request to Google from the browser.
+// 500 body · 600 interface · 700 headings · 800 display.
+const manrope = Manrope({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-manrope", display: "swap" });
 
 // A function, so APP_URL is read on the server at request time (not at build time):
 // share images (og:image) then point to the real site.
@@ -36,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Theme is applied on the server: no flash of the wrong theme and no inline script (CSP).
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
-    <html lang="pt-BR" className={[sora.variable, themeClass(theme)].filter(Boolean).join(" ")}>
+    <html lang="pt-BR" className={[manrope.variable, themeClass(theme)].filter(Boolean).join(" ")}>
       <body className="min-h-dvh">
         {children}
         <PwaSetup />
