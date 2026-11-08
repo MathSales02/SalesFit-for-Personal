@@ -6,7 +6,10 @@ const schema = z
     APP_URL: z.url(),
     DATABASE_URL: z.string().startsWith("postgres"),
     REDIS_URL: z.string().startsWith("redis").optional(),
-    SMTP_URL: z.string().startsWith("smtp"),
+    /** Local or SMTP-capable hosts. Optional when BREVO_API_KEY is set. */
+    SMTP_URL: z.string().startsWith("smtp").optional(),
+    /** Brevo transactional email over HTTPS (for hosts that block SMTP). Takes precedence over SMTP_URL. */
+    BREVO_API_KEY: z.string().min(20).optional(),
     MAIL_FROM: z.string().min(3),
     TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
     PII_HASH_SECRET: z.string().min(32),
@@ -31,6 +34,9 @@ const schema = z
     ASAAS_WEBHOOK_TOKEN: z.string().min(32).optional(),
   })
   .superRefine((env, ctx) => {
+    if (!env.SMTP_URL && !env.BREVO_API_KEY) {
+      ctx.addIssue({ code: "custom", path: ["SMTP_URL"], message: "set SMTP_URL or BREVO_API_KEY" });
+    }
     if (env.ASAAS_API_KEY && !env.ASAAS_WEBHOOK_TOKEN) {
       ctx.addIssue({ code: "custom", path: ["ASAAS_WEBHOOK_TOKEN"], message: "required when ASAAS_API_KEY is set" });
     }
