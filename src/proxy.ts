@@ -42,6 +42,9 @@ export async function proxy(request: NextRequest) {
     "font-src 'self'",
     `connect-src 'self'${storage}${dev ? " ws:" : ""}`,
     `media-src 'self' blob:${storage}`,
+    // The app's service worker (public/sw.js).
+    "worker-src 'self'",
+    "manifest-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

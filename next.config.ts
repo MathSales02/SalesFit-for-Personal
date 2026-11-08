@@ -29,7 +29,11 @@ const nextConfig: NextConfig = {
   // dev-mode badge stays out of the footage. Unset, nothing changes.
   ...(process.env.NEXT_HIDE_DEV_INDICATOR ? { devIndicators: false as const } : {}),
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Browsers check for a new service worker on each visit; never serve a stale one.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
+    ];
   },
 };
 

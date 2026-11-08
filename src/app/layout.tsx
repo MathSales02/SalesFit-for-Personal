@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Sora } from "next/font/google";
 import { cookies, headers } from "next/headers";
+import { PwaSetup } from "@/components/pwa";
 import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
 import "./globals.css";
 
@@ -15,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: "Cadência", template: "%s · Cadência" },
     description: "Plataforma para personal trainers e alunos: treinos, evolução e comunidade.",
     robots: { index: false, follow: false },
+    // Installed on iPhone (Add to Home Screen): opens full screen with this name.
+    appleWebApp: { capable: true, title: "CadênciaFit", statusBarStyle: "black" },
   };
 }
 
@@ -34,7 +37,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
     <html lang="pt-BR" className={[sora.variable, themeClass(theme)].filter(Boolean).join(" ")}>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        {children}
+        <PwaSetup />
+      </body>
     </html>
   );
 }

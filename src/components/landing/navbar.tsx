@@ -2,27 +2,20 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useInstallApp } from "@/components/pwa";
 import { BrandLogo } from "./brand";
 import { BEAT, EASE_OUT, gsap, introAllowed, MQ, ScrollTrigger, useGSAP } from "./gsap";
 import { NAV } from "./landing-content";
-
-/** True while the page scrolls because the visitor picked a section: the navbar stays visible. */
-let autoScrolling = false;
 
 /** Smooth scroll to a section, below the navbar. Instant when the visitor prefers reduced motion. */
 export function scrollToSection(id: string) {
   const reduce = window.matchMedia(MQ.reduce).matches;
   const target = document.getElementById(id);
   if (!target) return;
-  autoScrolling = true;
   gsap.to(window, {
     duration: reduce ? 0 : 0.9,
     ease: "power3.inOut",
     scrollTo: { y: target, offsetY: 88 },
-    onComplete: () => {
-      // Let the last scroll events settle before hiding on scroll again.
-      setTimeout(() => (autoScrolling = false), 150);
-    },
   });
   history.replaceState(null, "", `#${id}`);
 }
@@ -38,6 +31,7 @@ export function Navbar() {
   const [active, setActive] = useState(-1);
   const [open, setOpen] = useState(false);
   const [beats, setBeats] = useState(0);
+  const app = useInstallApp();
 
   // Liquid distortion only where the browser can render an SVG filter as a backdrop (Chromium).
   useEffect(() => {
@@ -52,7 +46,7 @@ export function Navbar() {
       if (introAllowed()) gsap.fromTo(bar.current, { y: -28, opacity: 0 }, { y: 0, opacity: 1, duration: BEAT * 2, ease: EASE_OUT, delay: 0.1 });
       else gsap.set(bar.current, { opacity: 1 });
 
-      // Compact and more opaque after the top; hide while scrolling down, show on the way up.
+      // Compact and more opaque after the top. The bar stays on screen the whole way down.
       ScrollTrigger.create({
         start: 0,
         end: "max",
@@ -60,8 +54,6 @@ export function Navbar() {
           const y = self.scroll();
           if (y > 40) bar.current?.setAttribute("data-compact", "");
           else bar.current?.removeAttribute("data-compact");
-          const hide = self.direction === 1 && y > 600 && !root.current?.dataset.menu && !autoScrolling;
-          gsap.to(bar.current, { yPercent: hide ? -160 : 0, duration: BEAT * 0.7, ease: "power2.out", overwrite: "auto" });
           setBeats(Math.min(7, Math.ceil(self.progress * 7)));
         },
       });
@@ -258,6 +250,17 @@ export function Navbar() {
               {item.label}
             </a>
           ))}
+          {app.state === "prompt" && (
+            <button type="button" data-menu-item="" onClick={() => void app.install()} className="rounded-2xl px-4 py-3.5 text-left text-lg font-semibold text-[var(--lp-orange)] hover:bg-white/10">
+              Instalar o app
+            </button>
+          )}
+          {app.state === "ios" && (
+            <p data-menu-item="" className="px-4 py-2 text-sm text-white/70">
+              Para instalar o app: toque em <strong className="text-white">Compartilhar</strong> e depois em{" "}
+              <strong className="text-white">Adicionar à Tela de Início</strong>.
+            </p>
+          )}
           <div data-menu-item="" className="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
             <Link href="/entrar" className="grid h-12 place-items-center rounded-full border border-white/20 font-semibold text-white">
               Entrar
