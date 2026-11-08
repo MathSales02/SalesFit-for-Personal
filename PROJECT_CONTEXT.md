@@ -84,6 +84,35 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
+**Estado em 08/11/2026 (último commit `9599a28`):** as 7 fases estão prontas. As últimas sessões foram de visual e acessibilidade:
+- **Painéis do aluno e do treinador** redesenhados em cartões, no estilo de uma referência, com o laranja como destaque. Tudo com dados reais (constância da semana, pontos, peso, ranking, treinos por dia, alunos sem treinar). O treinador tem um menu lateral só de ícones (commit `5f4aafa`).
+- **Fonte Sora** em todo o sistema, com títulos mais leves para não parecer genérico. O menu do aluno usa a barra de abas até 1280 px (commit `50bdf7d`).
+- **Tema claro e escuro.** Segue o aparelho por padrão; dá para fixar no botão de sol/lua ou em Conta → Aparência. A escolha fica num cookie e o servidor aplica, sem piscar (commit `9599a28`).
+- **Contraste revisado** nos dois temas, com WCAG 2.2 AA verificado automaticamente em cerca de 30 telas (`e2e/themes.spec.ts`).
+  - Regra: texto sobre laranja só em preto ou branco.
+  - Cores com função: `on-accent` (preto sobre laranja vivo), `turf-solid` (laranja escuro com texto branco), `night` (painel escuro nos dois temas).
+- **Alerta do GitGuardian (08/11):** verificado, era falso positivo. Nenhuma chave real está no histórico do Git; o alerta pegou chaves de teste de propósito (`MFA_ENCRYPTION_KEY` do CI e do vitest). O usuário deve marcá-lo como "test credential" no painel do GitGuardian.
+- **Cancelado:** o fundo animado "halftone horizon" (WebGL). O usuário pediu e depois cancelou; nada foi integrado.
+
+**Ainda fora do Git (trabalho do usuário):**
+- `src/app/page.tsx`, a página inicial nova. Problemas a resolver:
+  - imagem externa (CloudFront) bloqueada pela CSP;
+  - números inventados ("+15.000 treinos" etc.);
+  - um import sem uso;
+  - falha na checagem de acessibilidade.
+- `src/components/ui/liquid-glass-navbar*.tsx`: não é usado em lugar nenhum e tem erros de lint.
+
+Nos testes de navegador, rodar com a versão publicada do `page.tsx` no lugar da versão em andamento.
+
+**Próximos passos possíveis:**
+- Aplicar o estilo de cartões às outras telas.
+- Resolver a página inicial.
+- Preparar o deploy (Fly.io em São Paulo, conforme a recomendação abaixo).
+- Decisões de negócio pendentes: preços finais, região de hospedagem, revisão jurídica.
+
+Há dados de demonstração no banco local (Rui, Alice, Bruno, Carla e Diego; senha "uma frase longa e segura").
+
+
 **Fase 5A concluída e no GitHub** (check-in, pontos de constância, ranking e competições; 167 testes). Decisões do usuário: check-in automático ao concluir treino + manual 1x/dia (vale menos; o treinador pode desligar); ranking por pontos de constância (check-ins, treinos, bônus de meta semanal); o aluno pode sair do ranking; prêmio é opcional em cada competição ("premiações futuras, não sempre").
 
 **Decisões para a Fase 6:** conquistas e recompensas (5B) ficam para depois do lançamento. Cobrança pelo **Asaas** (assinatura recorrente por Pix, boleto e cartão). Planos mantidos por enquanto (Inicial R$ 79 / 30 alunos; Profissional R$ 149 / 150 alunos; 14 dias de teste), editáveis no painel admin.
