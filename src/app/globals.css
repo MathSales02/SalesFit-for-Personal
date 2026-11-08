@@ -1,53 +1,141 @@
 @import "tailwindcss";
 
 /*
- * Cadência design tokens.
- * Field green carries the brand and primary actions; "signal" yellow is
- * reserved for streaks, records and rewards so it keeps its meaning.
+ * Design system: airy light surfaces, big rounded white cards, black primary
+ * buttons and orange as the accent.
+ *  - turf   (#C2410C): orange for TEXT, links, active states. 5.2:1 on white (WCAG AA).
+ *  - signal (#F97316): bright orange for FILLS only (bars, pills, highlights),
+ *    always with dark text on top. Never use it for small text on white.
  */
-@theme {
-  --color-chalk: #f3f5f2;
+
+:root {
+  /* LIGHT MODE (Default) */
+  --color-chalk: #eef1f6;
+  /* Fundo principal */
   --color-paper: #ffffff;
-  --color-ink: #14201b;
-  --color-ink-soft: #3a4741;
-  --color-muted: #56635d;
-  --color-line: #d6dcd6;
-  --color-line-strong: #b9c3bc;
-  --color-turf: #123f30;
-  --color-turf-hover: #0c2e23;
-  --color-turf-tint: #e3ece6;
-  --color-signal: #f2b705;
-  --color-signal-tint: #fdf3d3;
-  --color-danger: #b42318;
-  --color-danger-tint: #fdecea;
-  --color-success: #1d7a4b;
+  /* Superfícies e Cards */
+  --color-surface-subtle: #f0f0f0;
+  /* Superfícies secundárias */
+  --color-ink: #18181b;
+  /* Texto principal */
+  --color-ink-soft: #52525b;
+  /* Texto secundário */
+  --color-muted: #6b6b75;
+  /* Texto atenuado (4.6:1 sobre branco) */
+  --color-line: #e4e7ec;
+  /* Bordas */
+  --color-line-strong: #d4d4d8;
+  /* Bordas de controle */
+  --color-turf: #c2410c;
+  /* Laranja para texto e links (contraste AA) */
+  --color-turf-hover: #9a3412;
+  --color-turf-tint: #ffedd5;
+  /* Fundo laranja suave */
+  --color-signal: #f97316;
+  /* Laranja vivo: só preenchimentos, com texto escuro */
+  --color-signal-tint: #ffedd5;
+  /* Destaque suave */
+  --color-danger: #dc2626;
+  /* Alertas / perigo */
+  --color-danger-tint: #fee2e2;
+  --color-success: #c2410c;
+
+  --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -12px rgba(16, 24, 40, 0.12);
+}
+
+.dark,
+[data-theme="dark"] {
+  /* DARK MODE PREMIUM */
+  --color-chalk: #0c0c0d;
+  /* Fundo principal */
+  --color-paper: #1c1c1e;
+  /* Cards e superfícies */
+  --color-surface-subtle: #151515;
+  /* Superfícies secundárias */
+  --color-ink: #f5f5f5;
+  /* Texto principal */
+  --color-ink-soft: #a1a1aa;
+  /* Texto secundário */
+  --color-muted: #71717a;
+  /* Texto atenuado */
+  --color-line: #2a2a2d;
+  /* Bordas */
+  --color-line-strong: #3f3f46;
+  /* Bordas de destaque */
+  --color-turf: #fb923c;
+  /* Laranja para texto no escuro */
+  --color-turf-hover: #fdba74;
+  --color-turf-tint: rgba(249, 115, 22, 0.14);
+  /* Orange tint para dark */
+  --color-signal: #fb923c;
+  /* Destaques e streaks */
+  --color-signal-tint: rgba(251, 146, 60, 0.18);
+  --color-danger: #ef4444;
+  --color-danger-tint: rgba(239, 68, 68, 0.15);
+  --color-success: #f97316;
+
+  --shadow-raised: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+@theme {
+  --color-chalk: var(--color-chalk);
+  --color-paper: var(--color-paper);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-muted: var(--color-muted);
+  --color-line: var(--color-line);
+  --color-line-strong: var(--color-line-strong);
+  --color-turf: var(--color-turf);
+  --color-turf-hover: var(--color-turf-hover);
+  --color-turf-tint: var(--color-turf-tint);
+  --color-signal: var(--color-signal);
+  --color-signal-tint: var(--color-signal-tint);
+  --color-danger: var(--color-danger);
+  --color-danger-tint: var(--color-danger-tint);
+  --color-success: var(--color-success);
+
+  --color-orange-primary: #f97316;
+  --color-orange-hover: #ea580c;
+  --color-orange-light: #fb923c;
+  --color-orange-muted: #fed7aa;
+  --color-dark-bg: #0c0c0d;
+  --color-dark-surface: #151515;
+  --color-dark-card: #1c1c1e;
+  --color-dark-border: #2a2a2d;
 
   --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-barlow-condensed), var(--font-barlow), ui-sans-serif, sans-serif;
 
-  --radius-control: 6px;
-  --radius-panel: 10px;
+  --radius-control: 12px;
+  --radius-panel: 24px;
 
-  --shadow-raised: 0 1px 2px rgb(20 32 27 / 0.06), 0 4px 12px -4px rgb(20 32 27 / 0.08);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-card: var(--shadow-card);
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
-    /* Keep focused or scrolled-to elements clear of the sticky header and the
-       bottom bars (tab bar, rest timer) — WCAG 2.4.11 Focus Not Obscured. */
+    /* Keep focused or scrolled-to elements clear of the sticky header and bottom bars */
     scroll-padding-top: 4.5rem;
     scroll-padding-bottom: 9rem;
   }
+
   body {
     @apply bg-chalk text-ink font-sans antialiased;
     font-feature-settings: "tnum" 1;
   }
+
   :focus-visible {
     outline: 2px solid var(--color-turf);
     outline-offset: 2px;
   }
+
   @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {

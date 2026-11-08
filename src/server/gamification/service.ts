@@ -217,6 +217,12 @@ export async function getMyGamification(actor: Actor) {
       .select({ n: sql<number>`count(*)::int` })
       .from(checkins)
       .where(and(eq(checkins.memberId, m.memberId), sql`${checkins.day} between ${d.week}::date and ${d.today}::date`));
+    // Days with a check-in in the last 4 weeks (for the home charts).
+    const recent = await tx
+      .select({ day: checkins.day, source: checkins.source })
+      .from(checkins)
+      .where(and(eq(checkins.memberId, m.memberId), sql`${checkins.day} > ${d.today}::date - 28`))
+      .orderBy(checkins.day);
     // Streak: consecutive weeks (ending this week or last week) in which the weekly goal was reached.
     const goalWeeks = await tx
       .select({ key: pointsLedger.idempotencyKey })
@@ -244,6 +250,9 @@ export async function getMyGamification(actor: Actor) {
       weekPosition: ranking.find((r) => r.isMe)?.position ?? null,
       weekParticipants: ranking.length,
       hidden: pref?.hidden ?? false,
+      today: d.today,
+      weekStart: d.week,
+      recentCheckins: recent.map((c) => ({ day: String(c.day), source: c.source })),
     };
   });
 }

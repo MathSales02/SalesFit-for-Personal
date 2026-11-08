@@ -73,3 +73,45 @@ export async function getAdminOverview(actor: Actor): Promise<AdminOverview> {
     };
   });
 }
+
+export type TrainerActivity = {
+  /** Completed workouts per local day, last 14 days, oldest first. */
+  daily: { day: string; workouts: number }[];
+  /** Active students with no completed workout in the last 7 days (longest first). */
+  inactive: { memberId: string; name: string; lastWorkoutAt: Date | null }[];
+  inactiveTotal: number;
+};
+
+/** Workout activity across the trainer's students. RLS: trainers read their workspace's sessions. */
+export async function getTrainerActivity(actor: Actor): Promise<TrainerActivity> {
+  assertCan(actor, "students.read");
+  const m = requireMembership(actor);
+  return withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
+    const daily = await tx.execute<{ day: string; workouts: number }>(sql`
+      with days as (
+        select generate_series((now() at time zone 'America/Sao_Paulo')::date - 13, (now() at time zone 'America/Sao_Paulo')::date, interval '1 day')::date as day
+      )
+      select d.day::text as day, count(s.id)::int as workouts
+      from days d
+      left join workout_sessions s
+        on s.workspace_id = ${m.workspaceId}::uuid and s.status = 'completed'
+       and (s.started_at at time zone 'America/Sao_Paulo')::date = d.day
+      group by d.day order by d.day`);
+    const inactive = await tx.execute<{ member_id: string; name: string; last_at: Date | null; total: number }>(sql`
+      with last as (
+        select m.id as member_id, u.display_name as name,
+          (select max(s.started_at) from workout_sessions s where s.member_id = m.id and s.status = 'completed') as last_at
+        from workspace_members m join users u on u.id = m.user_id
+        where m.workspace_id = ${m.workspaceId}::uuid and m.role = 'student' and m.status = 'active'
+      )
+      select member_id, name, last_at, count(*) over ()::int as total
+      from last where last_at is null or last_at < now() - interval '7 days'
+      order by last_at asc nulls first, lower(name)
+      limit 5`);
+    return {
+      daily: daily.rows.map((r) => ({ day: r.day, workouts: Number(r.workouts) })),
+      inactive: inactive.rows.map((r) => ({ memberId: r.member_id, name: r.name, lastWorkoutAt: r.last_at ? new Date(r.last_at) : null })),
+      inactiveTotal: inactive.rows[0]?.total ?? 0,
+    };
+  });
+}

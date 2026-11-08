@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { todayInBrazil, type MeasurementKey } from "@/lib/validation/progress";
 import { withTenant } from "../db/context";
 import type { Tx } from "../db/client";
@@ -196,4 +196,18 @@ export async function addMeasurementAsTrainer(actor: Actor, memberId: string, in
       .returning({ id: bodyMeasurements.id });
     await audit(tx, { action: "progress.measurement_added_by_trainer", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "measurement", targetId: row!.id, ipHash: meta.ipHash });
   });
+}
+
+/** Last weight entries (oldest first) for the home chart. Same access rules as getOwnProgress. */
+export async function getOwnWeightTrend(actor: Actor) {
+  const { m, ctx } = studentScope(actor);
+  const rows = await withTenant(ctx, (tx) =>
+    tx
+      .select({ measuredOn: bodyMeasurements.measuredOn, weightKg: bodyMeasurements.weightKg })
+      .from(bodyMeasurements)
+      .where(and(eq(bodyMeasurements.memberId, m.memberId), isNotNull(bodyMeasurements.weightKg)))
+      .orderBy(desc(bodyMeasurements.measuredOn), desc(bodyMeasurements.createdAt))
+      .limit(12),
+  );
+  return rows.reverse().map((r) => ({ day: String(r.measuredOn), kg: Number(r.weightKg) }));
 }

@@ -9,7 +9,7 @@ test("an invited student joins on a phone, checks in and sees the ranking", asyn
   await expectNoHorizontalScroll(s);
   await expectAccessible(s, "/aluno");
 
-  await s.getByLabel("O que você fez? (opcional)").fill("Corrida");
+  await s.getByLabel(/Treinou por fora/).fill("Corrida");
   await s.getByRole("button", { name: "Fazer check-in" }).click();
   await expect(s.getByText("Check-in de hoje feito")).toBeVisible();
 

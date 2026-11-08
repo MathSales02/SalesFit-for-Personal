@@ -18,18 +18,18 @@ export function CheckinForm() {
   return (
     <ActionForm action={checkinAction} className="flex flex-col gap-2" resetOnSuccess>
       {(s) => (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-          <label className="flex flex-1 flex-col gap-1 text-sm font-semibold text-white/80">
-            O que você fez? (opcional)
+        <div className="flex flex-col gap-2">
+          <label className="flex flex-col gap-1 text-sm font-semibold text-ink-soft">
+            Treinou por fora? Conte o que fez (opcional)
             <input
               name="activity"
               maxLength={60}
               placeholder="Ex.: corrida, aula de funcional"
-              className="h-11 rounded-[var(--radius-control)] border border-white/25 bg-white/10 px-3 font-normal text-white placeholder:text-white/50 outline-none focus:border-white"
+              className="h-11 rounded-full border border-line bg-chalk px-4 font-normal text-ink outline-none placeholder:text-muted focus:border-turf"
             />
-            {fieldErrors(s, "activity") && <span className="text-signal">{fieldErrors(s, "activity")!.join(" ")}</span>}
+            {fieldErrors(s, "activity") && <span className="text-danger">{fieldErrors(s, "activity")!.join(" ")}</span>}
           </label>
-          <button type="submit" className="h-11 rounded-[var(--radius-control)] bg-signal px-4 font-semibold text-ink">
+          <button type="submit" className="h-11 rounded-full bg-ink px-5 font-semibold text-paper hover:bg-ink/85">
             Fazer check-in
           </button>
         </div>
