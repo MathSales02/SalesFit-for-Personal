@@ -84,7 +84,33 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Estado em 08/11/2026 (último commit `9599a28`):** as 7 fases estão prontas. As últimas sessões foram de visual e acessibilidade:
+**Estado em 08/11/2026 (último commit `a08032e`):** as 7 fases estão prontas e a **landing page nova** está no GitHub, com o CI verde.
+
+**Landing page (nome comercial CadênciaFit).** Relatório completo em `docs/landing/RELATORIO.md`.
+- Código em `src/components/landing/`; textos editáveis em `landing-content.ts`.
+- Foto de academia (licenciada pelo usuário) no hero.
+- 5 vídeos gravados do sistema real, com dados fictícios (`npm run landing:media`).
+- Animações com GSAP, respeitando "reduzir movimento".
+- Preços lidos do banco.
+- **Planos oficiais** (migração 0031; o antigo `starter` foi desativado):
+  - Solo: R$ 69,90, 15 alunos, 5 GB.
+  - Equipe: R$ 99,90, 40 alunos, 15 GB (recomendado).
+  - Pro: R$ 139,90, 100 alunos, 40 GB.
+  - Elite: R$ 189,90, 250 alunos, 100 GB.
+  - Teste de 14 dias, até 10 alunos.
+- Contato: matheusssales0218@gmail.com (o "@gmail.com" foi suposto, confirmar) e WhatsApp (13) 98196-9513.
+- Lighthouse no celular: performance 89–90; acessibilidade, boas práticas e SEO 100.
+- Sem rolagem lateral de 360 a 1920 px. 8 testes E2E da landing.
+
+**Pendências da landing:**
+- Depoimentos, métricas e redes sociais: listas vazias; só preencher com conteúdo real.
+- Termos e privacidade ainda são rascunho.
+- Próximo ganho de performance: carregar o GSAP depois da primeira pintura.
+- O resto do sistema ainda se chama "Cadência".
+
+**Bug encontrado, ainda não corrigido:** em subconsultas SQL, `${tabela.id}` vira `"id"` sem o nome da tabela. Por isso a lista de programas mostra "0 alunos" e as contagens de alunos e assinantes no admin ficam erradas. A correção é qualificar a coluna.
+
+**Sessões anteriores (visual e acessibilidade):**
 - **Painéis do aluno e do treinador** redesenhados em cartões, no estilo de uma referência, com o laranja como destaque. Tudo com dados reais (constância da semana, pontos, peso, ranking, treinos por dia, alunos sem treinar). O treinador tem um menu lateral só de ícones (commit `5f4aafa`).
 - **Fonte Sora** em todo o sistema, com títulos mais leves para não parecer genérico. O menu do aluno usa a barra de abas até 1280 px (commit `50bdf7d`).
 - **Tema claro e escuro.** Segue o aparelho por padrão; dá para fixar no botão de sol/lua ou em Conta → Aparência. A escolha fica num cookie e o servidor aplica, sem piscar (commit `9599a28`).
@@ -94,21 +120,16 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - **Alerta do GitGuardian (08/11):** verificado, era falso positivo. Nenhuma chave real está no histórico do Git; o alerta pegou chaves de teste de propósito (`MFA_ENCRYPTION_KEY` do CI e do vitest). O usuário deve marcá-lo como "test credential" no painel do GitGuardian.
 - **Cancelado:** o fundo animado "halftone horizon" (WebGL). O usuário pediu e depois cancelou; nada foi integrado.
 
-**Ainda fora do Git (trabalho do usuário):**
-- `src/app/page.tsx`, a página inicial nova. Problemas a resolver:
-  - imagem externa (CloudFront) bloqueada pela CSP;
-  - números inventados ("+15.000 treinos" etc.);
-  - um import sem uso;
-  - falha na checagem de acessibilidade.
-- `src/components/ui/liquid-glass-navbar*.tsx`: não é usado em lugar nenhum e tem erros de lint.
-
-Nos testes de navegador, rodar com a versão publicada do `page.tsx` no lugar da versão em andamento.
+**Ainda fora do Git:**
+- `src/components/ui/liquid-glass-navbar*.tsx`: não é mais usado e quebra o lint do repositório inteiro. Apagar só com a confirmação do usuário.
+- `workout-fitness.jpg`: foto original; a cópia otimizada está em `src/components/landing/assets/`.
+- `.agents/` e `skills-lock.json`.
 
 **Próximos passos possíveis:**
-- Aplicar o estilo de cartões às outras telas.
-- Resolver a página inicial.
+- Corrigir o bug das subconsultas.
 - Preparar o deploy (Fly.io em São Paulo, conforme a recomendação abaixo).
-- Decisões de negócio pendentes: preços finais, região de hospedagem, revisão jurídica.
+- Revisão jurídica dos termos.
+- Aplicar o estilo de cartões às outras telas.
 
 Há dados de demonstração no banco local (Rui, Alice, Bruno, Carla e Diego; senha "uma frase longa e segura").
 
