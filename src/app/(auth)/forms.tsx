@@ -66,7 +66,7 @@ export function RegisterForm() {
                 <Link href="/privacidade" className={link} target="_blank">
                   Política de privacidade
                 </Link>
-                .
+                . Declaro ter 18 anos ou mais.
               </span>
             </label>
             {fieldErrors(s, "acceptTerms") && <p className="text-sm font-medium text-danger">{fieldErrors(s, "acceptTerms")!.join(" ")}</p>}

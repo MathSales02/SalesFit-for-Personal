@@ -41,7 +41,7 @@ export function NewAccountForm({ token, email }: { token: string; email: string 
                 <Link href="/privacidade" className={link} target="_blank">
                   Política de privacidade
                 </Link>
-                .
+                . Se tenho menos de 18 anos, meu responsável legal autorizou o uso.
               </span>
             </label>
             {fieldErrors(s, "acceptTerms") && <p className="text-sm font-medium text-danger">{fieldErrors(s, "acceptTerms")!.join(" ")}</p>}
