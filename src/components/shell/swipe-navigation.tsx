@@ -22,6 +22,8 @@ const EDGE_PX = 24;
 /** Entrance of the new screen. */
 const TRANSITION_MS = 220;
 const SLIDE_PX = 32;
+/** Exit of the current screen, started the moment the finger lifts. */
+const EXIT_MS = 120;
 /** The on-screen keyboard is taken as open when it covers at least this much. */
 const KEYBOARD_MIN_PX = 120;
 /** Releases the lock if a navigation never lands (offline, redirect to the same page). */
@@ -35,6 +37,7 @@ const TEXT_FIELDS = "textarea, select, input:not([type=button], [type=submit], [
 
 // Module state, so it survives the shell remounting between layouts (e.g. into /conta).
 let busy = false;
+let leaving: Animation | null = null;
 let arriving: { direction: 1 | -1; from: string; timer: number } | null = null;
 
 function startsInExcludedArea(target: EventTarget | null) {
@@ -83,6 +86,8 @@ export function useSwipeNavigation(hrefs: readonly string[], mobileQuery: string
     if (!a || a.from === pathname) return;
     window.clearTimeout(a.timer);
     arriving = null;
+    leaving?.cancel();
+    leaving = null;
     const main = document.querySelector("main");
     if (!main || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       busy = false;
@@ -161,15 +166,29 @@ export function useSwipeNavigation(hrefs: readonly string[], mobileQuery: string
         // Finger moving left brings the next screen; moving right, the previous one.
         const target = dx < 0 ? next : previous;
         if (!target) return;
+        const direction = dx < 0 ? 1 : -1;
         busy = true;
         arriving = {
-          direction: dx < 0 ? 1 : -1,
+          direction,
           from: window.location.pathname,
           timer: window.setTimeout(() => {
             busy = false;
             arriving = null;
+            leaving?.cancel();
+            leaving = null;
           }, NAVIGATION_TIMEOUT_MS),
         };
+        // The current screen answers the finger at once, before the next one is ready.
+        const main = document.querySelector("main");
+        if (main && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          leaving = main.animate(
+            [
+              { transform: "translateX(0)", opacity: 1 },
+              { transform: `translateX(${-direction * SLIDE_PX}px)`, opacity: 0 },
+            ],
+            { duration: EXIT_MS, easing: "ease-in", fill: "forwards" },
+          );
+        }
         router.push(target);
       };
 
