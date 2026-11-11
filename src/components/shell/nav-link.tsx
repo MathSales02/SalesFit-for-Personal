@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
-function isActive(pathname: string, href: string) {
+export function isActive(pathname: string, href: string) {
   return pathname === href || (href.split("/").length > 2 && pathname.startsWith(`${href}/`));
 }
 

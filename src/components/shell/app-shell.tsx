@@ -25,7 +25,8 @@ import {
   IconUsers,
 } from "./icons";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { HeaderIconLink, MoreTab, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
+import { SwipeNavigation } from "./swipe-navigation";
+import { HeaderIconLink,MoreTab, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
 type Badges = { messages: number; notifications: number };
@@ -160,6 +161,7 @@ export async function AppShell({
             <TabNavLink key={i.href} item={i} />
           ))}
         </nav>
+        <SwipeNavigation hrefs={main.map((i) => i.href)} mobileQuery="(max-width: 79.99rem)" />
       </div>
     );
   }
@@ -236,6 +238,8 @@ export async function AppShell({
           ))}
           <MoreTab items={more} footer={<LogoutButton tone="light" />} />
         </nav>
+        {/* Swipes follow what the phone shows: the tabs, then the "Mais" list. */}
+        <SwipeNavigation hrefs={[...tabs, ...more].map((i) => i.href)} mobileQuery="(max-width: 63.99rem)" />
       </div>
     );
   }
