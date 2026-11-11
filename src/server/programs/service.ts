@@ -50,6 +50,7 @@ export type ProgramContent = {
       exerciseId: string;
       exerciseName: string;
       videoAssetId: string | null;
+      videoUrl: string | null;
       instructions: string | null;
       variationExerciseId: string | null;
       variationName: string | null;
@@ -75,6 +76,7 @@ export async function loadContent(tx: Tx, versionId: string): Promise<ProgramCon
       exerciseId: programExercises.exerciseId,
       exerciseName: exercises.name,
       videoAssetId: exercises.videoAssetId,
+      videoUrl: exercises.videoUrl,
       instructions: exercises.instructions,
       variationExerciseId: programExercises.variationExerciseId,
       variationName: variation,

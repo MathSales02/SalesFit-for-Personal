@@ -39,6 +39,7 @@ export default async function WorkoutPage({ params }: { params: Promise<{ sessio
     notes: e.notes,
     instructions: e.instructions,
     videoUrl: e.videoAssetId ? (videos.get(e.videoAssetId) ?? null) : null,
+    externalVideoUrl: e.videoUrl,
     previous: view.previous.get(e.exerciseId) ?? [],
     previousVariation: e.variationExerciseId ? (view.previous.get(e.variationExerciseId) ?? []) : [],
   }));

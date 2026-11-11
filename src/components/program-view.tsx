@@ -1,3 +1,4 @@
+import { ExerciseVideo } from "@/components/exercises/video";
 import type { ProgramContent } from "@/server/programs/service";
 
 const restLabel = (s: number | null) => (s == null ? null : s >= 60 ? `${Math.floor(s / 60)}min${s % 60 ? ` ${s % 60}s` : ""}` : `${s}s`);
@@ -45,10 +46,10 @@ export function ProgramView({
                       <p className="text-sm text-ink-soft">{meta.join(" · ")}</p>
                       {e.notes && <p className="mt-1 text-sm text-muted">{e.notes}</p>}
                       {e.variationName && <p className="mt-1 text-sm text-muted">Variação: {e.variationName}</p>}
-                      {(showInstructions && (e.instructions || video)) && (
+                      {(showInstructions && (e.instructions || video || e.videoUrl)) && (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-                          {video && <video src={video} controls preload="none" playsInline className="mt-2 aspect-video w-full max-w-xl rounded-[var(--radius-control)] bg-black" />}
+                          <ExerciseVideo src={video} externalUrl={e.videoUrl} title={e.exerciseName} preload="none" className="mt-2 max-w-xl" />
                           {e.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{e.instructions}</p>}
                         </details>
                       )}

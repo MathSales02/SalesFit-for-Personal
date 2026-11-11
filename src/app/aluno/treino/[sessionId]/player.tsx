@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ExerciseVideo } from "@/components/exercises/video";
 import { buttonClass } from "@/components/ui/button-styles";
 import { Notice } from "@/components/ui/notice";
 import { EFFORT_LABEL } from "@/lib/validation/workouts";
@@ -21,6 +22,8 @@ export type PlayerExercise = {
   notes: string | null;
   instructions: string | null;
   videoUrl: string | null;
+  /** YouTube demonstration, used when there is no uploaded video. */
+  externalVideoUrl: string | null;
   previous: { setNumber: number; reps: number; loadKg: number | null }[];
   previousVariation: { setNumber: number; reps: number; loadKg: number | null }[];
 };
@@ -192,10 +195,10 @@ export function WorkoutPlayer({
             Fazer a variação: {ex.variationName}
           </label>
         )}
-        {(ex.videoUrl || ex.instructions) && (
+        {(ex.videoUrl || ex.externalVideoUrl || ex.instructions) && (
           <details className="mt-3">
             <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-            {ex.videoUrl && <video src={ex.videoUrl} controls playsInline preload="none" className="mt-2 aspect-video w-full rounded-[var(--radius-control)] bg-black" />}
+            <ExerciseVideo src={ex.videoUrl} externalUrl={ex.externalVideoUrl} title={ex.exerciseName} preload="none" className="mt-2" />
             {ex.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{ex.instructions}</p>}
           </details>
         )}

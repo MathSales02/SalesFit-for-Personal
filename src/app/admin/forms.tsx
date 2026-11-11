@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, SelectField, TextAreaField } from "@/components/ui/field";
-import { closeSupportAction, openSupportAction, planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
+import { closeSupportAction, openSupportAction, exerciseVideoAction, planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
 
 const reasonHint = "Fica registrado na auditoria.";
 
@@ -178,6 +178,24 @@ export function CloseSupportForm({ workspaceId }: { workspaceId: string }) {
             Encerrar acesso agora
           </SubmitButton>
         </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function ExerciseVideoForm({ exercise }: { exercise: { id: string; name: string; videoUrl: string | null } }) {
+  return (
+    <ActionForm action={exerciseVideoAction}>
+      {(s) => (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <input type="hidden" name="exerciseId" value={exercise.id} />
+          <div className="flex-1">
+            <Field label={`Link do YouTube: ${exercise.name}`} name="videoUrl" required={false} maxLength={200} defaultValue={exercise.videoUrl ?? ""} errors={fieldErrors(s, "videoUrl")} />
+          </div>
+          <SubmitButton variant="secondary" pendingLabel="Salvando…">
+            Salvar
+          </SubmitButton>
+        </div>
       )}
     </ActionForm>
   );

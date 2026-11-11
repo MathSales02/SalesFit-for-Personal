@@ -239,6 +239,20 @@
       "when": 1794393399412,
       "tag": "0033_community_social_security",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794439874458,
+      "tag": "0034_exercise_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794440016121,
+      "tag": "0035_exercise_library_security",
+      "breakpoints": true
     }
   ]
 }

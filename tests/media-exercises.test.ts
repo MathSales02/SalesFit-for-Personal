@@ -13,6 +13,7 @@ import {
   getExercise,
   listExercises,
   removeVideo,
+  setPlatformVideoUrl,
   updateExercise,
 } from "@/server/exercises/service";
 import { AppError } from "@/server/lib/errors";
@@ -150,7 +151,8 @@ describe("exercise library", () => {
     const listA = await listExercises(a, { q: "" });
     expect(listA.some((e) => e.name === "Supino reto com barra" && !e.own)).toBe(true);
     expect(listA.some((e) => e.name === "Remada baixa" && e.own)).toBe(true);
-    expect((await listExercises(b, { q: "Remada baixa" })).length).toBe(0);
+    // The platform has its own "Remada baixa na polia"; A's exercise is not among B's results.
+    expect((await listExercises(b, { q: "Remada baixa" })).some((e) => e.own)).toBe(false);
   });
 
   it("platform exercises are read-only but can be copied and customized", async () => {
@@ -161,6 +163,43 @@ describe("exercise library", () => {
     await updateExercise(a, copyId, { ...input, name: "Supino reto (meu jeito)" }, meta());
     expect((await getExercise(a, copyId)).own).toBe(true);
     expect((await getExercise(a, platform!.id)).name).toBe("Supino reto com barra");
+  });
+
+  it("a platform exercise is copied once, with its details, and the copy keeps the trainer's changes", async () => {
+    const a = await trainer();
+    const [platform] = await listExercises(a, { q: "Supino reto com barra" });
+    const source = await getExercise(a, platform!.id);
+    expect(source.copyId).toBeNull();
+    expect(source.secondaryMuscles).toEqual(["triceps", "shoulders"]);
+    expect(source.difficulty).toBe("intermediate");
+    expect(source.commonMistakes).toContain("Quicar a barra no peito.");
+
+    const copyId = await copyExercise(a, platform!.id, meta());
+    const copy = await getExercise(a, copyId);
+    expect(copy).toMatchObject({ own: true, name: source.name, secondaryMuscles: source.secondaryMuscles, tips: source.tips, sourceExerciseId: platform!.id });
+
+    await updateExercise(a, copyId, { ...input, name: "Supino do meu jeito", secondaryMuscles: ["back", "biceps"], videoUrl: "https://www.youtube.com/watch?v=abcdefghijk" }, meta());
+    // Copying again returns the same exercise, untouched.
+    expect(await copyExercise(a, platform!.id, meta())).toBe(copyId);
+    const again = await getExercise(a, copyId);
+    expect(again.name).toBe("Supino do meu jeito");
+    // The main group ("back") never repeats among the secondary ones.
+    expect(again.secondaryMuscles).toEqual(["biceps"]);
+    expect((await getExercise(a, platform!.id)).copyId).toBe(copyId);
+    expect((await listExercises(a, { q: "" })).filter((e) => e.sourceExerciseId === platform!.id)).toHaveLength(1);
+
+    // Another trainer still gets their own copy; the platform exercise is unchanged.
+    const b = await trainer();
+    expect(await copyExercise(b, platform!.id, meta())).not.toBe(copyId);
+    expect((await getExercise(b, platform!.id)).name).toBe("Supino reto com barra");
+  });
+
+  it("only platform admins register the library's demonstration videos, and only YouTube links fit", async () => {
+    const a = await trainer();
+    const [platform] = await listExercises(a, { q: "Peck deck" });
+    expect(await code(setPlatformVideoUrl(a, platform!.id, "https://www.youtube.com/watch?v=abcdefghijk", meta()))).toBe("FORBIDDEN");
+    const id = await createExercise(a, input, meta());
+    expect(await code(updateExercise(a, id, { ...input, videoUrl: "https://example.com/video.mp4" }, meta()))).toBe("23514");
   });
 
   it("RLS blocks direct writes to the platform library", async () => {

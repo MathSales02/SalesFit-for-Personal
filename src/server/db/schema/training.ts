@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, date, index, integer, jsonb, pgEnum, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, bigint, boolean, date, index, integer, jsonb, pgEnum, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { timestamps } from "./_shared";
 import { users } from "./identity";
 import { workspaces } from "./tenancy";
@@ -60,6 +60,8 @@ export const muscleGroup = pgEnum("muscle_group", [
   "mobility",
 ]);
 
+export const exerciseDifficulty = pgEnum("exercise_difficulty", ["beginner", "intermediate", "advanced"]);
+
 /**
  * Exercise library. workspace_id NULL = the platform library shared by every
  * trainer (read-only for them); otherwise a trainer's own exercise.
@@ -75,6 +77,15 @@ export const exercises = pgTable(
     description: text("description"),
     instructions: text("instructions"),
     videoAssetId: uuid("video_asset_id"),
+    /** Other muscles the movement trains, besides the main group. */
+    secondaryMuscles: muscleGroup("secondary_muscles").array().notNull().default(sql`'{}'`),
+    difficulty: exerciseDifficulty("difficulty"),
+    /** External demonstration (canonical YouTube watch URL), used when there is no uploaded video. */
+    videoUrl: text("video_url"),
+    tips: text("tips"),
+    commonMistakes: text("common_mistakes"),
+    /** The platform exercise this one was copied from, so the same exercise is not copied twice. */
+    sourceExerciseId: uuid("source_exercise_id").references((): AnyPgColumn => exercises.id, { onDelete: "set null" }),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     ...timestamps,

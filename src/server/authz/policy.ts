@@ -72,6 +72,7 @@ const ADMIN_PERMISSIONS = [
   "admin.users.read",
   "admin.users.suspend",
   "admin.plans.manage",
+  "admin.exercises.manage",
   "admin.reports.review",
   "admin.security_events.read",
   "admin.billing.manage",

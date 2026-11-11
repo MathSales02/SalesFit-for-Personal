@@ -38,7 +38,9 @@ export async function proxy(request: NextRequest) {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
     // Inline style attributes are needed by React; scripts remain nonce-locked.
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' blob: data:${storage}`,
+    // Thumbnails and the player of exercise demonstrations registered as YouTube links.
+    `img-src 'self' blob: data: https://i.ytimg.com${storage}`,
+    "frame-src https://www.youtube-nocookie.com",
     "font-src 'self'",
     `connect-src 'self'${storage}${dev ? " ws:" : ""}`,
     `media-src 'self' blob:${storage}`,

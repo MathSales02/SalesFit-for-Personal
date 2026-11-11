@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
+import { platformVideoSchema } from "@/lib/validation/exercises";
+import { setPlatformVideoUrl } from "@/server/exercises/service";
 import { overrideSubscription, setUserStatus, setWorkspaceStatus, updatePlan } from "@/server/admin/service";
 import { closeSupportAccess, openSupportAccess } from "@/server/admin/support";
 import { reprocessBillingEvent } from "@/server/billing/provider";
@@ -89,6 +91,16 @@ export async function planUpdateAction(_prev: ActionResult, form: FormData): Pro
     );
     revalidatePath("/admin/planos");
     return { ok: true, message: "Plano salvo. Novos valores valem para novas assinaturas e renovações." };
+  });
+}
+
+export async function exerciseVideoAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  return runAction("admin_exercise_video", async () => {
+    const actor = await requireActionActor("admin.exercises.manage");
+    const { exerciseId, videoUrl } = parseForm(platformVideoSchema, form);
+    await setPlatformVideoUrl(actor, exerciseId, videoUrl, await requestMeta());
+    revalidatePath("/admin/exercicios");
+    return { ok: true, message: videoUrl ? "Vídeo salvo." : "Vídeo removido." };
   });
 }
 
