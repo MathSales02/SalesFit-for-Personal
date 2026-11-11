@@ -225,6 +225,20 @@
       "when": 1794111382638,
       "tag": "0031_official_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794393397383,
+      "tag": "0032_community_social",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794393399412,
+      "tag": "0033_community_social_security",
+      "breakpoints": true
     }
   ]
 }

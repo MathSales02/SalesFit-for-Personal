@@ -7,9 +7,12 @@ import {
   addCommentSchema,
   commentIdSchema,
   createPostSchema,
+  editPostSchema,
+  FEED_SCOPES,
   feedCursorSchema,
   moderatePostSchema,
   postIdSchema,
+  profileSchema,
   reportSchema,
   resolveReportSchema,
   settingsSchema,
@@ -19,6 +22,8 @@ import { requestPhotoUploadSchema } from "@/lib/validation/progress";
 import {
   addComment,
   createPost,
+  editPost,
+  getPost,
   listFeed,
   moderatePost,
   removeComment,
@@ -29,7 +34,10 @@ import {
   setFollow,
   shareWorkout,
   toggleLike,
+  toggleSave,
+  updateMyProfile,
   updateSettings,
+  type CommentView,
   type FeedCursor,
   type FeedPost,
 } from "@/server/community/service";
@@ -67,7 +75,7 @@ export async function loadMoreAction(input: unknown): Promise<ActionResult<{ pos
   return runAction("load_more", async () => {
     const actor = await requireActionActor("community.read");
     const { scope, cursor, authorMemberId } = parseInput(
-      z.strictObject({ scope: z.enum(["all", "following"]), cursor: feedCursorSchema, authorMemberId: z.uuid().optional() }),
+      z.strictObject({ scope: z.enum(FEED_SCOPES), cursor: feedCursorSchema, authorMemberId: z.uuid().optional() }),
       input,
     );
     const res = await listFeed(actor, { scope, cursor, authorMemberId });
@@ -103,6 +111,51 @@ export async function addCommentAction(_prev: ActionResult, form: FormData): Pro
     const actor = await requireActionActor("community.post");
     await addComment(actor, parseForm(addCommentSchema, form), await requestMeta());
     return { ok: true, message: "Comentário publicado." };
+  });
+}
+
+/** Comment from the feed or the post page: returns the new comment so the list updates in place. */
+export async function postCommentAction(input: unknown): Promise<ActionResult<CommentView>> {
+  return runAction("add_comment", async () => {
+    const actor = await requireActionActor("community.post");
+    const parsed = addCommentSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+    return { ok: true, data: await addComment(actor, parsed.data, await requestMeta()) };
+  });
+}
+
+export async function loadCommentsAction(input: unknown): Promise<ActionResult<{ comments: CommentView[]; commentCount: number }>> {
+  return runAction("load_comments", async () => {
+    const actor = await requireActionActor("community.read");
+    const res = await getPost(actor, parseInput(postIdSchema, input).postId);
+    return { ok: true, data: { comments: res.comments, commentCount: res.post.commentCount } };
+  });
+}
+
+export async function toggleSaveAction(input: unknown): Promise<ActionResult<{ saved: boolean }>> {
+  return runAction("toggle_save", async () => {
+    const actor = await requireActionActor("community.read");
+    return { ok: true, data: await toggleSave(actor, parseInput(postIdSchema, input).postId) };
+  });
+}
+
+export async function editPostAction(input: unknown): Promise<ActionResult<{ status: "published" | "pending_review"; body: string | null; editedAt: string | null }>> {
+  return runAction("edit_post", async () => {
+    const actor = await requireActionActor("community.post");
+    const parsed = editPostSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+    const res = await editPost(actor, parsed.data, await requestMeta());
+    return { ok: true, data: res, message: res.status === "pending_review" ? "Alteração enviada para revisão do treinador." : "Publicação atualizada." };
+  });
+}
+
+export async function updateProfileAction(input: unknown): Promise<ActionResult> {
+  return runAction("update_profile", async () => {
+    const actor = await requireActionActor("community.read");
+    const parsed = profileSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, code: "VALIDATION", message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+    await updateMyProfile(actor, parsed.data, await requestMeta());
+    return { ok: true, message: "Perfil atualizado." };
   });
 }
 

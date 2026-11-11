@@ -8,13 +8,18 @@ import {
   follows,
   mediaAssets,
   memberBlocks,
+  memberProfiles,
   messages,
   postLikes,
+  postSaves,
   posts,
+  programDays,
   reports,
   users,
   workspaceMembers,
+  workoutSessions,
   workspaceSettings,
+  type FitnessGoal,
   type WorkoutSnapshot,
 } from "../db/schema";
 import { assertCan, requireMembership, type Actor } from "../authz/policy";
@@ -167,8 +172,10 @@ export type FeedPost = {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  savedByMe: boolean;
   createdAt: string;
-  author: { memberId: string; name: string; role: "trainer" | "student"; isMe: boolean };
+  editedAt: string | null;
+  author: { memberId: string; name: string; role: "trainer" | "student"; isMe: boolean; avatarUrl: string | null; followedByMe: boolean };
 };
 
 const postColumns = (memberId: string) => ({
@@ -185,7 +192,11 @@ const postColumns = (memberId: string) => ({
   authorMemberId: posts.authorMemberId,
   authorName: users.displayName,
   authorRole: workspaceMembers.role,
-  likedByMe: sql<boolean>`exists (select 1 from post_likes l where l.post_id = ${posts.id} and l.member_id = ${memberId}::uuid)`,
+  editedAt: posts.editedAt,
+  likedByMe: sql<boolean>`exists (select 1 from post_likes l where l.post_id = "posts"."id" and l.member_id = ${memberId}::uuid)`,
+  savedByMe: sql<boolean>`exists (select 1 from post_saves sv where sv.post_id = "posts"."id" and sv.member_id = ${memberId}::uuid)`,
+  authorAvatarId: sql<string | null>`(select mp.avatar_asset_id from member_profiles mp where mp.member_id = "posts"."author_member_id")`,
+  authorFollowed: sql<boolean>`exists (select 1 from follows f where f.follower_member_id = ${memberId}::uuid and f.followed_member_id = "posts"."author_member_id")`,
 });
 
 type PostRow = { [K in keyof ReturnType<typeof postColumns>]: unknown } & {
@@ -202,11 +213,15 @@ type PostRow = { [K in keyof ReturnType<typeof postColumns>]: unknown } & {
   authorMemberId: string;
   authorName: string;
   authorRole: "trainer" | "student";
+  editedAt: Date | null;
   likedByMe: boolean;
+  savedByMe: boolean;
+  authorAvatarId: string | null;
+  authorFollowed: boolean;
 };
 
 async function hydrate(actor: Actor, memberId: string, rows: PostRow[]): Promise<FeedPost[]> {
-  const urls = await playbackUrls(actor, rows.map((r) => r.mediaAssetId).filter((x): x is string => !!x));
+  const urls = await playbackUrls(actor, rows.flatMap((r) => [r.mediaAssetId, r.authorAvatarId]).filter((x): x is string => !!x));
   return rows.map((r) => ({
     id: r.id,
     kind: r.kind,
@@ -218,23 +233,61 @@ async function hydrate(actor: Actor, memberId: string, rows: PostRow[]): Promise
     likeCount: r.likeCount,
     commentCount: r.commentCount,
     likedByMe: r.likedByMe,
+    savedByMe: r.savedByMe,
     createdAt: r.createdAt.toISOString(),
-    author: { memberId: r.authorMemberId, name: r.authorName, role: r.authorRole, isMe: r.authorMemberId === memberId },
+    editedAt: r.editedAt ? r.editedAt.toISOString() : null,
+    author: {
+      memberId: r.authorMemberId,
+      name: r.authorName,
+      role: r.authorRole,
+      isMe: r.authorMemberId === memberId,
+      avatarUrl: r.authorAvatarId ? (urls.get(r.authorAvatarId) ?? null) : null,
+      followedByMe: r.authorFollowed,
+    },
   }));
 }
 
 export type FeedCursor = { createdAt: string; id: string } | null;
 
+export type FeedScope = "all" | "following" | "popular" | "saved";
+const POPULAR_DAYS = 30;
+const POPULAR_LIMIT = 30;
+const SAVED_LIMIT = 60;
+
 /**
  * Chronological feed with keyset pagination on (created_at, id). Pinned
  * announcements lead the first page. Blocked members are hidden both ways;
  * the author's own pending posts are shown so they know they await review.
+ *
+ * "popular": most liked and commented posts of the last 30 days (one page).
+ * "saved": the actor's bookmarks, newest bookmark first (one page).
  */
-export async function listFeed(actor: Actor, opts: { scope: "all" | "following"; cursor: FeedCursor; authorMemberId?: string }) {
+export async function listFeed(actor: Actor, opts: { scope: FeedScope; cursor: FeedCursor; authorMemberId?: string; limit?: number }) {
   assertCan(actor, "community.read");
   const { m, ctx } = scope(actor);
-  return withTenant(ctx, async (tx) => {
+  const data = await withTenant(ctx, async (tx) => {
     const settings = await assertCommunityOpen(tx, actor, m.workspaceId);
+    if (opts.scope === "popular" || opts.scope === "saved") {
+      const visible = and(eq(posts.workspaceId, m.workspaceId), eq(posts.status, "published"), notBlocked(m.memberId, posts.authorMemberId));
+      const from = () =>
+        tx
+          .select(postColumns(m.memberId))
+          .from(posts)
+          .innerJoin(workspaceMembers, eq(workspaceMembers.id, posts.authorMemberId))
+          .innerJoin(users, eq(users.id, workspaceMembers.userId));
+      const rows =
+        opts.scope === "popular"
+          ? await from()
+              .where(and(visible, gt(posts.createdAt, new Date(Date.now() - POPULAR_DAYS * 86_400_000)), sql`${posts.likeCount} + ${posts.commentCount} > 0`))
+              .orderBy(desc(sql`${posts.likeCount} + 2 * ${posts.commentCount}`), desc(posts.createdAt))
+              .limit(Math.min(opts.limit ?? POPULAR_LIMIT, POPULAR_LIMIT))
+          : await from()
+              .innerJoin(postSaves, and(eq(postSaves.postId, posts.id), eq(postSaves.memberId, m.memberId)))
+              .where(visible)
+              .orderBy(desc(postSaves.createdAt))
+              .limit(SAVED_LIMIT);
+      return { settings, rows: rows as PostRow[], nextCursor: null as FeedCursor };
+    }
     const base = and(
       eq(posts.workspaceId, m.workspaceId),
       or(eq(posts.status, "published"), and(eq(posts.status, "pending_review"), eq(posts.authorMemberId, m.memberId))),
@@ -264,13 +317,21 @@ export async function listFeed(actor: Actor, opts: { scope: "all" | "following";
     const last = page[page.length - 1];
     return {
       settings,
-      posts: await hydrate(actor, m.memberId, [...pinned, ...page] as PostRow[]),
-      nextCursor: hasMore && last ? { createdAt: last.createdAt.toISOString(), id: last.id } : null,
+      rows: [...pinned, ...page] as PostRow[],
+      nextCursor: (hasMore && last ? { createdAt: last.createdAt.toISOString(), id: last.id } : null) as FeedCursor,
     };
   });
+  return { settings: data.settings, posts: await hydrate(actor, m.memberId, data.rows), nextCursor: data.nextCursor };
 }
 
-export type CommentView = { id: string; body: string; createdAt: string; parentCommentId: string | null; status: string; author: { memberId: string; name: string; role: string; isMe: boolean } };
+export type CommentView = {
+  id: string;
+  body: string;
+  createdAt: string;
+  parentCommentId: string | null;
+  status: string;
+  author: { memberId: string; name: string; role: string; isMe: boolean; avatarUrl: string | null };
+};
 
 export async function getPost(actor: Actor, postId: string) {
   assertCan(actor, "community.read");
@@ -285,7 +346,17 @@ export async function getPost(actor: Actor, postId: string) {
       .where(and(eq(posts.id, postId), eq(posts.workspaceId, m.workspaceId), notBlocked(m.memberId, posts.authorMemberId)));
     if (!row || (row.status === "removed" && m.role !== "trainer")) throw Errors.notFound();
     const list = await tx
-      .select({ id: comments.id, body: comments.body, createdAt: comments.createdAt, parentCommentId: comments.parentCommentId, status: comments.status, authorMemberId: comments.authorMemberId, authorName: users.displayName, authorRole: workspaceMembers.role })
+      .select({
+        id: comments.id,
+        body: comments.body,
+        createdAt: comments.createdAt,
+        parentCommentId: comments.parentCommentId,
+        status: comments.status,
+        authorMemberId: comments.authorMemberId,
+        authorName: users.displayName,
+        authorRole: workspaceMembers.role,
+        avatarId: sql<string | null>`(select mp.avatar_asset_id from member_profiles mp where mp.member_id = "comments"."author_member_id")`,
+      })
       .from(comments)
       .innerJoin(workspaceMembers, eq(workspaceMembers.id, comments.authorMemberId))
       .innerJoin(users, eq(users.id, workspaceMembers.userId))
@@ -295,13 +366,14 @@ export async function getPost(actor: Actor, postId: string) {
     return { row: row as PostRow, list };
   });
   const [post] = await hydrate(actor, m.memberId, [data.row]);
+  const avatars = await playbackUrls(actor, data.list.map((c) => c.avatarId).filter((x): x is string => !!x));
   const views: CommentView[] = data.list.map((c) => ({
     id: c.id,
     body: c.body,
     createdAt: c.createdAt.toISOString(),
     parentCommentId: c.parentCommentId,
     status: c.status,
-    author: { memberId: c.authorMemberId, name: c.authorName, role: c.authorRole, isMe: c.authorMemberId === m.memberId },
+    author: { memberId: c.authorMemberId, name: c.authorName, role: c.authorRole, isMe: c.authorMemberId === m.memberId, avatarUrl: c.avatarId ? (avatars.get(c.avatarId) ?? null) : null },
   }));
   return { post: post!, comments: views };
 }
@@ -338,12 +410,12 @@ export async function toggleLike(actor: Actor, postId: string): Promise<{ liked:
   });
 }
 
-export async function addComment(actor: Actor, input: { postId: string; parentCommentId: string | null; body: string }, meta: RequestMeta) {
+export async function addComment(actor: Actor, input: { postId: string; parentCommentId: string | null; body: string }, meta: RequestMeta): Promise<CommentView> {
   assertCan(actor, "community.post");
   const { m, ctx } = scope(actor);
   await enforceRateLimit("comment_create_user", actor.userId);
   if (countLinks(input.body) > MAX_LINKS_COMMENT) throw new AppError("VALIDATION", `Use no máximo ${MAX_LINKS_COMMENT} links por comentário.`);
-  await withTenant(ctx, async (tx) => {
+  const created = await withTenant(ctx, async (tx) => {
     await assertCommunityOpen(tx, actor, m.workspaceId);
     const target = await loadVisiblePost(tx, m.memberId, m.workspaceId, input.postId);
     let parentAuthor: string | null = null;
@@ -358,7 +430,7 @@ export async function addComment(actor: Actor, input: { postId: string; parentCo
     const [c] = await tx
       .insert(comments)
       .values({ workspaceId: m.workspaceId, postId: input.postId, authorMemberId: m.memberId, parentCommentId: input.parentCommentId, body: input.body })
-      .returning({ id: comments.id });
+      .returning({ id: comments.id, createdAt: comments.createdAt });
     await audit(tx, { action: "community.comment_created", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "comment", targetId: c!.id, ipHash: meta.ipHash });
     const items: NotifyItem[] = [];
     if (parentAuthor) items.push({ recipientMemberId: parentAuthor, type: "comment_replied", actorMemberId: m.memberId, targetId: input.postId, dedupeKey: `reply:${c!.id}` });
@@ -366,6 +438,66 @@ export async function addComment(actor: Actor, input: { postId: string; parentCo
       items.push({ recipientMemberId: target.authorMemberId, type: "post_commented", actorMemberId: m.memberId, targetId: input.postId, dedupeKey: `comment:${c!.id}` });
     }
     await notify(tx, ctx, items);
+    const [mine] = await tx.select({ avatarId: memberProfiles.avatarAssetId }).from(memberProfiles).where(eq(memberProfiles.memberId, m.memberId));
+    return { id: c!.id, createdAt: c!.createdAt, avatarId: mine?.avatarId ?? null };
+  });
+  const avatar = created.avatarId ? ((await playbackUrls(actor, [created.avatarId])).get(created.avatarId) ?? null) : null;
+  return {
+    id: created.id,
+    body: input.body,
+    createdAt: created.createdAt.toISOString(),
+    parentCommentId: input.parentCommentId,
+    status: "published",
+    author: { memberId: m.memberId, name: actor.displayName, role: m.role, isMe: true, avatarUrl: avatar },
+  };
+}
+
+/** Bookmarks or removes the bookmark. Private to the member. */
+export async function toggleSave(actor: Actor, postId: string): Promise<{ saved: boolean }> {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  await enforceRateLimit("like_user", actor.userId);
+  return withTenant(ctx, async (tx) => {
+    await assertCommunityOpen(tx, actor, m.workspaceId);
+    const removed = await tx.delete(postSaves).where(and(eq(postSaves.postId, postId), eq(postSaves.memberId, m.memberId))).returning({ postId: postSaves.postId });
+    if (removed.length) return { saved: false };
+    await loadVisiblePost(tx, m.memberId, m.workspaceId, postId);
+    await tx.insert(postSaves).values({ postId, memberId: m.memberId, workspaceId: m.workspaceId }).onConflictDoNothing();
+    return { saved: true };
+  });
+}
+
+/**
+ * The author changes the text of their own post (photo and workout stay as posted).
+ * Where the trainer reviews student posts, an edited post goes back to review.
+ */
+export async function editPost(
+  actor: Actor,
+  input: { postId: string; body: string | null },
+  meta: RequestMeta,
+): Promise<{ status: "published" | "pending_review"; body: string | null; editedAt: string | null }> {
+  assertCan(actor, "community.post");
+  const { m, ctx } = scope(actor);
+  await enforceRateLimit("comment_create_user", actor.userId);
+  if (countLinks(input.body) > MAX_LINKS_POST) throw new AppError("VALIDATION", `Use no máximo ${MAX_LINKS_POST} links por post.`);
+  return withTenant(ctx, async (tx) => {
+    const settings = await assertCommunityOpen(tx, actor, m.workspaceId);
+    const [p] = await tx
+      .select({ body: posts.body, status: posts.status, mediaAssetId: posts.mediaAssetId, workout: posts.workout, editedAt: posts.editedAt })
+      .from(posts)
+      .where(and(eq(posts.id, input.postId), eq(posts.workspaceId, m.workspaceId), eq(posts.authorMemberId, m.memberId)));
+    if (!p || p.status === "removed") throw Errors.notFound();
+    if (!input.body && !p.mediaAssetId && !p.workout) throw Errors.validation({ body: ["Escreva algo."] });
+    if (input.body === p.body) return { status: p.status, body: p.body, editedAt: p.editedAt ? p.editedAt.toISOString() : null };
+    const needsReview = settings.studentPostsRequireApproval && m.role === "student";
+    const status = needsReview ? "pending_review" : p.status;
+    const [u] = await tx
+      .update(posts)
+      .set({ body: input.body, status, ...(needsReview && p.status === "published" ? { reviewReason: "approval_required" } : {}) })
+      .where(eq(posts.id, input.postId))
+      .returning({ editedAt: posts.editedAt });
+    await audit(tx, { action: "community.post_edited", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "post", targetId: input.postId, metadata: { status }, ipHash: meta.ipHash });
+    return { status, body: input.body, editedAt: u?.editedAt ? u.editedAt.toISOString() : null };
   });
 }
 
@@ -478,10 +610,157 @@ export async function report(
 // Profiles
 // ---------------------------------------------------------------------------
 
+export type PersonView = {
+  memberId: string;
+  name: string;
+  role: "trainer" | "student";
+  bio: string | null;
+  goal: FitnessGoal | null;
+  avatarUrl: string | null;
+  followers: number;
+  isFollowing: boolean;
+  isMe: boolean;
+};
+
+const personColumns = (me: string) => ({
+  memberId: workspaceMembers.id,
+  name: users.displayName,
+  role: workspaceMembers.role,
+  bio: memberProfiles.bio,
+  goal: memberProfiles.goal,
+  avatarId: memberProfiles.avatarAssetId,
+  followers: sql<number>`(select count(*)::int from follows f where f.followed_member_id = "workspace_members"."id")`,
+  isFollowing: sql<boolean>`exists (select 1 from follows f where f.follower_member_id = ${me}::uuid and f.followed_member_id = "workspace_members"."id")`,
+});
+type PersonRow = { memberId: string; name: string; role: "trainer" | "student"; bio: string | null; goal: FitnessGoal | null; avatarId: string | null; followers: number; isFollowing: boolean };
+
+const peopleFrom = (tx: Tx, me: string) =>
+  tx
+    .select(personColumns(me))
+    .from(workspaceMembers)
+    .innerJoin(users, eq(users.id, workspaceMembers.userId))
+    .leftJoin(memberProfiles, eq(memberProfiles.memberId, workspaceMembers.id));
+
+async function hydratePeople(actor: Actor, me: string, rows: PersonRow[]): Promise<PersonView[]> {
+  const urls = await playbackUrls(actor, rows.map((r) => r.avatarId).filter((x): x is string => !!x));
+  return rows.map(({ avatarId, ...r }) => ({ ...r, avatarUrl: avatarId ? (urls.get(avatarId) ?? null) : null, isMe: r.memberId === me }));
+}
+
+/** Active members of the workspace the actor may see (nobody on either side of a block). */
+const visiblePeople = (workspaceId: string, me: string) =>
+  and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.status, "active"), sql`not app_block_between(${me}::uuid, "workspace_members"."id")`);
+
+const escapeLike = (q: string) => q.replace(/[\\%_]/g, (c) => `\\${c}`);
+
+/** Name search across the community. */
+export async function searchPeople(actor: Actor, query: string): Promise<PersonView[]> {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  const q = query.trim().slice(0, 60);
+  if (q.length < 2) return [];
+  const rows = await withTenant(ctx, async (tx) => {
+    await assertCommunityOpen(tx, actor, m.workspaceId);
+    return peopleFrom(tx, m.memberId)
+      .where(and(visiblePeople(m.workspaceId, m.memberId), sql`${users.displayName} ilike ${`%${escapeLike(q)}%`}`))
+      .orderBy(asc(sql`lower(${users.displayName})`))
+      .limit(30);
+  });
+  return hydratePeople(actor, m.memberId, rows as PersonRow[]);
+}
+
+/** Followers of a member, or the people that member follows. */
+export async function listConnections(actor: Actor, memberId: string, kind: "followers" | "following"): Promise<PersonView[]> {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  const rows = await withTenant(ctx, async (tx) => {
+    await assertCommunityOpen(tx, actor, m.workspaceId);
+    const link =
+      kind === "followers"
+        ? sql`exists (select 1 from follows f where f.followed_member_id = ${memberId}::uuid and f.follower_member_id = "workspace_members"."id")`
+        : sql`exists (select 1 from follows f where f.follower_member_id = ${memberId}::uuid and f.followed_member_id = "workspace_members"."id")`;
+    return peopleFrom(tx, m.memberId)
+      .where(and(visiblePeople(m.workspaceId, m.memberId), link))
+      .orderBy(asc(sql`lower(${users.displayName})`))
+      .limit(200);
+  });
+  return hydratePeople(actor, m.memberId, rows as PersonRow[]);
+}
+
+export type DiscoverData = {
+  me: { memberId: string; goal: FitnessGoal | null; hasProfile: boolean };
+  suggestions: PersonView[];
+  sameGoal: PersonView[];
+  members: number;
+};
+
+/**
+ * People to meet: members the actor does not follow yet (most followed first)
+ * and members with the same training goal.
+ */
+export async function getDiscover(actor: Actor): Promise<DiscoverData> {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  const data = await withTenant(ctx, async (tx) => {
+    await assertCommunityOpen(tx, actor, m.workspaceId);
+    const [mine] = await tx.select({ goal: memberProfiles.goal, bio: memberProfiles.bio, avatar: memberProfiles.avatarAssetId }).from(memberProfiles).where(eq(memberProfiles.memberId, m.memberId));
+    const others = and(visiblePeople(m.workspaceId, m.memberId), sql`"workspace_members"."id" <> ${m.memberId}::uuid`);
+    const notFollowed = sql`not exists (select 1 from follows f where f.follower_member_id = ${m.memberId}::uuid and f.followed_member_id = "workspace_members"."id")`;
+    const suggestions = await peopleFrom(tx, m.memberId)
+      .where(and(others, notFollowed))
+      .orderBy(
+        desc(sql`(select count(*) from follows f where f.followed_member_id = "workspace_members"."id")`),
+        sql`(select max(x.created_at) from posts x where x.author_member_id = "workspace_members"."id" and x.status = 'published') desc nulls last`,
+        asc(sql`lower(${users.displayName})`),
+      )
+      .limit(12);
+    const sameGoal = mine?.goal
+      ? await peopleFrom(tx, m.memberId)
+          .where(and(others, eq(memberProfiles.goal, mine.goal)))
+          .orderBy(asc(sql`lower(${users.displayName})`))
+          .limit(12)
+      : [];
+    const [{ n } = { n: 0 }] = await tx.select({ n: count() }).from(workspaceMembers).where(and(eq(workspaceMembers.workspaceId, m.workspaceId), eq(workspaceMembers.status, "active")));
+    return { mine, suggestions, sameGoal, members: n };
+  });
+  const [suggestions, sameGoal] = await Promise.all([data.suggestions, data.sameGoal].map((rows) => hydratePeople(actor, m.memberId, rows as PersonRow[])));
+  return {
+    me: { memberId: m.memberId, goal: data.mine?.goal ?? null, hasProfile: !!(data.mine?.bio || data.mine?.goal || data.mine?.avatar) },
+    suggestions: suggestions!,
+    sameGoal: sameGoal!,
+    members: data.members,
+  };
+}
+
+/**
+ * Members who checked in today, the actor first. Only who, never what: the
+ * database function honours the ranking opt-out and the trainer's ranking switch.
+ */
+export async function listTrainedToday(actor: Actor): Promise<PersonView[]> {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  const rows = await withTenant(ctx, async (tx) => {
+    await assertCommunityOpen(tx, actor, m.workspaceId);
+    return peopleFrom(tx, m.memberId)
+      .where(and(visiblePeople(m.workspaceId, m.memberId), sql`"workspace_members"."id" in (select member_id from app_checked_in_on((now() at time zone 'America/Sao_Paulo')::date))`))
+      .orderBy(asc(sql`lower(${users.displayName})`))
+      .limit(30);
+  });
+  const people = await hydratePeople(actor, m.memberId, rows as PersonRow[]);
+  return people.sort((a, b) => Number(b.isMe) - Number(a.isMe));
+}
+
+/** The actor's own card: used by the composer and the community navigation. */
+export async function getMyCard(actor: Actor): Promise<{ memberId: string; name: string; avatarUrl: string | null }> {
+  const { m, ctx } = scope(actor);
+  const [mine] = await withTenant(ctx, (tx) => tx.select({ avatarId: memberProfiles.avatarAssetId }).from(memberProfiles).where(eq(memberProfiles.memberId, m.memberId)));
+  const url = mine?.avatarId ? ((await playbackUrls(actor, [mine.avatarId])).get(mine.avatarId) ?? null) : null;
+  return { memberId: m.memberId, name: actor.displayName, avatarUrl: url };
+}
+
 export async function getProfile(actor: Actor, memberId: string) {
   assertCan(actor, "community.read");
   const { m, ctx } = scope(actor);
-  return withTenant(ctx, async (tx) => {
+  const data = await withTenant(ctx, async (tx) => {
     await assertCommunityOpen(tx, actor, m.workspaceId);
     const [p] = await tx
       .select({
@@ -489,20 +768,91 @@ export async function getProfile(actor: Actor, memberId: string) {
         name: users.displayName,
         role: workspaceMembers.role,
         joinedAt: workspaceMembers.joinedAt,
-        followers: sql<number>`(select count(*)::int from follows f where f.followed_member_id = ${workspaceMembers.id})`,
-        following: sql<number>`(select count(*)::int from follows f where f.follower_member_id = ${workspaceMembers.id})`,
-        posts: sql<number>`(select count(*)::int from posts x where x.author_member_id = ${workspaceMembers.id} and x.status = 'published')`,
-        isFollowing: sql<boolean>`exists (select 1 from follows f where f.follower_member_id = ${m.memberId}::uuid and f.followed_member_id = ${workspaceMembers.id})`,
-        blockedByMe: sql<boolean>`exists (select 1 from member_blocks b where b.blocker_member_id = ${m.memberId}::uuid and b.blocked_member_id = ${workspaceMembers.id})`,
-        hidden: sql<boolean>`app_block_between(${m.memberId}::uuid, ${workspaceMembers.id})`,
+        bio: memberProfiles.bio,
+        goal: memberProfiles.goal,
+        avatarId: memberProfiles.avatarAssetId,
+        followers: sql<number>`(select count(*)::int from follows f where f.followed_member_id = "workspace_members"."id")`,
+        following: sql<number>`(select count(*)::int from follows f where f.follower_member_id = "workspace_members"."id")`,
+        posts: sql<number>`(select count(*)::int from posts x where x.author_member_id = "workspace_members"."id" and x.status = 'published')`,
+        isFollowing: sql<boolean>`exists (select 1 from follows f where f.follower_member_id = ${m.memberId}::uuid and f.followed_member_id = "workspace_members"."id")`,
+        followsMe: sql<boolean>`exists (select 1 from follows f where f.followed_member_id = ${m.memberId}::uuid and f.follower_member_id = "workspace_members"."id")`,
+        blockedByMe: sql<boolean>`exists (select 1 from member_blocks b where b.blocker_member_id = ${m.memberId}::uuid and b.blocked_member_id = "workspace_members"."id")`,
+        hidden: sql<boolean>`app_block_between(${m.memberId}::uuid, "workspace_members"."id")`,
+        canMessage: sql<boolean>`app_dm_allowed(${m.memberId}::uuid, "workspace_members"."id")`,
       })
       .from(workspaceMembers)
       .innerJoin(users, eq(users.id, workspaceMembers.userId))
+      .leftJoin(memberProfiles, eq(memberProfiles.memberId, workspaceMembers.id))
       .where(and(eq(workspaceMembers.id, memberId), eq(workspaceMembers.workspaceId, m.workspaceId), eq(workspaceMembers.status, "active")));
     // Someone who blocked the actor simply does not exist for them.
     if (!p || (p.hidden && !p.blockedByMe)) throw Errors.notFound();
-    return { ...p, isMe: p.memberId === m.memberId };
+    // Constancy numbers come from the ranking function, which already honours the
+    // member's opt-out; the trainer's ranking switch is checked here.
+    let constancy: { points: number; checkins: number } | null = null;
+    if (p.role === "student" && !p.blockedByMe) {
+      const r = await tx.execute<{ points: string; checkins: string; enabled: boolean }>(sql`
+        select r.points, r.checkins,
+               coalesce((select g.ranking_enabled from gamification_settings g where g.workspace_id = ${m.workspaceId}::uuid), true) as enabled
+        from app_ranking('2000-01-01'::date, (now() at time zone 'America/Sao_Paulo')::date, null) r
+        where r.member_id = ${memberId}::uuid`);
+      const row = r.rows[0];
+      if (row && (row.enabled || m.role === "trainer" || p.memberId === m.memberId)) constancy = { points: Number(row.points), checkins: Number(row.checkins) };
+    }
+    return { p, constancy };
   });
+  const { avatarId, ...p } = data.p;
+  const avatarUrl = avatarId ? ((await playbackUrls(actor, [avatarId])).get(avatarId) ?? null) : null;
+  const isMe = p.memberId === m.memberId;
+  return { ...p, canMessage: p.canMessage && !isMe, avatarUrl, constancy: data.constancy, isMe };
+}
+
+/** The member's own public card. `avatarAssetId`: undefined keeps the photo, null removes it. */
+export async function updateMyProfile(actor: Actor, input: { bio: string | null; goal: FitnessGoal | null; avatarAssetId?: string | null }, meta: RequestMeta) {
+  assertCan(actor, "community.read");
+  const { m, ctx } = scope(actor);
+  await enforceRateLimit("comment_create_user", actor.userId);
+  if (countLinks(input.bio) > 0) throw new AppError("VALIDATION", "A bio não pode ter links.");
+  await withTenant(ctx, async (tx) => {
+    if (input.avatarAssetId) {
+      const [a] = await tx
+        .select({ moderation: mediaAssets.moderation })
+        .from(mediaAssets)
+        .where(and(eq(mediaAssets.id, input.avatarAssetId), eq(mediaAssets.ownerMemberId, m.memberId), eq(mediaAssets.status, "ready"), eq(mediaAssets.visibility, "community")));
+      if (!a) throw Errors.notFound();
+      if (a.moderation !== "clear") throw new AppError("VALIDATION", "Esta foto não pode ser usada como foto de perfil. Escolha outra.");
+    }
+    const avatar = input.avatarAssetId === undefined ? {} : { avatarAssetId: input.avatarAssetId };
+    await tx
+      .insert(memberProfiles)
+      .values({ memberId: m.memberId, workspaceId: m.workspaceId, bio: input.bio, goal: input.goal, ...avatar })
+      .onConflictDoUpdate({ target: memberProfiles.memberId, set: { bio: input.bio, goal: input.goal, ...avatar, updatedAt: new Date() } });
+    await audit(tx, { action: "community.profile_updated", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "member", targetId: m.memberId, ipHash: meta.ipHash });
+  });
+}
+
+export type ShareableWorkout = { sessionId: string; dayName: string; finishedAt: string; durationMinutes: number | null };
+
+/** The student's workouts of the last two weeks that were not shared yet. */
+export async function listShareableWorkouts(actor: Actor): Promise<ShareableWorkout[]> {
+  const { m, ctx } = scope(actor);
+  if (m.role !== "student") return [];
+  const rows = await withTenant(ctx, (tx) =>
+    tx
+      .select({ id: workoutSessions.id, dayName: programDays.name, startedAt: workoutSessions.startedAt, durationSeconds: workoutSessions.durationSeconds })
+      .from(workoutSessions)
+      .innerJoin(programDays, eq(programDays.id, workoutSessions.dayId))
+      .where(
+        and(
+          eq(workoutSessions.memberId, m.memberId),
+          eq(workoutSessions.status, "completed"),
+          gt(workoutSessions.startedAt, new Date(Date.now() - 14 * 86_400_000)),
+          sql`not exists (select 1 from posts x where x.session_id = "workout_sessions"."id")`,
+        ),
+      )
+      .orderBy(desc(workoutSessions.startedAt))
+      .limit(5),
+  );
+  return rows.map((r) => ({ sessionId: r.id, dayName: r.dayName, finishedAt: r.startedAt.toISOString(), durationMinutes: r.durationSeconds == null ? null : Math.max(1, Math.round(r.durationSeconds / 60)) }));
 }
 
 // ---------------------------------------------------------------------------

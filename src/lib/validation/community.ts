@@ -73,3 +73,26 @@ export const resolveReportSchema = z.strictObject({ reportId: z.uuid(), decision
 export function countLinks(s: string | null): number {
   return s ? (s.match(/\bhttps?:\/\/|\bwww\.|\b[a-z0-9-]+\.(com|net|org|br|io|me|ly)\b/gi) ?? []).length : 0;
 }
+
+export const FEED_SCOPES = ["all", "following", "popular", "saved"] as const;
+
+export const editPostSchema = z.strictObject({ postId: z.uuid(), body: text(2000, "Texto") });
+
+export const GOAL_LABELS = {
+  hypertrophy: "Ganhar massa",
+  fat_loss: "Emagrecer",
+  conditioning: "Condicionamento",
+  strength: "Ganhar força",
+  health: "Saúde e bem-estar",
+  performance: "Performance esportiva",
+} as const;
+
+export const profileSchema = z.strictObject({
+  bio: text(160, "Bio"),
+  goal: z
+    .enum(["hypertrophy", "fat_loss", "conditioning", "strength", "health", "performance"])
+    .nullish()
+    .transform((v) => v ?? null),
+  /** Omitted: keep the photo. null: remove it. */
+  avatarAssetId: z.uuid().nullable().optional(),
+});

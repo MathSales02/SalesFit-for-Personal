@@ -6,23 +6,31 @@ import type { Actor } from "@/server/authz/policy";
 import {
   addComment,
   createPost,
+  editPost,
+  getDiscover,
   getModerationQueue,
   getPost,
   getProfile,
+  listConnections,
   listFeed,
+  listTrainedToday,
   moderatePost,
   removePost,
   report,
   resolveReport,
   setBlock,
+  searchPeople,
   setFollow,
   shareWorkout,
   toggleLike,
+  toggleSave,
+  updateMyProfile,
   updateSettings,
 } from "@/server/community/service";
 import { closeDb } from "@/server/db/client";
 import { withTenant } from "@/server/db/context";
-import { comments, mediaAssets, posts, reports } from "@/server/db/schema";
+import { comments, mediaAssets, memberProfiles, postSaves, posts, reports } from "@/server/db/schema";
+import { manualCheckin, setRankingHidden } from "@/server/gamification/service";
 import { listExercises } from "@/server/exercises/service";
 import { AppError } from "@/server/lib/errors";
 import { testOutbox } from "@/server/mail/mailer";
@@ -160,14 +168,16 @@ describe("safety and anti-manipulation", () => {
     expect((await getProfile(a, a.membership!.memberId)).followers).toBe(0);
   });
 
-  it("students cannot post announcements, pin, approve, or edit posts", async () => {
+  it("students cannot post announcements, pin, approve, or change what a post is", async () => {
     const t = await trainer();
     const a = await studentOf(t);
     expect(await code(createPost(a, { body: "Aviso!", imageAssetId: null, announcement: true }, meta()))).toBe("FORBIDDEN");
     const { postId } = await post(a, "Texto original");
     const ctx = ctxOf(a);
     expect(await code(withTenant(ctx, (tx) => tx.update(posts).set({ pinned: true }).where(eq(posts.id, postId))))).toBe("42501");
-    expect(await code(withTenant(ctx, (tx) => tx.update(posts).set({ body: "editado" }).where(eq(posts.id, postId))))).toBe("42501");
+    // The text is editable by its author (see "only the author edits a post"); the rest of the post is not.
+    expect(await code(withTenant(ctx, (tx) => tx.update(posts).set({ kind: "announcement" }).where(eq(posts.id, postId))))).toBe("42501");
+    expect(await code(withTenant(ctx, (tx) => tx.update(posts).set({ createdAt: new Date() }).where(eq(posts.id, postId))))).toBe("42501");
     // Counters only change through likes and comments (fake likes would feed rankings later).
     expect(await code(withTenant(ctx, (tx) => tx.update(posts).set({ likeCount: 999 }).where(eq(posts.id, postId))))).toBe("42501");
     expect(await code(withTenant(ctxOf(t), (tx) => tx.update(posts).set({ commentCount: 50 }).where(eq(posts.id, postId))))).toBe("42501");
@@ -314,5 +324,153 @@ describe("sharing workouts", () => {
     expect(seen.workout).toMatchObject({ dayName: "A", programName: "Força", sets: 1, volumeKg: 400 });
     expect(JSON.stringify(seen)).not.toContain("ombro");
     expect(JSON.stringify(seen)).not.toContain('"effort"');
+  });
+});
+
+describe("social layer: saves, edits, profiles and discovery", () => {
+  it("bookmarks are private, idempotent and feed the saved list", async () => {
+    const t = await trainer();
+    const a = await studentOf(t, "Ana");
+    const b = await studentOf(t, "Beto");
+    const { postId } = await post(a, "Dica de mobilidade");
+    expect(await toggleSave(b, postId)).toEqual({ saved: true });
+    expect((await listFeed(b, { scope: "saved", cursor: null })).posts.map((p) => p.id)).toEqual([postId]);
+    expect((await listFeed(b, { scope: "all", cursor: null })).posts.find((p) => p.id === postId)!.savedByMe).toBe(true);
+    // Nobody else sees the bookmark, not even the trainer.
+    expect((await listFeed(a, { scope: "saved", cursor: null })).posts).toHaveLength(0);
+    expect(await withTenant(ctxOf(t), (tx) => tx.select().from(postSaves).where(eq(postSaves.postId, postId)))).toHaveLength(0);
+    expect(await toggleSave(b, postId)).toEqual({ saved: false });
+    expect((await listFeed(b, { scope: "saved", cursor: null })).posts).toHaveLength(0);
+    // A post from another community cannot be saved.
+    const outsider = await studentOf(await trainer());
+    expect(await code(toggleSave(outsider, postId))).toBe("NOT_FOUND");
+  });
+
+  it("popular lists the posts people reacted to, most engaged first", async () => {
+    const t = await trainer();
+    const a = await studentOf(t);
+    const b = await studentOf(t);
+    const quiet = (await post(a, "Sem reação")).postId;
+    const liked = (await post(a, "Uma curtida")).postId;
+    const hot = (await post(b, "Curtida e comentário")).postId;
+    await toggleLike(b, liked);
+    await toggleLike(a, hot);
+    await addComment(a, { postId: hot, parentCommentId: null, body: "Top" }, meta());
+    const ids = (await listFeed(t, { scope: "popular", cursor: null })).posts.map((p) => p.id);
+    expect(ids).toEqual([hot, liked]);
+    expect(ids).not.toContain(quiet);
+  });
+
+  it("only the author edits a post, only its text, and the edit is marked", async () => {
+    const t = await trainer();
+    const a = await studentOf(t);
+    const b = await studentOf(t);
+    const { postId } = await post(a, "Texto com erro");
+    expect(await code(editPost(b, { postId, body: "invadido" }, meta()))).toBe("NOT_FOUND");
+    expect(await code(editPost(t, { postId, body: "moderado" }, meta()))).toBe("NOT_FOUND");
+    // Straight to the database: the trainer cannot rewrite a student's words either.
+    expect(await code(withTenant(ctxOf(t), (tx) => tx.update(posts).set({ body: "x" }).where(eq(posts.id, postId))))).toBe("42501");
+    expect(await code(withTenant(ctxOf(a), (tx) => tx.update(posts).set({ editedAt: new Date(0) }).where(eq(posts.id, postId))))).toBe("42501");
+    expect(await code(editPost(a, { postId, body: null }, meta()))).toBe("VALIDATION");
+
+    const res = await editPost(a, { postId, body: "Texto corrigido" }, meta());
+    expect(res.status).toBe("published");
+    const seen = (await getPost(b, postId)).post;
+    expect(seen.body).toBe("Texto corrigido");
+    expect(seen.editedAt).not.toBeNull();
+  });
+
+  it("where posts need approval, an edited post goes back to review", async () => {
+    const t = await trainer();
+    const a = await studentOf(t);
+    const { postId } = await post(a, "Aprovado antes da regra");
+    await updateSettings(t, { communityEnabled: true, studentPostsRequireApproval: true, studentDirectMessages: true }, meta());
+    expect(await code(withTenant(ctxOf(a), (tx) => tx.update(posts).set({ body: "furando a fila" }).where(eq(posts.id, postId))))).toBe("42501");
+    expect((await editPost(a, { postId, body: "Agora mudou" }, meta())).status).toBe("pending_review");
+    const b = await studentOf(t);
+    expect((await listFeed(b, { scope: "all", cursor: null })).posts.map((p) => p.id)).not.toContain(postId);
+  });
+
+  it("profiles: own bio, goal and a cleared photo; nobody edits another member's", async () => {
+    const t = await trainer();
+    const a = await studentOf(t, "Ana");
+    const b = await studentOf(t, "Beto");
+    const { assetId, moderation } = await uploadCommunityImage(a);
+    expect(moderation).toBe("clear");
+    await updateMyProfile(a, { bio: "Corro aos domingos", goal: "conditioning", avatarAssetId: assetId }, meta());
+
+    const seen = await getProfile(b, a.membership!.memberId);
+    expect(seen).toMatchObject({ bio: "Corro aos domingos", goal: "conditioning", isMe: false });
+    // The photo is visible to the community although it is in no post.
+    expect(seen.avatarUrl).toMatch(/^http/);
+    expect((await playbackUrls(b, [assetId])).size).toBe(1);
+    const outsider = await studentOf(await trainer());
+    expect((await playbackUrls(outsider, [assetId])).size).toBe(0);
+
+    // Keeping the photo when it is not sent; removing it with null.
+    await updateMyProfile(a, { bio: "Nova bio", goal: null }, meta());
+    expect((await getProfile(a, a.membership!.memberId)).avatarUrl).toMatch(/^http/);
+    await updateMyProfile(a, { bio: null, goal: null, avatarAssetId: null }, meta());
+    expect((await getProfile(b, a.membership!.memberId)).avatarUrl).toBeNull();
+    expect((await playbackUrls(b, [assetId])).size).toBe(0);
+
+    // Another member's photo or profile row is out of reach.
+    expect(await code(updateMyProfile(b, { bio: null, goal: null, avatarAssetId: assetId }, meta()))).toBe("NOT_FOUND");
+    await updateMyProfile(a, { bio: "da Ana", goal: null }, meta());
+    await withTenant(ctxOf(b), (tx) => tx.update(memberProfiles).set({ bio: "pichado" }).where(eq(memberProfiles.memberId, a.membership!.memberId)));
+    expect((await getProfile(b, a.membership!.memberId)).bio).toBe("da Ana");
+    expect(await code(updateMyProfile(a, { bio: "veja www.spam.com", goal: null }, meta()))).toBe("VALIDATION");
+  });
+
+  it("discover suggests people not followed yet, matches goals and searches by name", async () => {
+    const t = await trainer();
+    const a = await studentOf(t, "Ana Lima");
+    const b = await studentOf(t, "Beto Souza");
+    const c = await studentOf(t, "Carla Dias");
+    await updateMyProfile(a, { bio: null, goal: "strength" }, meta());
+    await updateMyProfile(c, { bio: null, goal: "strength" }, meta());
+    await setFollow(a, b.membership!.memberId, true);
+
+    const d = await getDiscover(a);
+    const suggested = d.suggestions.map((p) => p.name);
+    expect(suggested).toContain("Carla Dias");
+    expect(suggested).not.toContain("Beto Souza");
+    expect(suggested).not.toContain("Ana Lima");
+    expect(d.sameGoal.map((p) => p.name)).toEqual(["Carla Dias"]);
+    expect(d.members).toBe(4);
+
+    await setBlock(c, a.membership!.memberId, true, meta());
+    expect((await getDiscover(a)).suggestions.map((p) => p.name)).not.toContain("Carla Dias");
+    expect((await searchPeople(a, "carla")).map((p) => p.name)).toEqual([]);
+    expect((await searchPeople(a, "bet")).map((p) => p.name)).toEqual(["Beto Souza"]);
+    expect(await searchPeople(a, "%%")).toEqual([]);
+
+    expect((await listConnections(a, b.membership!.memberId, "followers")).map((p) => p.name)).toEqual(["Ana Lima"]);
+    expect((await listConnections(b, a.membership!.memberId, "following")).map((p) => p.name)).toEqual(["Beto Souza"]);
+  });
+
+  it("the trained-today row shows who checked in, except members who hid themselves", async () => {
+    const t = await trainer();
+    const a = await studentOf(t, "Ana");
+    const b = await studentOf(t, "Beto");
+    await manualCheckin(a, "Corrida", meta());
+    await manualCheckin(b, "Bike", meta());
+    expect((await listTrainedToday(a)).map((p) => p.name)).toEqual(["Ana", "Beto"]);
+    await setRankingHidden(b, true);
+    expect((await listTrainedToday(a)).map((p) => p.name)).toEqual(["Ana"]);
+    // Beto still sees himself; the activity itself is never exposed.
+    expect((await listTrainedToday(b)).map((p) => p.name)).toEqual(["Beto", "Ana"]);
+    expect(JSON.stringify(await listTrainedToday(a))).not.toContain("Corrida");
+    expect((await getProfile(a, b.membership!.memberId)).constancy).toBeNull();
+    expect((await getProfile(b, a.membership!.memberId)).constancy).toMatchObject({ checkins: 1 });
+  });
+
+  it("a new comment comes back ready to show", async () => {
+    const t = await trainer();
+    const a = await studentOf(t, "Ana");
+    const { postId } = await post(t, "Bem-vindos");
+    const c = await addComment(a, { postId, parentCommentId: null, body: "Cheguei!" }, meta());
+    expect(c).toMatchObject({ body: "Cheguei!", parentCommentId: null, author: { name: "Ana", isMe: true } });
+    expect((await getPost(t, postId)).comments.map((x) => x.id)).toEqual([c.id]);
   });
 });

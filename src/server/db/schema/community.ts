@@ -51,6 +51,8 @@ export const posts = pgTable(
     commentCount: integer("comment_count").notNull().default(0),
     // Millisecond precision: cursor values round-trip exactly through JavaScript dates.
     createdAt: timestamp("created_at", { withTimezone: true, precision: 3 }).notNull().defaultNow(),
+    /** Set by the database when the author changes the text. */
+    editedAt: timestamp("edited_at", { withTimezone: true }),
     removedAt: timestamp("removed_at", { withTimezone: true }),
     removedByUserId: uuid("removed_by_user_id").references(() => users.id, { onDelete: "set null" }),
   },
@@ -71,6 +73,32 @@ export const postLikes = pgTable(
   },
   (t) => [primaryKey({ columns: [t.postId, t.memberId] }), index("post_likes_member_idx").on(t.memberId)],
 );
+
+/** Posts a member bookmarked. Private: only the member sees their own list. */
+export const postSaves = pgTable(
+  "post_saves",
+  {
+    postId: uuid("post_id").notNull(),
+    memberId: uuid("member_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.postId, t.memberId] }), index("post_saves_member_idx").on(t.memberId, t.createdAt)],
+);
+
+export const FITNESS_GOALS = ["hypertrophy", "fat_loss", "conditioning", "strength", "health", "performance"] as const;
+export type FitnessGoal = (typeof FITNESS_GOALS)[number];
+
+/** What a member chooses to show to their community: photo, short bio and training goal. */
+export const memberProfiles = pgTable("member_profiles", {
+  memberId: uuid("member_id").primaryKey(),
+  workspaceId: uuid("workspace_id").notNull(),
+  bio: text("bio"),
+  goal: text("goal").$type<FitnessGoal>(),
+  /** A screened community image owned by the member. */
+  avatarAssetId: uuid("avatar_asset_id"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const comments = pgTable(
   "comments",
