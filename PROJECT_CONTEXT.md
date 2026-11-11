@@ -84,6 +84,14 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
+**11/11/2026: marca SalesFit e comunidade redesenhada como rede social (commits ef64942, ba0a98f, no ar).**
+- Marca: o produto agora se chama **SalesFit** (arquivos em `public/brand/SalesFit-marca`, fonte Manrope, laranja #F2690F). Identificadores técnicos (`cadencia_*`) não mudaram de propósito.
+- App instalável (PWA) e, para o treinador no celular, barra de navegação embaixo.
+- Comunidade (`src/components/community`): feed com Para você / Seguindo / Em alta / Salvos, rolagem infinita, "Treinaram hoje", página Descobrir (busca, sugestões, mesmo objetivo, desafios) e perfis com foto, bio, objetivo, seguidores e seguindo.
+- Publicações: curtir (toque duplo na foto), comentar no próprio feed com respostas, compartilhar link, salvar, seguir pelo card, editar o texto e apagar as próprias, denunciar.
+- Banco (migrações 0032 e 0033): `post_saves`, `member_profiles`, `posts.edited_at`, funções `app_media_is_avatar` e `app_checked_in_on`.
+- Não feito, por exigir mais infraestrutura: vídeo em publicações (o armazenamento da comunidade só aceita imagens), hashtags e conquistas (fase 5B adiada).
+
 **Site no ar (08/11/2026): Railway, beta fechado, Asaas sandbox, sem domínio próprio.**
 - Projeto Railway **cadenciafit** (ambiente production) com os serviços:
   - `web`: o app, a partir do GitHub `main`, com o `Dockerfile`. O Railway ignorou o `railway.json`; as configurações (migrações antes de publicar, teste de saúde em `/api/health`) foram aplicadas direto no serviço pela API (`environmentStageChanges` + `environmentPatchCommitStaged`).
