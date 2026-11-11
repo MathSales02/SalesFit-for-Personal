@@ -207,3 +207,75 @@
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
+
+/* ------------------------------------------------------------------ */
+/* Community: micro-interactions, skeletons and sheets                 */
+/* ------------------------------------------------------------------ */
+@keyframes cm-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.32); }
+  100% { transform: scale(1); }
+}
+.cm-pop {
+  display: inline-flex;
+  animation: cm-pop 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes cm-burst {
+  0% { opacity: 0; transform: scale(0.4); }
+  25% { opacity: 1; transform: scale(1.12); }
+  60% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+.cm-burst {
+  animation: cm-burst 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes cm-rise {
+  from { transform: translateY(8px); }
+  to { transform: none; }
+}
+.cm-rise {
+  animation: cm-rise 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@keyframes cm-shimmer {
+  to { background-position: -200% 0; }
+}
+.cm-skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--color-surface-subtle) 25%, var(--color-line) 50%, var(--color-surface-subtle) 75%);
+  background-size: 200% 100%;
+  animation: cm-shimmer 1.4s linear infinite;
+}
+
+/* Bottom sheet on phones, centred dialog on larger screens. */
+dialog.cm-sheet {
+  width: 100%;
+  max-width: 100%;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 -12px 48px -12px rgba(0, 0, 0, 0.35);
+}
+dialog.cm-sheet[open] {
+  animation: cm-sheet-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+dialog.cm-sheet::backdrop {
+  background: rgba(14, 15, 17, 0.55);
+}
+@keyframes cm-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@media (min-width: 640px) {
+  dialog.cm-sheet {
+    max-width: 34rem;
+    margin: auto;
+    border-radius: 28px;
+  }
+  @keyframes cm-sheet-in {
+    from { transform: translateY(16px) scale(0.98); }
+    to { transform: none; }
+  }
+}

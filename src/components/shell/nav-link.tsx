@@ -96,12 +96,14 @@ export function HeaderIconLink({ item }: { item: NavItem }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      aria-label={withCount(item.label, item.badge)}
       className={`relative grid size-10 place-items-center rounded-full transition-colors ${
         active ? "bg-turf-tint text-turf" : "text-ink-soft hover:bg-turf-tint/50 hover:text-turf"
       }`}
     >
       <span className="size-[20px]">{item.icon}</span>
+      {/* The name comes from the content, so the visible count is always part of it. */}
+      <span className="sr-only">{item.label}</span>
+      <UnreadText n={item.badge} />
       {item.badge ? (
         <span className="absolute -top-0.5 -right-0.5">
           <Badge n={item.badge} />

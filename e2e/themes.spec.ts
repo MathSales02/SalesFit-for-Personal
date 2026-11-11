@@ -7,6 +7,7 @@ const TRAINER_PAGES = [
   "/treinador/treinos",
   "/treinador/exercicios",
   "/treinador/comunidade",
+  "/treinador/comunidade/descobrir",
   "/treinador/ranking",
   "/treinador/mensagens",
   "/treinador/notificacoes",
@@ -14,7 +15,7 @@ const TRAINER_PAGES = [
   "/conta",
   "/conta/duas-etapas",
 ];
-const STUDENT_PAGES = ["/aluno", "/aluno/comunidade", "/aluno/ranking", "/aluno/historico", "/aluno/progresso", "/aluno/mensagens", "/aluno/notificacoes", "/aluno/saude", "/conta"];
+const STUDENT_PAGES = ["/aluno", "/aluno/comunidade", "/aluno/comunidade/descobrir", "/aluno/ranking", "/aluno/historico", "/aluno/progresso", "/aluno/mensagens", "/aluno/notificacoes", "/aluno/saude", "/conta"];
 
 test("dark theme (following the device): every main screen keeps WCAG 2.2 AA contrast", async ({ page, browser }) => {
   await page.emulateMedia({ colorScheme: "dark" });

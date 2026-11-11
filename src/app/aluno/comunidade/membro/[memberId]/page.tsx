@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { CommunityProfilePage } from "@/components/community/pages";
+import { CommunityProfilePage, profileTabFromParam } from "@/components/community/pages";
 import { requirePageActor } from "@/server/http/next";
 
 export const metadata: Metadata = { title: "Perfil" };
 
-export default async function Page({ params }: { params: Promise<{ memberId: string }> }) {
+export default async function Page({ params, searchParams }: { params: Promise<{ memberId: string }>; searchParams: Promise<{ aba?: string }> }) {
   const actor = await requirePageActor("community.read");
-  const { memberId } = await params;
-  return <CommunityProfilePage actor={actor} basePath="/aluno/comunidade" memberId={memberId} />;
+  const [{ memberId }, { aba }] = await Promise.all([params, searchParams]);
+  return <CommunityProfilePage actor={actor} basePath="/aluno/comunidade" memberId={memberId} tab={profileTabFromParam(aba)} />;
 }

@@ -40,7 +40,7 @@ export default async function ModerationPage() {
             {queue.pending.map((p) => (
               <li key={p.id} className="flex flex-col gap-3">
                 {p.reviewReason && <p className="text-sm font-semibold text-ink-soft">{REVIEW_REASON[p.reviewReason] ?? p.reviewReason}</p>}
-                <PostCard post={p} basePath={base} canModerate linkToPost={false} />
+                <PostCard post={p} basePath={base} viewer={{ name: actor.displayName, avatarUrl: null, canModerate: true, canComment: false }} />
                 <ModeratePostButtons postId={p.id} />
               </li>
             ))}

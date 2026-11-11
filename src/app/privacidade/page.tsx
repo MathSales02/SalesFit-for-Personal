@@ -40,7 +40,8 @@ export default function PrivacyPage() {
           específico, que pode ser revogado a qualquer momento.
         </li>
         <li>
-          <strong>Comunidade e mensagens:</strong> publicações, comentários, curtidas e mensagens diretas.
+          <strong>Comunidade e mensagens:</strong> publicações, comentários, curtidas, publicações salvas, quem você segue, mensagens diretas e, se
+          você quiser preencher, seu perfil na comunidade (foto, bio e objetivo de treino).
         </li>
         <li>
           <strong>Cobrança (treinadores):</strong> plano contratado e situação dos pagamentos. O CPF ou CNPJ informado no pagamento é enviado
@@ -77,8 +78,9 @@ export default function PrivacyPage() {
           o seu consentimento.
         </li>
         <li>
-          <strong>Outros membros da sua consultoria:</strong> o que você publicar na comunidade e sua posição no ranking. Você pode sair do ranking
-          quando quiser.
+          <strong>Outros membros da sua consultoria:</strong> o que você publicar na comunidade, seu perfil (foto, bio e objetivo), quem você segue,
+          sua posição no ranking e o fato de você ter feito check-in no dia. Você pode sair do ranking quando quiser; com isso, seus check-ins e
+          pontos também deixam de aparecer para os outros alunos. As publicações que você salva são visíveis só para você.
         </li>
         <li>
           <strong>Prestadores de serviço</strong>, só para fazer o SalesFit funcionar:
