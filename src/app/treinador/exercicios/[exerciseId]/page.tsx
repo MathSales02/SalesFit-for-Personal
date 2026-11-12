@@ -1,3 +1,5 @@
+import { FeatureNote } from "@/components/shell/feature-locked";
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -148,7 +150,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
                 Seu vídeo de execução
               </h2>
               <p className="mb-4 text-sm text-ink-soft">Um vídeo enviado por você tem prioridade sobre o link do YouTube.</p>
-              <VideoUploader exerciseId={e.id} hasVideo={!!e.videoAssetId} />
+              {actorHasFeature(actor, "own_videos") ? <VideoUploader exerciseId={e.id} hasVideo={!!e.videoAssetId} /> : <FeatureNote feature="own_videos" role="trainer" />}
               {e.videoAssetId && (
                 <div className="mt-4">
                   <RemoveVideoButton exerciseId={e.id} />

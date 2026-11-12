@@ -12,12 +12,24 @@ import { errorFields, log } from "../lib/logger";
 import { audit, recordSecurityEvent } from "../security/audit";
 import { enforceRateLimit } from "../security/rate-limit";
 import { billingAccess } from "./access";
-import { asaasEnabled, createCustomer, createSubscription, deleteSubscription, listSubscriptionPayments, type AsaasPayment } from "./asaas";
+import { FIRST_CHARGE_DELAY_DAYS, MAX_INSTALLMENTS, TRIAL_DAYS, type BillingCycle } from "@/lib/plan-features";
+import {
+  asaasEnabled,
+  createCustomer,
+  createInstallment,
+  createSubscription,
+  deleteInstallment,
+  deleteSubscription,
+  listInstallmentPayments,
+  listSubscriptionPayments,
+  type AsaasPayment,
+} from "./asaas";
 
 /**
  * Online subscription through Asaas.
- *  - Checkout creates (or replaces) a monthly Asaas subscription; access only
- *    changes when a verified webhook confirms the payment.
+ *  - Checkout creates (or replaces) an Asaas subscription, monthly or yearly, or a
+ *    year split in card installments; access only changes when a verified webhook
+ *    confirms the payment.
  *  - Webhooks are stored first (unique event id), then processed. Redeliveries
  *    are no-ops; failures are kept for an admin to reprocess.
  */
@@ -66,6 +78,16 @@ export function periodEndAfter(isoDate: string): Date {
   const day = Math.min(d, last);
   return new Date(`${ny}-${String(nm).padStart(2, "0")}-${String(day).padStart(2, "0")}T23:59:59-03:00`);
 }
+
+/** End of the day (Brazil) one year after `isoDate` (Feb 29 becomes Feb 28). */
+export function yearEndAfter(isoDate: string): Date {
+  const [y, m, d] = isoDate.split("-").map(Number) as [number, number, number];
+  const last = new Date(Date.UTC(y + 1, m, 0)).getUTCDate();
+  return new Date(`${y + 1}-${String(m).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}T23:59:59-03:00`);
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const endOfBrazilDay = (isoDate: string) => new Date(`${isoDate}T23:59:59-03:00`);
 
 /** Only Asaas-hosted payment pages are ever linked. */
 export function safeInvoiceUrl(url: string | null | undefined): string | null {
@@ -129,10 +151,17 @@ export async function needsTaxId(actor: Actor) {
 }
 
 /**
- * Starts (or changes) the monthly subscription. Returns the payment page of
- * the first charge when Asaas has already generated it.
+ * Starts (or changes) the subscription. Returns the payment page of the first charge when
+ * Asaas has already generated it.
+ *  - monthly: renews every month.
+ *  - yearly, 1 installment: the year is charged at once (Pix, boleto or card) and renews yearly.
+ *  - yearly, 2+ installments: the year split on a credit card; it does not renew by itself.
+ * Buying during the free trial puts the first charge a few days ahead and keeps the trial
+ * open until then.
  */
-export async function startCheckout(actor: Actor, input: { planId: string; cpfCnpj?: string | null }, meta: RequestMeta): Promise<{ invoiceUrl: string | null }> {
+export type CheckoutInput = { planId: string; cycle?: BillingCycle; installments?: number; cpfCnpj?: string | null };
+
+export async function startCheckout(actor: Actor, input: CheckoutInput, meta: RequestMeta): Promise<{ invoiceUrl: string | null }> {
   assertCan(actor, "subscription.manage");
   assertEmailVerified(actor);
   const m = requireMembership(actor);
@@ -140,18 +169,21 @@ export async function startCheckout(actor: Actor, input: { planId: string; cpfCn
   await enforceRateLimit("checkout_user", actor.userId);
 
   // If anything fails after Asaas created the subscription (including the commit), undo it there too.
-  let createdAtProvider: string | null = null;
+  let created: Created | null = null;
   try {
-    return await checkoutTx(actor, m.workspaceId, input, meta, (id) => (createdAtProvider = id));
+    return await checkoutTx(actor, m.workspaceId, input, meta, (c) => (created = c));
   } catch (err) {
-    if (createdAtProvider) {
-      await deleteSubscription(createdAtProvider).catch((e) => log.error("orphan Asaas subscription", { subscription: createdAtProvider, ...errorFields(e) }));
+    const orphan = created as Created | null;
+    if (orphan) {
+      await (orphan.kind === "subscription" ? deleteSubscription(orphan.id) : deleteInstallment(orphan.id)).catch((e) => log.error("orphan Asaas purchase", { ...orphan, ...errorFields(e) }));
     }
     throw err;
   }
 }
 
-function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; cpfCnpj?: string | null }, meta: RequestMeta, onCreated: (id: string) => void) {
+type Created = { kind: "subscription" | "installment"; id: string };
+
+function checkoutTx(actor: Actor, workspaceId: string, input: CheckoutInput, meta: RequestMeta, onCreated: (c: Created) => void) {
   const m = { workspaceId };
   return withSystem({ userId: actor.userId, workspaceId }, async (tx) => {
     // Serializes concurrent checkouts of the same workspace (double clicks, two tabs).
@@ -159,6 +191,13 @@ function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; 
     if (!sub) throw Errors.notFound();
     const [plan] = await tx.select().from(plans).where(and(eq(plans.id, input.planId), eq(plans.isActive, true)));
     if (!plan || plan.code === "trial") throw Errors.validation({ planId: ["Escolha um plano disponível."] });
+    const cycle: BillingCycle = input.cycle ?? "monthly";
+    const installments = input.installments ?? 1;
+    if (cycle === "yearly" && !plan.annualPriceCents) throw Errors.validation({ cycle: ["Este plano não tem opção anual."] });
+    if (!Number.isInteger(installments) || installments < 1 || installments > MAX_INSTALLMENTS || (installments > 1 && cycle !== "yearly")) {
+      throw Errors.validation({ installments: ["O parcelamento vale só para o plano anual, em até 12 vezes."] });
+    }
+    const priceCents = cycle === "yearly" ? plan.annualPriceCents! : plan.priceCents;
 
     const [used] = await tx
       .select({ n: count() })
@@ -171,7 +210,7 @@ function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; 
 
     const access = billingAccess(sub);
     const paidAndRenewing = sub.status === "active" && access.state === "active";
-    if (paidAndRenewing && sub.planId === plan.id && sub.provider === PROVIDER && sub.providerSubscriptionId && !sub.pendingPlanId) {
+    if (paidAndRenewing && sub.planId === plan.id && sub.billingCycle === cycle && sub.provider === PROVIDER && sub.providerSubscriptionId && !sub.pendingPlanId) {
       throw new AppError("CONFLICT", "Este já é o seu plano.");
     }
 
@@ -188,25 +227,46 @@ function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; 
     // Replace any previous Asaas subscription first, so two never charge at once.
     const previous = sub.provider === PROVIDER ? sub.providerSubscriptionId : null;
     if (previous) await deleteSubscription(previous);
+    // An installment purchase that was never paid is dropped too; a paid one is simply history.
+    if (sub.provider === PROVIDER && sub.providerInstallmentId && sub.pendingPlanId) {
+      await deleteInstallment(sub.providerInstallmentId).catch((err) => log.warn("could not drop unpaid installment", errorFields(err)));
+    }
 
     // A paid period runs to its end; the new plan's first charge falls on that date.
     const end = access.state === "active" && sub.currentPeriodEnd && sub.currentPeriodEnd > new Date() && sub.status !== "trialing" ? sub.currentPeriodEnd : null;
-    const nextDueDate = end ? brazilToday(end) : brazilToday();
-    const created = await createSubscription({
-      customer,
-      value: plan.priceCents / 100,
-      nextDueDate,
-      description: `SalesFit: plano ${plan.name}`,
-      externalReference: m.workspaceId,
-    });
-    onCreated(created.id);
+    // Bought during the free trial: the first charge comes a few days later, and the trial
+    // stays open until then (never past the trial's original length plus that delay).
+    const inTrial = access.state === "trial";
+    const nextDueDate = end ? brazilToday(end) : inTrial ? brazilToday(new Date(Date.now() + FIRST_CHARGE_DELAY_DAYS * DAY_MS)) : brazilToday();
+    let trialEndsAt = sub.trialEndsAt;
+    if (inTrial && sub.trialEndsAt) {
+      const cap = new Date(sub.createdAt.getTime() + (TRIAL_DAYS + FIRST_CHARGE_DELAY_DAYS) * DAY_MS);
+      const until = new Date(Math.min(endOfBrazilDay(nextDueDate).getTime(), cap.getTime()));
+      if (until > sub.trialEndsAt) trialEndsAt = until;
+    }
+
+    const description = `SalesFit: plano ${plan.name.replace(/^SalesFit\s+/, "")}${cycle === "yearly" ? " (anual)" : ""}`;
+    let made: Created;
+    let first: AsaasPayment | null = null;
+    if (installments > 1) {
+      first = await createInstallment({ customer, installmentCount: installments, totalValue: priceCents / 100, dueDate: nextDueDate, description, externalReference: m.workspaceId });
+      if (typeof first.installment !== "string") throw new AppError("UNAVAILABLE", "O serviço de pagamento não respondeu como esperado. Tente novamente em alguns minutos.");
+      made = { kind: "installment", id: first.installment };
+    } else {
+      const s = await createSubscription({ customer, value: priceCents / 100, nextDueDate, description, externalReference: m.workspaceId, cycle: cycle === "yearly" ? "YEARLY" : "MONTHLY" });
+      made = { kind: "subscription", id: s.id };
+    }
+    onCreated(made);
 
     await tx
       .update(subscriptions)
       .set({
         provider: PROVIDER,
-        providerSubscriptionId: created.id,
+        providerSubscriptionId: made.kind === "subscription" ? made.id : null,
+        providerInstallmentId: made.kind === "installment" ? made.id : null,
         pendingPlanId: plan.id,
+        pendingCycle: cycle,
+        trialEndsAt,
         status: sub.status === "canceled" && end ? "active" : sub.status,
         updatedAt: new Date(),
       })
@@ -217,18 +277,18 @@ function checkoutTx(actor: Actor, workspaceId: string, input: { planId: string; 
       workspaceId: m.workspaceId,
       targetType: "subscription",
       targetId: sub.id,
-      metadata: { plan: plan.code, nextDueDate, replaced: !!previous },
+      metadata: { plan: plan.code, cycle, installments, nextDueDate, replaced: !!previous },
       ipHash: meta.ipHash,
     });
 
     // The first charge also arrives by webhook; if it is not listed yet the page shows it later.
-    const payments = await listSubscriptionPayments(created.id).catch((err) => {
+    const payments = await (made.kind === "subscription" ? listSubscriptionPayments(made.id) : listInstallmentPayments(made.id)).catch((err) => {
       log.warn("could not list first charge", errorFields(err));
-      return [];
+      return first ? [first] : [];
     });
     for (const p of payments) await upsertInvoice(tx, m.workspaceId, p, null);
-    const open = payments.find((p) => !PAID.has(p.status));
-    return { invoiceUrl: safeInvoiceUrl(open?.invoiceUrl) };
+    const open = [...payments].sort((a, b) => a.dueDate.localeCompare(b.dueDate)).find((p) => !PAID.has(p.status));
+    return { invoiceUrl: safeInvoiceUrl(open?.invoiceUrl ?? first?.invoiceUrl) };
   });
 }
 
@@ -239,12 +299,21 @@ export async function cancelSubscription(actor: Actor, meta: RequestMeta) {
   await enforceRateLimit("checkout_user", actor.userId);
   await withSystem({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const [sub] = await tx.select().from(subscriptions).where(eq(subscriptions.workspaceId, m.workspaceId)).for("update");
-    if (!sub || sub.provider !== PROVIDER || !sub.providerSubscriptionId) throw new AppError("CONFLICT", "Não há assinatura online para cancelar.");
-    await deleteSubscription(sub.providerSubscriptionId);
+    const unpaidInstallment = sub?.provider === PROVIDER && !!sub.providerInstallmentId && !!sub.pendingPlanId;
+    if (!sub || sub.provider !== PROVIDER || (!sub.providerSubscriptionId && !unpaidInstallment)) throw new AppError("CONFLICT", "Não há assinatura online para cancelar.");
+    if (sub.providerSubscriptionId) await deleteSubscription(sub.providerSubscriptionId);
+    if (unpaidInstallment) await deleteInstallment(sub.providerInstallmentId!);
     const paid = sub.status === "active" || sub.status === "past_due";
     await tx
       .update(subscriptions)
-      .set({ status: paid ? "canceled" : sub.status, providerSubscriptionId: null, pendingPlanId: null, updatedAt: new Date() })
+      .set({
+        status: paid ? "canceled" : sub.status,
+        providerSubscriptionId: null,
+        ...(unpaidInstallment ? { providerInstallmentId: null } : {}),
+        pendingPlanId: null,
+        pendingCycle: null,
+        updatedAt: new Date(),
+      })
       .where(eq(subscriptions.id, sub.id));
     await audit(tx, { action: "billing.subscription_canceled", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "subscription", targetId: sub.id, ipHash: meta.ipHash });
   });
@@ -316,12 +385,13 @@ export async function processBillingEvent(eventRowId: string) {
 async function applyEvent(tx: Tx, type: string, payload: Record<string, unknown>): Promise<{ applied: boolean; workspaceId: string | null }> {
   if (type.startsWith("PAYMENT_")) {
     const p = payload.payment as AsaasPayment | undefined;
-    if (!p || typeof p.id !== "string" || typeof p.subscription !== "string") return { applied: false, workspaceId: null };
-    // The workspace is found through the subscription id we stored, never through data in the event alone.
+    const viaInstallment = !!p && typeof p.subscription !== "string" && typeof p.installment === "string";
+    if (!p || typeof p.id !== "string" || (typeof p.subscription !== "string" && !viaInstallment)) return { applied: false, workspaceId: null };
+    // The workspace is found through the subscription or installment id we stored, never through data in the event alone.
     const [sub] = await tx
       .select()
       .from(subscriptions)
-      .where(and(eq(subscriptions.provider, PROVIDER), eq(subscriptions.providerSubscriptionId, p.subscription)))
+      .where(and(eq(subscriptions.provider, PROVIDER), viaInstallment ? eq(subscriptions.providerInstallmentId, p.installment as string) : eq(subscriptions.providerSubscriptionId, p.subscription as string)))
       .for("update");
     if (!sub) {
       // Charges of a replaced subscription still update their invoice row, nothing else.
@@ -336,11 +406,15 @@ async function applyEvent(tx: Tx, type: string, payload: Record<string, unknown>
 
     if (paid) {
       if (typeof p.dueDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(p.dueDate)) throw new Error("payment without a valid dueDate");
-      const end = periodEndAfter(p.dueDate);
+      // A year in installments is one purchase: its first paid charge opens the year, the
+      // other charges only update their own rows.
+      if (viaInstallment && !sub.pendingPlanId) return { applied: true, workspaceId: ws };
+      const cycle = sub.pendingCycle ?? sub.billingCycle;
+      const end = cycle === "yearly" ? yearEndAfter(p.dueDate) : periodEndAfter(p.dueDate);
       const newEnd = sub.currentPeriodEnd && sub.currentPeriodEnd > end ? sub.currentPeriodEnd : end;
       await tx
         .update(subscriptions)
-        .set({ status: "active", planId: sub.pendingPlanId ?? sub.planId, pendingPlanId: null, currentPeriodEnd: newEnd, updatedAt: now })
+        .set({ status: "active", planId: sub.pendingPlanId ?? sub.planId, pendingPlanId: null, billingCycle: cycle, pendingCycle: null, currentPeriodEnd: newEnd, updatedAt: now })
         .where(eq(subscriptions.id, sub.id));
       await audit(tx, { action: "billing.payment_confirmed", workspaceId: ws, targetType: "subscription", targetId: sub.id, metadata: { event: type, payment: p.id, periodEnd: newEnd.toISOString() } });
       return { applied: true, workspaceId: ws };
@@ -371,7 +445,7 @@ async function applyEvent(tx: Tx, type: string, payload: Record<string, unknown>
     const paid = sub.status === "active" || sub.status === "past_due";
     await tx
       .update(subscriptions)
-      .set({ status: paid ? "canceled" : sub.status, providerSubscriptionId: null, pendingPlanId: null, updatedAt: new Date() })
+      .set({ status: paid ? "canceled" : sub.status, providerSubscriptionId: null, pendingPlanId: null, pendingCycle: null, updatedAt: new Date() })
       .where(eq(subscriptions.id, sub.id));
     await audit(tx, { action: "billing.subscription_ended_by_provider", workspaceId: sub.workspaceId, targetType: "subscription", targetId: sub.id, metadata: { event: type } });
     return { applied: true, workspaceId: sub.workspaceId };

@@ -1,3 +1,4 @@
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import { VisibilityForm } from "@/components/gamification/forms";
 import { CompetitionList, PeriodTabs, periodFrom } from "@/components/gamification/ranking-parts";
@@ -9,9 +10,10 @@ import { requirePageActor } from "@/server/http/next";
 export const metadata: Metadata = { title: "Ranking" };
 
 export default async function StudentRankingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const actor = await requirePageActor("community.read");
+  const actor = await requirePageActor("community.read", { feature: "ranking" });
   const p = periodFrom((await searchParams).periodo);
-  const [ranking, me, competitions] = await Promise.all([getRanking(actor, p.period), getMyGamification(actor), listCompetitions(actor)]);
+  const hasCompetitions = actorHasFeature(actor, "competitions");
+  const [ranking, me, competitions] = await Promise.all([getRanking(actor, p.period), getMyGamification(actor), hasCompetitions ? listCompetitions(actor) : []]);
 
   return (
     <>
@@ -27,13 +29,15 @@ export default async function StudentRankingPage({ searchParams }: { searchParam
           </div>
         </section>
       ) : (
-        <p className="rounded-[var(--radius-panel)] border border-line bg-paper p-4 text-sm text-muted">Seu treinador desativou o ranking. As competições continuam abaixo quando houver.</p>
+        <p className="rounded-[var(--radius-panel)] border border-line bg-paper p-4 text-sm text-muted">Seu treinador desativou o ranking.</p>
       )}
 
-      <section aria-label="Competições" className="mt-10">
-        <h2 className="mb-3 font-display text-2xl font-bold">Competições</h2>
-        <CompetitionList items={competitions} basePath="/aluno/ranking" showJoined />
-      </section>
+      {hasCompetitions && (
+        <section aria-label="Competições" className="mt-10">
+          <h2 className="mb-3 font-display text-2xl font-bold">Competições</h2>
+          <CompetitionList items={competitions} basePath="/aluno/ranking" showJoined />
+        </section>
+      )}
     </>
   );
 }

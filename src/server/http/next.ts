@@ -1,3 +1,5 @@
+import type { Feature } from "@/lib/plan-features";
+import { actorHasFeature } from "../authz/policy";
 import "server-only";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
@@ -25,7 +27,10 @@ export const currentActor = cache(async (): Promise<Actor | null> => {
  * Pages and actions refuse to run while the workspace's subscription is blocked,
  * except the few that must keep working (account, billing, the blocked notice).
  */
-type Gate = { allowInactive?: boolean };
+type Gate = { allowInactive?: boolean; /** The plan feature this page belongs to. Without it the visitor lands on the page that explains the plan. */ feature?: Feature };
+
+/** Where someone is sent when the consultancy's plan does not include a feature. */
+export const lockedPathFor = (actor: Actor, feature: Feature) => `${actor.membership?.role === "trainer" ? "/treinador" : "/aluno"}/recurso?f=${feature}`;
 
 /** Platform administration is only available with two-step verification on. */
 const needsMfa = (actor: Actor, permission?: Permission) => !!permission?.startsWith("admin.") && !actor.mfaEnabled;
@@ -50,6 +55,7 @@ export async function requirePageActor(permission?: Permission, gate: Gate = {})
   }
   if (needsMfa(actor, permission)) redirect("/conta/duas-etapas?obrigatorio=1");
   if (!gate.allowInactive && isBlocked(actor)) redirect(blockedPathFor(actor));
+  if (gate.feature && !actorHasFeature(actor, gate.feature)) redirect(lockedPathFor(actor, gate.feature));
   return actor;
 }
 

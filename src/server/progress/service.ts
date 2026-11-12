@@ -4,7 +4,7 @@ import { todayInBrazil, type MeasurementKey } from "@/lib/validation/progress";
 import { withTenant } from "../db/context";
 import type { Tx } from "../db/client";
 import { bodyMeasurements, consents, mediaAssets, progressPhotos, workspaceMembers } from "../db/schema";
-import { assertCan, requireMembership, type Actor } from "../authz/policy";
+import { assertCan, assertFeature, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import { errorFields, log } from "../lib/logger";
 import type { RequestMeta } from "../http/request-meta";
@@ -95,6 +95,7 @@ export async function deleteOwnMeasurement(actor: Actor, measurementId: string, 
 /** Registers a verified private upload as a progress photo (private by default). */
 export async function addOwnPhoto(actor: Actor, input: { assetId: string; takenOn: string; pose: "front" | "side" | "back" | "other" }, meta: RequestMeta) {
   const { m, ctx } = studentScope(actor);
+  assertFeature(actor, "evolution");
   assertDate(input.takenOn);
   await withTenant(ctx, async (tx) => {
     const [asset] = await tx
@@ -151,6 +152,7 @@ export async function deleteOwnPhoto(actor: Actor, photoId: string, meta: Reques
  */
 export async function getStudentProgress(actor: Actor, memberId: string, meta: RequestMeta) {
   assertCan(actor, "students.read");
+  assertFeature(actor, "evolution");
   const m = requireMembership(actor);
   const data = await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const [member] = await tx
@@ -181,6 +183,7 @@ export async function getStudentProgress(actor: Actor, memberId: string, meta: R
 /** Physical assessment recorded by the trainer; needs the student's active health consent. */
 export async function addMeasurementAsTrainer(actor: Actor, memberId: string, input: MeasurementInput, meta: RequestMeta) {
   assertCan(actor, "students.manage");
+  assertFeature(actor, "evolution");
   const m = requireMembership(actor);
   assertDate(input.measuredOn);
   await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {

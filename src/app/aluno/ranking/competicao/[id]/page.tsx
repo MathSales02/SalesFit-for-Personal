@@ -7,7 +7,7 @@ import { requirePageActor } from "@/server/http/next";
 export const metadata: Metadata = { title: "Competição" };
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const actor = await requirePageActor("community.read");
+  const actor = await requirePageActor("community.read", { feature: "competitions" });
   const id = z.uuid().safeParse((await params).id);
   if (!id.success) notFound();
   return <CompetitionDetail actor={actor} competitionId={id.data} backHref="/aluno/ranking" />;

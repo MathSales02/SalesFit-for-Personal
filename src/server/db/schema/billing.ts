@@ -13,12 +13,16 @@ export const plans = pgTable(
     /** Feature flags enabled by this plan, e.g. { "challenges": true }. */
     features: jsonb("features").$type<Record<string, boolean>>().notNull().default({}),
     priceCents: integer("price_cents").notNull(),
+    /** Price of twelve months paid at once. Null: the plan is not sold yearly. */
+    annualPriceCents: integer("annual_price_cents"),
     currency: text("currency").notNull().default("BRL"),
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
   },
   (t) => [uniqueIndex("plans_code_uq").on(t.code)],
 );
+
+export const billingCycle = pgEnum("billing_cycle", ["monthly", "yearly"]);
 
 export const subscriptionStatus = pgEnum("subscription_status", ["trialing", "active", "past_due", "canceled", "expired"]);
 
@@ -40,6 +44,14 @@ export const subscriptions = pgTable(
     providerSubscriptionId: text("provider_subscription_id"),
     /** Plan being bought: becomes planId when the provider confirms the first payment. */
     pendingPlanId: uuid("pending_plan_id").references(() => plans.id, { onDelete: "set null" }),
+    /** How the current period was bought, and how the plan being bought will be. */
+    billingCycle: billingCycle("billing_cycle").notNull().default("monthly"),
+    pendingCycle: billingCycle("pending_cycle"),
+    /**
+     * A year bought in card installments is one purchase split in charges, not a renewing
+     * subscription: this is the provider's id for that purchase.
+     */
+    providerInstallmentId: text("provider_installment_id"),
     ...timestamps,
   },
   (t) => [uniqueIndex("subscriptions_workspace_uq").on(t.workspaceId)],

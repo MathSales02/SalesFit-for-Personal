@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
+import { BILLING_CYCLES, MAX_INSTALLMENTS } from "@/lib/plan-features";
 import { cancelSubscription, startCheckout } from "@/server/billing/provider";
 import { parseForm, runAction } from "@/server/http/action";
 import { requestMeta, requireActionActor } from "@/server/http/next";
@@ -16,6 +17,8 @@ export async function checkoutAction(_prev: ActionResult, form: FormData): Promi
     const input = parseForm(
       z.strictObject({
         planId: z.uuid({ error: "Escolha um plano." }),
+        cycle: z.enum(BILLING_CYCLES, { error: "Escolha mensal ou anual." }).default("monthly"),
+        installments: z.coerce.number().int().min(1).max(MAX_INSTALLMENTS).default(1),
         cpfCnpj: z.string().trim().max(20).optional(),
       }),
       form,

@@ -1,3 +1,4 @@
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill } from "@/components/dashboard/widgets";
@@ -33,7 +34,7 @@ export default async function TrainerOverviewPage() {
   const [o, activity, ranking, support, unreadMessages, unreadNotifications, students, programs] = await Promise.all([
     getTrainerOverview(actor),
     getTrainerActivity(actor),
-    getRanking(actor, "week"),
+    actorHasFeature(actor, "ranking") ? getRanking(actor, "week") : null,
     listSupportAccessForTrainer(actor),
     unreadConversationCount(actor),
     unreadNotificationCount(actor),
@@ -46,7 +47,7 @@ export default async function TrainerOverviewPage() {
   const thisWeek = activity.daily.slice(-7).reduce((n, d) => n + d.workouts, 0);
   const lastWeek = activity.daily.slice(0, 7).reduce((n, d) => n + d.workouts, 0);
   const peak = Math.max(1, ...activity.daily.map((d) => d.workouts));
-  const top = ranking.rows.filter((r) => r.points > 0).slice(0, 3);
+  const top = (ranking?.rows ?? []).filter((r) => r.points > 0).slice(0, 3);
 
   return (
     <div className="flex flex-col gap-5">

@@ -77,7 +77,7 @@ export default function TermsPage() {
           <strong>Teste grátis:</strong> {TRIAL_DAYS} dias, sem cartão, com todos os recursos e limite de alunos menor que o dos planos pagos.
         </li>
         <li>
-          <strong>Planos pagos:</strong> cobrança mensal e recorrente, por Pix, boleto ou cartão, processada pelo Asaas. Preços e limites de alunos e
+          <strong>Planos pagos:</strong> cobrança mensal ou anual, por Pix, boleto ou cartão, processada pelo Asaas. O plano mensal e o anual pago à vista renovam sozinhos; o anual parcelado no cartão vale por 12 meses e não renova. Cada plano inclui um conjunto de recursos. Preços, recursos e limites de alunos e
           de espaço estão na <Link href="/#precos">página de preços</Link> e são confirmados antes da contratação.
         </li>
         <li>

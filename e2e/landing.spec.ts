@@ -51,7 +51,7 @@ test.describe("landing page", () => {
     };
     all(await hrefs(/^Começar \d+ dias grátis$/), 1);
     all(await hrefs("Começar grátis"), 1);
-    all(await hrefs(/^Começar com /), 4);
+    all(await hrefs(/^Começar com /), 3);
     expect(await hrefs("Criar minha conta grátis")).toEqual(["/cadastro"]);
     expect(await hrefs("Termos de uso")).toEqual(["/termos"]);
     expect(await hrefs("Política de privacidade")).toEqual(["/privacidade"]);
@@ -65,8 +65,8 @@ test.describe("landing page", () => {
     const pricing = page.locator("#precos");
     await pricing.scrollIntoViewIfNeeded();
     await page.waitForTimeout(1500);
-    for (const price of ["R$ 69,90", "R$ 99,90", "R$ 139,90", "R$ 189,90"]) await expect(pricing.getByText(price).first()).toBeVisible();
-    await expect(pricing.getByText("Até 40 alunos").first()).toBeVisible();
+    for (const price of ["R$ 29,90", "R$ 49,90", "R$ 79,90"]) await expect(pricing.getByText(price).first()).toBeVisible();
+    await expect(pricing.getByText("Até 30 alunos").first()).toBeVisible();
     // Secondary hero action scrolls to the demo.
     await page.getByRole("link", { name: "Ver o sistema funcionando" }).click();
     await expect(page).toHaveURL(/#demonstracao$/);
@@ -179,7 +179,7 @@ test.describe("landing page", () => {
     await expect(page.getByRole("link", { name: /Começar \d+ dias grátis/ })).toBeVisible();
     // Hero extras fade in through the CSS fallback.
     await expect(page.locator("header.lp-glass")).toHaveCSS("opacity", "1", { timeout: 4000 });
-    await expect(page.locator("#precos").getByText("R$ 99,90").first()).toBeVisible();
+    await expect(page.locator("#precos").getByText("R$ 49,90").first()).toBeVisible();
     await expect(page.locator("#beneficios").getByText("Quem some, aparece no seu painel.")).toBeVisible();
     await ctx.close();
   });

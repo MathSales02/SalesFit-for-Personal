@@ -13,11 +13,11 @@ export function faqItems({ trialDays, trialStudents }: { trialDays: number; tria
   return [
     {
       q: "Como funciona o teste grátis?",
-      a: `Você cria a conta de treinador e usa todos os recursos por ${trialDays} dias${trialStudents ? `, com até ${trialStudents} alunos` : ""}, sem cadastrar cartão. Quando quiser, escolhe um plano em Assinatura. Se o teste acabar sem plano, o acesso fica pausado e nenhum dado é apagado.`,
+      a: `Você cria a conta de treinador e usa todos os recursos por ${trialDays} dias${trialStudents ? `, com até ${trialStudents} alunos` : ""}, sem cadastrar cartão. Quando quiser, escolhe um plano em Assinatura; escolhendo durante o teste, a primeira cobrança vence só 3 dias depois. Se o teste acabar sem plano, o acesso fica pausado e nenhum dado é apagado.`,
     },
     {
       q: "Quais são as formas de pagamento?",
-      a: "Pix, boleto ou cartão. A cobrança é mensal e processada pelo Asaas; a página de pagamento abre logo depois que você escolhe o plano.",
+      a: "Pix, boleto ou cartão, processado pelo Asaas. Você escolhe entre o plano mensal e o anual, que sai 15% mais barato e pode ser parcelado em até 12 vezes no cartão. A página de pagamento abre logo depois que você escolhe o plano.",
     },
     {
       q: "Posso cancelar quando quiser?",
@@ -25,7 +25,7 @@ export function faqItems({ trialDays, trialStudents }: { trialDays: number; tria
     },
     {
       q: "Posso trocar de plano?",
-      a: "Sim. A troca vale a partir da próxima renovação. Para ir a um plano menor, seus alunos ativos e convites pendentes precisam caber no limite dele.",
+      a: "Sim. A troca vale a partir da próxima renovação. Para ir a um plano menor, seus alunos ativos e convites pendentes precisam caber no limite dele. Recursos que o plano menor não inclui ficam bloqueados, mas nada é apagado: voltam quando você subir de plano.",
     },
     {
       q: "E se um pagamento atrasar?",

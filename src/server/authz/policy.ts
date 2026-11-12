@@ -1,3 +1,4 @@
+import { FEATURE_INFO, hasFeature, type Feature, type PlanFeatures } from "@/lib/plan-features";
 import type { BillingAccess } from "../billing/access";
 import { AppError, Errors } from "../lib/errors";
 
@@ -19,6 +20,8 @@ export type Membership = {
   role: WorkspaceRole;
   /** Subscription-derived access, filled in by resolveActor. */
   access?: BillingAccess;
+  /** What the workspace's plan includes (see lib/plan-features), filled in by resolveActor. */
+  features?: PlanFeatures;
 };
 
 export type Actor = {
@@ -98,6 +101,23 @@ export function can(actor: Actor | null, permission: Permission): boolean {
 export function assertCan(actor: Actor | null, permission: Permission): asserts actor is Actor {
   if (!actor) throw Errors.unauthenticated();
   if (!can(actor, permission)) throw Errors.forbidden();
+}
+
+export const actorHasFeature = (actor: Actor | null, feature: Feature) => hasFeature(actor?.membership?.features, feature);
+
+/**
+ * For services: the workspace's plan must include the feature. Runs on the server for every
+ * call, so hiding a button is never what keeps a feature locked.
+ */
+export function assertFeature(actor: Actor, feature: Feature) {
+  if (actorHasFeature(actor, feature)) return;
+  const info = FEATURE_INFO[feature];
+  throw new AppError(
+    "PLAN_LIMIT",
+    actor.membership?.role === "trainer"
+      ? `${info.label} faz parte do plano SalesFit ${info.plan}. Mude de plano em Assinatura para usar.`
+      : `${info.label} não faz parte do plano da sua consultoria.`,
+  );
 }
 
 /** Narrowing helper for code that needs the workspace after a permission check. */

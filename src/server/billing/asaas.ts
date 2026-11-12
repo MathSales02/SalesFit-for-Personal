@@ -12,6 +12,9 @@ import { log } from "../lib/logger";
 export type AsaasPayment = {
   id: string;
   subscription?: string | null;
+  /** Set on charges that belong to an installment purchase. */
+  installment?: string | null;
+  installmentNumber?: number | null;
   customer?: string;
   status: string;
   value: number;
@@ -78,8 +81,26 @@ export function createCustomer(input: { name: string; cpfCnpj: string; email: st
   return call<{ id: string }>("POST", "/customers", { ...input, notificationDisabled: false });
 }
 
-export function createSubscription(input: { customer: string; value: number; nextDueDate: string; description: string; externalReference: string }) {
-  return call<{ id: string; status: string; nextDueDate: string }>("POST", "/subscriptions", { ...input, billingType: "UNDEFINED", cycle: "MONTHLY" });
+export function createSubscription(input: { customer: string; value: number; nextDueDate: string; description: string; externalReference: string; cycle: "MONTHLY" | "YEARLY" }) {
+  return call<{ id: string; status: string; nextDueDate: string }>("POST", "/subscriptions", { ...input, billingType: "UNDEFINED" });
+}
+
+/**
+ * One purchase split in credit card installments. Asaas answers with the first charge, which
+ * carries the id of the whole installment plan; the payer enters the card on its invoice page.
+ */
+export function createInstallment(input: { customer: string; installmentCount: number; totalValue: number; dueDate: string; description: string; externalReference: string }) {
+  return call<AsaasPayment>("POST", "/payments", { ...input, billingType: "CREDIT_CARD" });
+}
+
+/** Only possible while its charges are still waiting for payment. */
+export function deleteInstallment(id: string) {
+  return call<{ deleted: boolean; id: string }>("DELETE", `/installments/${encodeURIComponent(id)}`);
+}
+
+export async function listInstallmentPayments(id: string) {
+  const r = await call<{ data?: AsaasPayment[] }>("GET", `/installments/${encodeURIComponent(id)}/payments?limit=24`);
+  return r.data ?? [];
 }
 
 export function deleteSubscription(id: string) {

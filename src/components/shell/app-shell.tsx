@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/logo";
-import type { Actor } from "@/server/authz/policy";
+import { actorHasFeature, type Actor } from "@/server/authz/policy";
 import { daysLeft } from "@/server/billing/access";
 import { unreadConversationCount } from "@/server/messaging/service";
 import { unreadNotificationCount } from "@/server/notifications/service";
@@ -128,7 +128,11 @@ export async function AppShell({
   const badges: Badges = actor.membership
     ? { messages: await unreadConversationCount(actor), notifications: await unreadNotificationCount(actor) }
     : { messages: 0, notifications: 0 };
-  const { main, header } = navFor(variant, badges);
+  const nav = navFor(variant, badges);
+  const header = nav.header;
+  // Students are not offered what the consultancy's plan leaves out (trainers keep the entry: it leads to the plans).
+  const hidden = variant === "student" ? [!actorHasFeature(actor, "community") && "/aluno/comunidade", !actorHasFeature(actor, "ranking") && "/aluno/ranking"] : [];
+  const main = nav.main.filter((i) => !hidden.includes(i.href));
 
   if (variant === "student") {
     return (

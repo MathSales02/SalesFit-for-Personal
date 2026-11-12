@@ -1,3 +1,4 @@
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill, Sparkline, WeekColumns } from "@/components/dashboard/widgets";
@@ -32,7 +33,7 @@ export default async function StudentHomePage() {
   const actor = await requirePageActor("training.read_own");
   const firstName = actor.displayName.split(" ")[0];
   const [program, open, g, weight] = await Promise.all([getMyProgram(actor), getOpenSession(actor), getMyGamification(actor), getOwnWeightTrend(actor)]);
-  const ranking = g.settings.rankingEnabled ? await getRanking(actor, "week") : null;
+  const ranking = g.settings.rankingEnabled && actorHasFeature(actor, "ranking") ? await getRanking(actor, "week") : null;
   const videos = program
     ? await playbackUrls(
         actor,

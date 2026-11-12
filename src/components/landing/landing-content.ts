@@ -9,6 +9,8 @@
  *    the same source the checkout charges.
  */
 
+import type { Feature } from "@/lib/plan-features";
+
 export const BRAND = "SalesFit";
 
 export const CONTACT = {
@@ -154,15 +156,36 @@ export const BENEFITS: { line: string; detail: string }[] = [
   },
 ];
 
-/** Features every plan includes (plans differ only in students and storage: see the plans table). */
-export const PLAN_FEATURES = [
-  "Montador de treinos e biblioteca com vídeos",
-  "Treino no celular do aluno",
-  "Evolução: medidas e fotos privadas",
-  "Check-in, ranking e competições",
-  "Comunidade e mensagens em tempo real",
+/** In every plan: what a consultancy needs to run and a student needs to train. */
+export const PLAN_BASE = [
+  "Gestão de alunos e fichas de treino",
+  "Montador de treinos e biblioteca com demonstrações animadas",
+  "Treino no celular do aluno, com histórico",
+  "Check-in de constância",
+  "Mensagens com seus alunos",
   "Login em duas etapas e ferramentas de LGPD",
 ];
 
+/** How the pricing section words each plan feature (the keys are the ones the app enforces). */
+export const PLAN_FEATURE_LABEL: Record<Feature, string> = {
+  community: "Comunidade: feed, perfis e descoberta",
+  ranking: "Ranking e pontos de constância",
+  evolution: "Evolução física: medidas e fotos dos alunos",
+  student_dm: "Mensagens entre alunos",
+  own_videos: "Seus próprios vídeos nos exercícios",
+  competitions: "Competições com prêmio",
+};
+
+export const PLAN_TAGLINE: Record<string, string> = {
+  sf_start: "Para personal trainers iniciantes.",
+  sf_pro: "Para profissionais em crescimento.",
+  sf_elite: "Para personais com uma carteira maior.",
+};
+
+/** Lines that are a service or a promise, not a switch in the app. Only what is true today. */
+export const PLAN_EXTRAS: Record<string, string[]> = {
+  sf_elite: ["Suporte prioritário", "Em breve: relatórios avançados e personalização da sua marca"],
+};
+
 /** The plan highlighted on the pricing section (by plan code). */
-export const RECOMMENDED_PLAN = "equipe";
+export const RECOMMENDED_PLAN = "sf_pro";

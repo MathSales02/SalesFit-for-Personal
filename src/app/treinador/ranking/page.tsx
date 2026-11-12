@@ -1,3 +1,5 @@
+import { FeatureNote } from "@/components/shell/feature-locked";
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import { AdjustPointsForm, CreateCompetitionForm, GamificationSettingsForm } from "@/components/gamification/forms";
 import { CompetitionList, PeriodTabs, periodFrom } from "@/components/gamification/ranking-parts";
@@ -12,13 +14,14 @@ export const metadata: Metadata = { title: "Ranking" };
 const panel = "rounded-[var(--radius-panel)] border border-line bg-paper p-5";
 
 export default async function TrainerRankingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const actor = await requirePageActor("gamification.configure");
+  const actor = await requirePageActor("gamification.configure", { feature: "ranking" });
   const p = periodFrom((await searchParams).periodo);
+  const hasCompetitions = actorHasFeature(actor, "competitions");
   const [ranking, everyone, settings, competitions] = await Promise.all([
     getRanking(actor, p.period),
     p.period === "all" ? null : getRanking(actor, "all"),
     getGamificationSettings(actor),
-    listCompetitions(actor),
+    hasCompetitions ? listCompetitions(actor) : [],
   ]);
   const students = (everyone ?? ranking).rows.map((r) => ({ memberId: r.memberId, name: r.name })).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
@@ -36,13 +39,19 @@ export default async function TrainerRankingPage({ searchParams }: { searchParam
           <RankingTable rows={ranking.rows} showHidden empty="Nenhum aluno ativo ainda." />
 
           <h2 className="mt-10 mb-3 font-display text-2xl font-bold">Competições</h2>
-          <CompetitionList items={competitions} basePath="/treinador/ranking" showJoined={false} />
-          <details className={`${panel} mt-4`}>
-            <summary className="cursor-pointer font-semibold">Nova competição</summary>
-            <div className="mt-4">
-              <CreateCompetitionForm today={todayInBrazil()} />
-            </div>
-          </details>
+          {hasCompetitions ? (
+            <>
+              <CompetitionList items={competitions} basePath="/treinador/ranking" showJoined={false} />
+              <details className={`${panel} mt-4`}>
+                <summary className="cursor-pointer font-semibold">Nova competição</summary>
+                <div className="mt-4">
+                  <CreateCompetitionForm today={todayInBrazil()} />
+                </div>
+              </details>
+            </>
+          ) : (
+            <FeatureNote feature="competitions" role="trainer" />
+          )}
         </section>
 
         <aside className="flex min-w-0 flex-col gap-6">

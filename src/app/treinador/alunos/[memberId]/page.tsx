@@ -1,3 +1,5 @@
+import { FeatureNote } from "@/components/shell/feature-locked";
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -28,7 +30,7 @@ export default async function StudentPage({ params }: { params: Promise<{ member
   try {
     s = await getStudentForTrainer(actor, memberId, await requestMeta());
     training = await getStudentTraining(actor, memberId);
-    progress = await getStudentProgress(actor, memberId, await requestMeta());
+    progress = actorHasFeature(actor, "evolution") ? await getStudentProgress(actor, memberId, await requestMeta()) : null;
   } catch (err) {
     if (err instanceof AppError && err.code === "NOT_FOUND") notFound();
     throw err;
@@ -50,13 +52,19 @@ export default async function StudentPage({ params }: { params: Promise<{ member
 
       <TrainingSection data={training} weeklyTarget={s.profile.weeklyFrequency} />
 
-      <ProgressSection
-        memberId={s.memberId}
-        consent={progress.consent}
-        measurements={progress.measurements}
-        photos={progress.photos.map((ph) => ({ id: ph.id, url: ph.url, takenOn: ph.takenOn, pose: ph.pose, sharedWithTrainer: ph.sharedWithTrainer }))}
-        today={todayInBrazil()}
-      />
+      {progress ? (
+        <ProgressSection
+          memberId={s.memberId}
+          consent={progress.consent}
+          measurements={progress.measurements}
+          photos={progress.photos.map((ph) => ({ id: ph.id, url: ph.url, takenOn: ph.takenOn, pose: ph.pose, sharedWithTrainer: ph.sharedWithTrainer }))}
+          today={todayInBrazil()}
+        />
+      ) : (
+        <div className="my-10">
+          <FeatureNote feature="evolution" role="trainer" />
+        </div>
+      )}
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section aria-labelledby="profile-h">

@@ -18,7 +18,7 @@ const REVIEW_REASON: Record<string, string> = {
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 export default async function ModerationPage() {
-  const actor = await requirePageActor("community.moderate");
+  const actor = await requirePageActor("community.moderate", { feature: "community" });
   const [queue, settings] = await Promise.all([getModerationQueue(actor), getSettings(actor)]);
   const base = "/treinador/comunidade";
 

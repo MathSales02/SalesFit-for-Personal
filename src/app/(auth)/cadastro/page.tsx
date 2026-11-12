@@ -11,7 +11,7 @@ export default async function RegisterPage() {
   if (await currentActor()) redirect("/inicio");
   return (
     <>
-      <AuthHeading title="Crie sua consultoria">14 dias grátis, sem cartão. Seus alunos entram por convite.</AuthHeading>
+      <AuthHeading title="Crie sua consultoria">7 dias grátis, sem cartão. Seus alunos entram por convite.</AuthHeading>
       <RegisterForm />
       <p className="mt-8 border-t border-line pt-6 text-sm text-muted">
         Já tem conta?{" "}

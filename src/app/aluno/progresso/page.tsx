@@ -1,3 +1,5 @@
+import { FeatureNote } from "@/components/shell/feature-locked";
+import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MeasurementChart } from "@/components/progress/measurement-chart";
@@ -59,7 +61,8 @@ export default async function ProgressPage() {
         <h2 id="p-h" className="mb-4 text-lg font-semibold">
           Fotos
         </h2>
-        <PhotoUploader today={today} />
+        {/* New photos need the plan to include them; the ones already here stay, and can be removed. */}
+        {actorHasFeature(actor, "evolution") ? <PhotoUploader today={today} /> : <FeatureNote feature="evolution" role="student" />}
         {photos.length > 0 && (
           <div className="mt-6 flex flex-col gap-6">
             <PhotoCompare photos={gridPhotos} />

@@ -5,7 +5,7 @@ import { requirePageActor } from "@/server/http/next";
 export const metadata: Metadata = { title: "Comunidade" };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ ver?: string }> }) {
-  const actor = await requirePageActor("community.read");
+  const actor = await requirePageActor("community.read", { feature: "community" });
   const { ver } = await searchParams;
   return <CommunityFeedPage actor={actor} basePath="/treinador/comunidade" scope={scopeFromParam(ver)} />;
 }

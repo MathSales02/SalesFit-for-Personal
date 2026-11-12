@@ -15,7 +15,7 @@ import { listPublicPlans } from "@/server/billing/public-plans";
 
 const TITLE = "SalesFit: treinos, evolução e constância para personal trainers";
 const DESCRIPTION =
-  "Monte treinos, acompanhe a evolução dos alunos e mantenha a turma motivada com ranking e comunidade. Teste grátis por 14 dias, sem cartão.";
+  "Monte treinos, acompanhe a evolução dos alunos e mantenha a turma motivada com ranking e comunidade. Teste grátis por 7 dias, sem cartão.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },

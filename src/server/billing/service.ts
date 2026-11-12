@@ -5,7 +5,7 @@ import { withTenant } from "../db/context";
 import { plans, subscriptions, workspaceMembers } from "../db/schema";
 import { billingAccess } from "./access";
 
-export type PlanOption = { id: string; code: string; name: string; priceCents: number; maxStudents: number; storageQuotaMb: number };
+export type PlanOption = { id: string; code: string; name: string; priceCents: number; annualPriceCents: number | null; maxStudents: number; storageQuotaMb: number; features: Record<string, boolean> };
 
 /** The trainer's subscription page: current state, usage and the plans that can be bought. */
 export async function getBillingOverview(actor: Actor) {
@@ -20,6 +20,9 @@ export async function getBillingOverview(actor: Actor) {
         provider: subscriptions.provider,
         providerSubscriptionId: subscriptions.providerSubscriptionId,
         pendingPlanId: subscriptions.pendingPlanId,
+        billingCycle: subscriptions.billingCycle,
+        pendingCycle: subscriptions.pendingCycle,
+        providerInstallmentId: subscriptions.providerInstallmentId,
         planId: plans.id,
         planCode: plans.code,
         planName: plans.name,
@@ -33,7 +36,7 @@ export async function getBillingOverview(actor: Actor) {
       .from(workspaceMembers)
       .where(and(eq(workspaceMembers.workspaceId, m.workspaceId), eq(workspaceMembers.role, "student"), inArray(workspaceMembers.status, ["active", "invited"])));
     const options: PlanOption[] = await tx
-      .select({ id: plans.id, code: plans.code, name: plans.name, priceCents: plans.priceCents, maxStudents: plans.maxStudents, storageQuotaMb: plans.storageQuotaMb })
+      .select({ id: plans.id, code: plans.code, name: plans.name, priceCents: plans.priceCents, annualPriceCents: plans.annualPriceCents, maxStudents: plans.maxStudents, storageQuotaMb: plans.storageQuotaMb, features: plans.features })
       .from(plans)
       .where(and(eq(plans.isActive, true), ne(plans.code, "trial")))
       .orderBy(asc(plans.priceCents));

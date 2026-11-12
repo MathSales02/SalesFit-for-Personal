@@ -1,4 +1,5 @@
 import "server-only";
+import { annualPriceCents } from "@/lib/plan-features";
 import { and, asc, count, desc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import { revokeUserSessions } from "../auth/session";
 import { assertCan, type Actor } from "../authz/policy";
@@ -282,7 +283,9 @@ export async function updatePlan(
     const [p] = await tx.select().from(plans).where(eq(plans.id, planId));
     if (!p) throw Errors.notFound();
     if (p.code === "trial" && (!input.isActive || input.priceCents !== 0)) throw new AppError("CONFLICT", "O plano de teste grátis precisa continuar ativo e gratuito.");
-    await tx.update(plans).set({ ...input, updatedAt: new Date() }).where(eq(plans.id, planId));
+    // Plans sold yearly keep the same discount when the monthly price changes.
+    const annual = p.annualPriceCents === null ? null : annualPriceCents(input.priceCents);
+    await tx.update(plans).set({ ...input, annualPriceCents: annual, updatedAt: new Date() }).where(eq(plans.id, planId));
     await audit(tx, {
       action: "admin.plan_updated",
       actorUserId: actor.userId,

@@ -124,12 +124,15 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 - 5 vídeos gravados do sistema real, com dados fictícios (`npm run landing:media`).
 - Animações com GSAP, respeitando "reduzir movimento".
 - Preços lidos do banco.
-- **Planos oficiais** (migração 0031; o antigo `starter` foi desativado):
-  - Solo: R$ 69,90, 15 alunos, 5 GB.
-  - Equipe: R$ 99,90, 40 alunos, 15 GB (recomendado).
-  - Pro: R$ 139,90, 100 alunos, 40 GB.
-  - Elite: R$ 189,90, 250 alunos, 100 GB.
-  - Teste de 14 dias, até 10 alunos.
+- **Planos oficiais** (migrações 0038 a 0040, novembro de 2026; os anteriores Solo/Equipe/Pro/Elite foram desativados e quem os assinou mantém tudo):
+  - SalesFit Start: R$ 29,90/mês ou R$ 304,98/ano, 10 alunos, 1 GB. Só o essencial.
+  - SalesFit Pro: R$ 49,90/mês ou R$ 508,98/ano, 30 alunos, 10 GB (recomendado). Soma comunidade, ranking, evolução física, mensagens entre alunos e vídeos próprios.
+  - SalesFit Elite: R$ 79,90/mês ou R$ 814,98/ano, 100 alunos, 50 GB. Soma competições.
+  - SalesFit Academy: só anunciado como "em breve" (o sistema ainda tem um treinador por consultoria).
+  - Anual = 12 meses com 15% de desconto. À vista (Pix, boleto ou cartão) renova a cada ano; parcelado em até 12x no cartão vale 12 meses e não renova.
+  - Teste de 7 dias com todos os recursos, até 10 alunos. Comprando durante o teste, a primeira cobrança vence 3 dias depois e o teste segue aberto até lá.
+  - Os recursos de cada plano ficam em `plans.features` e são conferidos no servidor (`assertFeature`); a lista está em `src/lib/plan-features.ts`. Sempre liberado: alunos, treinos, biblioteca com animações, treino do aluno, histórico, check-in e mensagens treinador ↔ aluno.
+  - Anunciado no Elite e ainda não construído: relatórios avançados e personalização da marca (aparecem como "em breve"). Suporte prioritário é um compromisso de atendimento, não um recurso do app.
 - Contato: matheusssales0218@gmail.com (o "@gmail.com" foi suposto, confirmar) e WhatsApp (13) 98196-9513.
 - Lighthouse no celular: performance 89–90; acessibilidade, boas práticas e SEO 100.
 - Sem rolagem lateral de 360 a 1920 px. 8 testes E2E da landing.

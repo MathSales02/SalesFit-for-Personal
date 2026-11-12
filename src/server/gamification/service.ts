@@ -13,7 +13,7 @@ import {
   studentProfiles,
   workspaceMembers,
 } from "../db/schema";
-import { assertCan, requireMembership, type Actor } from "../authz/policy";
+import { assertCan, assertFeature, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import type { RequestMeta } from "../http/request-meta";
 import { audit } from "../security/audit";
@@ -189,6 +189,7 @@ function periodRange(d: { today: string; week: string; month: string }, period: 
 
 export async function getRanking(actor: Actor, period: RankingPeriod) {
   assertCan(actor, "community.read");
+  assertFeature(actor, "ranking");
   const m = requireMembership(actor);
   return withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const s = await readSettings(tx, m.workspaceId);
@@ -326,6 +327,7 @@ function statusOf(c: typeof competitions.$inferSelect, today: string): Competiti
 
 export async function listCompetitions(actor: Actor) {
   assertCan(actor, "community.read");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   return withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const d = await localDates(tx);
@@ -345,6 +347,7 @@ export async function listCompetitions(actor: Actor) {
 
 export async function getCompetition(actor: Actor, competitionId: string) {
   assertCan(actor, "community.read");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   return withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const [c] = await tx.select().from(competitions).where(and(eq(competitions.id, competitionId), eq(competitions.workspaceId, m.workspaceId)));
@@ -366,6 +369,7 @@ export async function createCompetition(
   meta: RequestMeta,
 ) {
   assertCan(actor, "challenges.manage");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   return withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const d = await localDates(tx);
@@ -381,6 +385,7 @@ export async function createCompetition(
 
 export async function setParticipation(actor: Actor, competitionId: string, join: boolean) {
   assertCan(actor, "challenges.join");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   await enforceRateLimit("challenge_join_user", actor.userId);
   await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
@@ -397,6 +402,7 @@ export async function setParticipation(actor: Actor, competitionId: string, join
 /** After the end date the trainer closes it: the final ranking is frozen as the official result. */
 export async function closeCompetition(actor: Actor, competitionId: string, meta: RequestMeta) {
   assertCan(actor, "challenges.manage");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const [c] = await tx.select().from(competitions).where(and(eq(competitions.id, competitionId), eq(competitions.workspaceId, m.workspaceId)));
@@ -412,6 +418,7 @@ export async function closeCompetition(actor: Actor, competitionId: string, meta
 
 export async function cancelCompetition(actor: Actor, competitionId: string, meta: RequestMeta) {
   assertCan(actor, "challenges.manage");
+  assertFeature(actor, "competitions");
   const m = requireMembership(actor);
   await withTenant({ userId: actor.userId, workspaceId: m.workspaceId }, async (tx) => {
     const res = await tx

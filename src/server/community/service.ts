@@ -22,7 +22,7 @@ import {
   type FitnessGoal,
   type WorkoutSnapshot,
 } from "../db/schema";
-import { assertCan, requireMembership, type Actor } from "../authz/policy";
+import { assertCan, assertFeature, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import type { RequestMeta } from "../http/request-meta";
 import { audit } from "../security/audit";
@@ -41,6 +41,8 @@ const DEFAULT_SETTINGS: CommunitySettings = { communityEnabled: true, studentPos
 
 function scope(actor: Actor) {
   const m = requireMembership(actor);
+  // The community is a plan feature: no part of it works without it.
+  assertFeature(actor, "community");
   return { m, ctx: { userId: actor.userId, workspaceId: m.workspaceId } };
 }
 

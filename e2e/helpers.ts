@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { Client } from "pg";
 import { createHmac } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Browser, type Page } from "@playwright/test";
@@ -99,4 +101,35 @@ export function totp(secret: string, offset = 0) {
   const o = mac[mac.length - 1]! & 15;
   const bin = ((mac[o]! & 127) << 24) | (mac[o + 1]! << 16) | (mac[o + 2]! << 8) | mac[o + 3]!;
   return String(bin % 1_000_000).padStart(6, "0");
+}
+
+/** The app's database address: from the environment (CI) or the local .env file. */
+function databaseUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  const line = readFileSync(".env", "utf8").split(/\r?\n/).find((l) => l.startsWith("DATABASE_URL="));
+  if (!line) throw new Error("DATABASE_URL not found");
+  return line.slice("DATABASE_URL=".length).replace(/^"|"$/g, "");
+}
+
+/**
+ * Puts the consultancy of a trainer on a paid plan, the way a confirmed payment would.
+ * Test-only shortcut: the real path (checkout and the provider's webhook) needs the payment
+ * provider's network.
+ */
+export async function setPlan(trainerEmail: string, planCode: string) {
+  const client = new Client({ connectionString: databaseUrl() });
+  await client.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT set_config('app.user_id', '00000000-0000-0000-0000-000000000000', true), set_config('app.is_system', 'on', true), set_config('app.is_platform_admin', 'on', true)");
+    const r = await client.query(
+      `UPDATE subscriptions SET plan_id = (SELECT id FROM plans WHERE code = $2), status = 'active', current_period_end = now() + interval '20 days', updated_at = now()
+       WHERE workspace_id IN (SELECT wm.workspace_id FROM workspace_members wm JOIN users u ON u.id = wm.user_id WHERE u.email = $1 AND wm.role = 'trainer')`,
+      [trainerEmail, planCode],
+    );
+    if (r.rowCount !== 1) throw new Error(`setPlan changed ${r.rowCount} subscriptions`);
+    await client.query("COMMIT");
+  } finally {
+    await client.end();
+  }
 }

@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "../db/client";
 import { plans } from "../db/schema";
 
-export type PublicPlan = { code: string; name: string; priceCents: number; maxStudents: number; storageQuotaMb: number };
+export type PublicPlan = { code: string; name: string; priceCents: number; annualPriceCents: number | null; maxStudents: number; storageQuotaMb: number; features: Record<string, boolean> };
 
 /**
  * Plans for the public pricing page: the active ones, from the same table the
@@ -11,7 +11,7 @@ export type PublicPlan = { code: string; name: string; priceCents: number; maxSt
  */
 export async function listPublicPlans(): Promise<{ paid: PublicPlan[]; trial: PublicPlan | null }> {
   const rows = await db()
-    .select({ code: plans.code, name: plans.name, priceCents: plans.priceCents, maxStudents: plans.maxStudents, storageQuotaMb: plans.storageQuotaMb })
+    .select({ code: plans.code, name: plans.name, priceCents: plans.priceCents, annualPriceCents: plans.annualPriceCents, maxStudents: plans.maxStudents, storageQuotaMb: plans.storageQuotaMb, features: plans.features })
     .from(plans)
     .where(eq(plans.isActive, true))
     .orderBy(asc(plans.priceCents));

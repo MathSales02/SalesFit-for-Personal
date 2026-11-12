@@ -267,6 +267,27 @@
       "when": 1794441645710,
       "tag": "0037_exercise_demos_security",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794476725985,
+      "tag": "0038_plan_tiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794476728123,
+      "tag": "0039_plan_tiers_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794476775167,
+      "tag": "0040_plan_feature_rules",
+      "breakpoints": true
     }
   ]
 }

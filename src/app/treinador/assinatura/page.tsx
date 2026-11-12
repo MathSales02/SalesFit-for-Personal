@@ -35,6 +35,9 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const openInvoice = invoices.find((i) => !PAID.has(i.status) && i.invoiceUrl && i.status !== "REFUNDED");
   const pendingPlan = s?.pendingPlanId ? b.plans.find((p) => p.id === s.pendingPlanId) : undefined;
   const paidActive = b.access.state === "active" && s?.status === "active";
+  // A year bought in installments is one purchase: it ends on its date instead of renewing.
+  const fixedYear = !!s?.providerInstallmentId && !s.providerSubscriptionId && !s.pendingPlanId;
+  const yearly = s?.billingCycle === "yearly";
 
   const headline =
     b.access.state === "trial"
@@ -69,16 +72,18 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         <p className="mt-1 font-display text-3xl font-bold">{headline}</p>
         <p className="mt-2 text-sm text-white/70">
           {b.studentsUsed} de {s?.maxStudents ?? 0} vagas de alunos em uso
-          {b.access.state === "active" && b.access.until ? ` · ${s?.status === "canceled" ? "acesso até" : "próxima renovação em"} ${fmtDate.format(b.access.until)}` : ""}
+          {b.access.state === "active" && yearly ? " · plano anual" : ""}
+          {b.access.state === "active" && b.access.until ? ` · ${s?.status === "canceled" || fixedYear ? "acesso até" : "próxima renovação em"} ${fmtDate.format(b.access.until)}` : ""}
           {b.access.state === "trial" && b.access.until ? ` · termina em ${fmtDate.format(b.access.until)}` : ""}
           {b.access.state === "grace" && b.access.until ? ` · o acesso continua até ${fmtDate.format(b.access.until)}` : ""}
         </p>
         {b.access.state === "blocked" && (
           <p className="mt-3 text-sm text-white/85">Você e seus alunos não conseguem usar o app até escolher um plano. Nenhum dado foi apagado.</p>
         )}
+        {fixedYear && paidActive && <p className="mt-3 text-sm text-white/85">Comprado parcelado: não renova sozinho. Perto do fim, escolha o plano de novo aqui.</p>}
         {pendingPlan && (
           <p className="mt-3 text-sm text-white/85">
-            {paidActive ? `Muda para o plano ${pendingPlan.name} na próxima renovação.` : `Plano ${pendingPlan.name} aguardando o pagamento.`}
+            {paidActive ? `Muda para o plano ${pendingPlan.name}${s?.pendingCycle === "yearly" ? " anual" : ""} no fim do período atual.` : `Plano ${pendingPlan.name}${s?.pendingCycle === "yearly" ? " anual" : ""} aguardando o pagamento.`}
           </p>
         )}
         {openInvoice && (
@@ -101,13 +106,17 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           <CheckoutForm
             needsTaxId={taxId}
             defaultPlanId={s?.pendingPlanId ?? undefined}
+            defaultCycle={s?.pendingCycle ?? (paidActive ? s?.billingCycle : undefined) ?? "monthly"}
+            inTrial={b.access.state === "trial"}
             plans={b.plans.map((p) => ({
               id: p.id,
               name: p.name,
-              price: formatBRL(p.priceCents),
+              priceCents: p.priceCents,
+              annualPriceCents: p.annualPriceCents,
               maxStudents: p.maxStudents,
               storageGb: Math.round(p.storageQuotaMb / 1024),
-              current: paidActive && s?.planId === p.id && !s.pendingPlanId,
+              features: p.features,
+              current: paidActive && s?.planId === p.id && !s.pendingPlanId ? s.billingCycle : null,
               pending: s?.pendingPlanId === p.id,
             }))}
           />
@@ -145,7 +154,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         </section>
       )}
 
-      {online && s?.provider === "asaas" && s.providerSubscriptionId && (
+      {online && s?.provider === "asaas" && (s.providerSubscriptionId || (s.providerInstallmentId && s.pendingPlanId)) && (
         <details className="mt-10 rounded-[var(--radius-panel)] border border-line bg-paper p-5">
           <summary className="cursor-pointer font-semibold">Cancelar assinatura</summary>
           <div className="mt-4">

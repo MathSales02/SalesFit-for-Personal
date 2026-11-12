@@ -1,3 +1,4 @@
+import { TRIAL_DAYS } from "@/lib/plan-features";
 import "server-only";
 import { verifySecondFactor } from "./mfa";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
@@ -28,7 +29,7 @@ import { enforceRateLimit, resetRateLimit } from "../security/rate-limit";
 import { burnPasswordCheck, hashPassword, needsRehash, verifyPassword } from "./password";
 import { createSession, revokeSession, revokeUserSessions } from "./session";
 
-export const TRIAL_DAYS = 14;
+export { TRIAL_DAYS } from "@/lib/plan-features";
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 

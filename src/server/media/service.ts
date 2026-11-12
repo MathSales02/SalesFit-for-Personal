@@ -4,7 +4,7 @@ import { and, eq, gt, inArray, or, sql } from "drizzle-orm";
 import { setTenantContext, withTenant } from "../db/context";
 import type { Tx } from "../db/client";
 import { mediaAssets, plans, subscriptions } from "../db/schema";
-import { assertCan, requireMembership, type Actor } from "../authz/policy";
+import { assertCan, assertFeature, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import { errorFields, log } from "../lib/logger";
 import type { RequestMeta } from "../http/request-meta";
@@ -64,6 +64,8 @@ export async function requestUpload(
 ): Promise<UploadTicket> {
   assertCan(actor, PERMISSION[visibility]);
   const personal = visibility !== "workspace";
+  // Workspace uploads are the trainer's own exercise videos.
+  if (!personal) assertFeature(actor, "own_videos");
   const m = requireMembership(actor);
   await enforceRateLimit("upload_user", actor.userId);
   if (!isUploadContentType(input.contentType)) {

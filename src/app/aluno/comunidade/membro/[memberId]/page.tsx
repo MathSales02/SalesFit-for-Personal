@@ -5,7 +5,7 @@ import { requirePageActor } from "@/server/http/next";
 export const metadata: Metadata = { title: "Perfil" };
 
 export default async function Page({ params, searchParams }: { params: Promise<{ memberId: string }>; searchParams: Promise<{ aba?: string }> }) {
-  const actor = await requirePageActor("community.read");
+  const actor = await requirePageActor("community.read", { feature: "community" });
   const [{ memberId }, { aba }] = await Promise.all([params, searchParams]);
   return <CommunityProfilePage actor={actor} basePath="/aluno/comunidade" memberId={memberId} tab={profileTabFromParam(aba)} />;
 }
