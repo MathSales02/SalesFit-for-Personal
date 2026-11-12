@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
+import { AnimatedPrice } from "@/components/ui/animated-price";
 import { SubmitButton } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { ANNUAL_DISCOUNT_PERCENT, FEATURE_INFO, FEATURES, FIRST_CHARGE_DELAY_DAYS, MAX_INSTALLMENTS, type BillingCycle } from "@/lib/plan-features";
@@ -78,7 +79,8 @@ export function CheckoutForm({
             <legend className="sr-only">Plano</legend>
             <div className="grid gap-4 lg:grid-cols-3">
               {plans.map((p, i) => {
-                const price = yearly ? p.annualPriceCents : p.priceCents;
+                // Always the price of one month, so only the number changes between the two ways of paying.
+                const perMonth = yearly && p.annualPriceCents !== null ? Math.round(p.annualPriceCents / 12) : p.priceCents;
                 const previous = i > 0 ? plans[i - 1]! : null;
                 const added = FEATURES.filter((f) => p.features[f] && !previous?.features[f]);
                 const isCurrent = p.current === cycle && !p.pending;
@@ -92,10 +94,10 @@ export function CheckoutForm({
                       <input type="radio" name="planId" value={p.id} checked={planId === p.id} onChange={() => setPlanId(p.id)} className="mt-1.5 size-4 accent-turf" />
                     </span>
                     <span className="mt-2">
-                      <span className="font-display text-4xl font-bold">{price === null ? "—" : brl(price)}</span>
-                      <span className="text-muted">{yearly ? "/ano" : "/mês"}</span>
+                      <AnimatedPrice cents={perMonth} className="font-display text-4xl font-bold" />
+                      <span className="text-muted">/mês</span>
                     </span>
-                    {yearly && price !== null && <span className="mt-1 text-sm text-ink-soft">Equivale a {brl(Math.round(price / 12))} por mês</span>}
+                    {p.annualPriceCents !== null && <span className="mt-1 text-sm text-ink-soft">No anual, {brl(p.annualPriceCents)} por ano</span>}
                     <span className="mt-4 flex-1 space-y-1.5 text-sm text-ink-soft">
                       <span className="block font-semibold text-ink">Até {p.maxStudents} alunos</span>
                       <span className="block">{p.storageGb} GB para vídeos e fotos</span>

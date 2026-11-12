@@ -32,10 +32,17 @@ test("plans limit what a consultancy can use: trial shows everything, Start the 
   await page.goto("/treinador/assinatura");
   await expect(page.getByText(/Teste grátis: \d dias? restantes?/)).toBeVisible();
   const pro = page.getByRole("radio", { name: /SalesFit Pro/ });
-  await expect(page.getByText("R$ 49,90")).toBeVisible();
+  // The card shows the price of one month; switching to yearly only runs the number to the
+  // discounted value. The words around it stay as they are.
+  const proCard = page.locator("label").filter({ hasText: "SalesFit Pro" });
+  const texts = async () => (await proCard.innerText()).replace(/R\$\s[\d.,]+/g, "R$ #");
+  await expect(proCard.getByText("R$ 49,90", { exact: true }).first()).toBeAttached();
+  await expect(proCard.getByText("No anual, R$ 508,98 por ano")).toBeVisible();
+  const before = await texts();
   await page.getByText("Anual, 15% de desconto").click();
-  await expect(page.getByText("R$ 508,98")).toBeVisible();
-  await expect(page.getByText("Equivale a R$ 42,42 por mês")).toBeVisible();
+  await expect(proCard.getByText("R$ 42,42", { exact: true }).first()).toBeAttached();
+  await expect(proCard.locator("[aria-hidden=true]").first()).toHaveText("R$ 42,42");
+  expect(await texts()).toBe(before);
   await pro.check();
   const installments = page.getByLabel("Parcelas");
   await installments.selectOption("6");
@@ -46,6 +53,7 @@ test("plans limit what a consultancy can use: trial shows everything, Start the 
   await shot(page, "subscription-yearly");
   await page.getByText("Mensal", { exact: true }).click();
   await expect(installments).toHaveCount(0);
+  await expect(proCard.locator("[aria-hidden=true]").first()).toHaveText("R$ 49,90");
 
   // Start: community and ranking are locked for the trainer, with the way to get them.
   await setPlan(email, "sf_start");
