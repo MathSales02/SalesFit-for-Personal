@@ -4,6 +4,7 @@ import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill, Sparkline, Wee
 import { CheckinForm } from "@/components/gamification/forms";
 import { ProgramView } from "@/components/program-view";
 import { IconActivity, IconTrend, IconTrophy } from "@/components/shell/icons";
+import { RecordFolder } from "@/components/shell/record-folder";
 import { buttonClass } from "@/components/ui/button-styles";
 import { getMyGamification, getRanking } from "@/server/gamification/service";
 import { requirePageActor } from "@/server/http/next";
@@ -253,6 +254,39 @@ export default async function StudentHomePage() {
           )}
         </Card>
       </div>
+
+      <section aria-labelledby="sheets-h" className="rounded-[var(--radius-panel)] border border-line bg-paper p-6 shadow-[var(--shadow-card)] sm:p-8">
+        <div className="grid items-center gap-x-10 gap-y-2 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div>
+            <h2 id="sheets-h" className="font-display text-2xl font-bold">
+              Ficha de treino
+            </h2>
+            {program ? (
+              <>
+                <p className="mt-2 text-lg font-semibold">{program.name}</p>
+                <p className="mt-1 max-w-md text-sm leading-relaxed text-ink-soft">
+                  {program.content.days.length === 1 ? "1 treino" : `${program.content.days.length} treinos`} na sua ficha, desde {fmtDate(program.startsOn)}
+                  {program.endsOn ? ` até ${fmtDate(program.endsOn)}` : ""}. Abra a pasta e toque em um treino para ver os exercícios, as demonstrações e as orientações.
+                </p>
+              </>
+            ) : (
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">Quando seu treinador montar a sua ficha, os treinos aparecem nesta pasta, com as demonstrações de cada exercício.</p>
+            )}
+          </div>
+          <RecordFolder
+            label="Ficha de treino"
+            meta={program ? (program.content.days.length === 1 ? "1 treino" : `${program.content.days.length} treinos`) : "Vazia"}
+            sheets={(program?.content.days ?? []).map((d) => ({
+              name: d.name,
+              meta: d.exercises.length === 1 ? "1 exercício" : `${d.exercises.length} exercícios`,
+              href: `/aluno#dia-${d.id}`,
+            }))}
+            allHref={program ? "/aluno#programa" : "/aluno/historico"}
+            allLabel={program ? "Ver a ficha completa" : "Ver meu histórico"}
+            empty="Sua ficha ainda está vazia."
+          />
+        </div>
+      </section>
 
       {program && (
         <section id="programa" aria-labelledby="program-h" className="mt-4 scroll-mt-20">

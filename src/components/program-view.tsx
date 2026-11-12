@@ -22,7 +22,7 @@ export function ProgramView({
   return (
     <div className="flex flex-col gap-8">
       {content.days.map((d) => (
-        <section key={d.id} aria-label={d.name}>
+        <section key={d.id} id={`dia-${d.id}`} aria-label={d.name} className="scroll-mt-20">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-display text-2xl font-bold">{d.name}</h3>
             {dayAction?.(d.id)}

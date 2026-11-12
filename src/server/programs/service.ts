@@ -145,9 +145,11 @@ export async function listPrograms(actor: Actor) {
         name: programs.name,
         isTemplate: programs.isTemplate,
         updatedAt: programs.updatedAt,
-        publishedNumber: sql<number | null>`(select max(v.number) from program_versions v where v.program_id = ${programs.id} and v.status = 'published')`,
-        hasDraft: sql<boolean>`exists (select 1 from program_versions v where v.program_id = ${programs.id} and v.status = 'draft')`,
-        activeAssignments: sql<number>`(select count(*)::int from program_assignments a where a.program_id = ${programs.id} and a.status = 'active')`,
+        // "programs"."id" is spelled out: drizzle would render the column unqualified here, and inside a
+        // subquery a bare "id" belongs to the subquery's own table.
+        publishedNumber: sql<number | null>`(select max(v.number) from program_versions v where v.program_id = "programs"."id" and v.status = 'published')`,
+        hasDraft: sql<boolean>`exists (select 1 from program_versions v where v.program_id = "programs"."id" and v.status = 'draft')`,
+        activeAssignments: sql<number>`(select count(*)::int from program_assignments a where a.program_id = "programs"."id" and a.status = 'active')`,
       })
       .from(programs)
       .where(and(eq(programs.workspaceId, m.workspaceId), isNull(programs.archivedAt)))

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill } from "@/components/dashboard/widgets";
 import { IconActivity, IconBell, IconMessage, IconTrophy, IconUsers } from "@/components/shell/icons";
+import { RecordFolder } from "@/components/shell/record-folder";
 import { buttonClass } from "@/components/ui/button-styles";
 import { listSupportAccessForTrainer } from "@/server/admin/support";
 import { getRanking } from "@/server/gamification/service";
 import { requirePageActor } from "@/server/http/next";
 import { unreadConversationCount } from "@/server/messaging/service";
 import { unreadNotificationCount } from "@/server/notifications/service";
+import { assignableStudents, listPrograms } from "@/server/programs/service";
 import { getTrainerActivity, getTrainerOverview } from "@/server/workspace/overview";
 
 export const metadata: Metadata = { title: "Visão geral" };
@@ -28,13 +30,15 @@ function daysSince(d: Date) {
 
 export default async function TrainerOverviewPage() {
   const actor = await requirePageActor("students.read");
-  const [o, activity, ranking, support, unreadMessages, unreadNotifications] = await Promise.all([
+  const [o, activity, ranking, support, unreadMessages, unreadNotifications, students, programs] = await Promise.all([
     getTrainerOverview(actor),
     getTrainerActivity(actor),
     getRanking(actor, "week"),
     listSupportAccessForTrainer(actor),
     unreadConversationCount(actor),
     unreadNotificationCount(actor),
+    assignableStudents(actor),
+    listPrograms(actor),
   ]);
   const firstName = actor.displayName.split(" ")[0];
   const used = o.students.active + o.students.invited;
@@ -190,6 +194,37 @@ export default async function TrainerOverviewPage() {
           </div>
         </Card>
       </div>
+
+      <section aria-labelledby="records-h" className="rounded-[var(--radius-panel)] border border-line bg-paper p-6 shadow-[var(--shadow-card)] sm:p-8">
+        <h2 id="records-h" className="font-display text-2xl font-bold">
+          Fichas
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">As fichas dos seus alunos e os treinos que você montou. Abra uma pasta e toque em uma ficha para ir direto a ela.</p>
+        <div className="mt-2 grid justify-items-center gap-x-10 gap-y-4 md:grid-cols-2">
+          <RecordFolder
+            label="Fichas de alunos"
+            meta={students.length === 1 ? "1 aluno" : `${students.length} alunos`}
+            sheets={students.map((s) => ({ name: s.displayName, meta: s.currentProgram ?? "Sem treino", href: `/treinador/alunos/${s.memberId}` }))}
+            seed={3}
+            allHref="/treinador/alunos"
+            allLabel={students.length > 4 ? `Ver os ${students.length} alunos` : "Ver alunos"}
+            empty="Você ainda não tem alunos ativos."
+          />
+          <RecordFolder
+            label="Fichas de treino"
+            meta={programs.length === 1 ? "1 treino" : `${programs.length} treinos`}
+            sheets={programs.map((p) => ({
+              name: p.name,
+              meta: p.isTemplate ? "Modelo" : p.activeAssignments === 1 ? "1 aluno" : `${p.activeAssignments} alunos`,
+              href: `/treinador/treinos/${p.id}`,
+            }))}
+            seed={11}
+            allHref="/treinador/treinos"
+            allLabel={programs.length > 4 ? `Ver os ${programs.length} treinos` : "Ver treinos"}
+            empty="Você ainda não montou treinos."
+          />
+        </div>
+      </section>
 
       {support.length > 0 && (
         <Card title="Acessos de suporte nos últimos 90 dias" labelledBy="support-h">
