@@ -13,9 +13,13 @@ import {
   getExercise,
   listExercises,
   removeVideo,
-  setPlatformVideoUrl,
+  getDemoOverview,
+  listPlatformExercises,
+  setPlatformMedia,
+  syncDemos,
   updateExercise,
 } from "@/server/exercises/service";
+import type { DemoSource } from "@/server/exercises/exercisedb";
 import { AppError } from "@/server/lib/errors";
 import { completeUpload, playbackUrls, requestUpload, type UploadTicket } from "@/server/media/service";
 import { headObject } from "@/server/storage/s3";
@@ -194,10 +198,8 @@ describe("exercise library", () => {
     expect((await getExercise(b, platform!.id)).name).toBe("Supino reto com barra");
   });
 
-  it("only platform admins register the library's demonstration videos, and only YouTube links fit", async () => {
+  it("only YouTube links fit as an external video", async () => {
     const a = await trainer();
-    const [platform] = await listExercises(a, { q: "Peck deck" });
-    expect(await code(setPlatformVideoUrl(a, platform!.id, "https://www.youtube.com/watch?v=abcdefghijk", meta()))).toBe("FORBIDDEN");
     const id = await createExercise(a, input, meta());
     expect(await code(updateExercise(a, id, { ...input, videoUrl: "https://example.com/video.mp4" }, meta()))).toBe("23514");
   });
@@ -245,5 +247,145 @@ describe("exercise library", () => {
     const s = await studentOf(a);
     expect(await code(createExercise(s, input, meta()))).toBe("FORBIDDEN");
     expect(await code(listExercises(s, { q: "" }))).toBe("FORBIDDEN");
+  });
+});
+
+describe("animated demonstrations", () => {
+  const admin = async (): Promise<Actor> => ({ ...(await trainer()), isPlatformAdmin: true, membership: null });
+  const demoOf = async (a: Actor, id: string) => {
+    const e = await getExercise(a, id);
+    return { url: e.demoUrl, status: e.demoStatus, externalId: e.demoExternalId };
+  };
+  /** A source where everything answers, except what the test says is gone. */
+  const source = (gone: string[] = [], catalogue: Record<string, string> = {}): DemoSource => ({
+    fetchExercise: async (id) => (catalogue[id] ? { id, name: "catalogue name", gifUrl: catalogue[id]! } : null),
+    mediaAvailable: async (url) => !gone.includes(url),
+  });
+  const down: DemoSource = {
+    fetchExercise: async () => {
+      throw new Error("timeout");
+    },
+    mediaAvailable: async () => {
+      throw new Error("timeout");
+    },
+  };
+
+  it("the platform library comes with its demonstrations, and the few without a reliable match are flagged", async () => {
+    const a = await trainer();
+    const all = await listExercises(a, { q: "" });
+    const platform = all.filter((e) => !e.own);
+    expect(platform.length).toBeGreaterThanOrEqual(138);
+    const without = platform.filter((e) => !e.demoUrl).map((e) => e.name).sort();
+    expect(without).toEqual(["Mobilidade de quadril 90/90", "Prancha frontal", "Rotação torácica"]);
+    for (const e of platform) if (e.demoUrl) expect(e.demoUrl).toMatch(/^https:\/\/static\.exercisedb\.dev\/media\/[A-Za-z0-9_-]+\.gif$/);
+    // No two exercises share an animation.
+    const urls = platform.map((e) => e.demoUrl).filter(Boolean);
+    expect(new Set(urls).size).toBe(urls.length);
+    const bench = platform.find((e) => e.name === "Supino reto com barra")!;
+    expect(await demoOf(a, bench.id)).toEqual({ url: "https://static.exercisedb.dev/media/EIeI8Vf.gif", status: "matched", externalId: "EIeI8Vf" });
+  });
+
+  it("a trainer's exercise gets its demonstration by itself: same name, another usual name, or the copy's origin", async () => {
+    const a = await trainer();
+    const base = { muscleGroup: "chest" as const, equipment: null, description: null, instructions: null };
+    const benchUrl = "https://static.exercisedb.dev/media/EIeI8Vf.gif";
+
+    // Accents, case and punctuation do not matter; neither does the trainer's short name for it.
+    const alias = await createExercise(a, { ...base, name: "SUPINO  RETO" }, meta());
+    expect(await demoOf(a, alias)).toMatchObject({ url: benchUrl, status: "matched" });
+    const sameName = await createExercise(a, { ...base, name: "cadeira extensora" }, meta());
+    expect((await demoOf(a, sameName)).url).toBe("https://static.exercisedb.dev/media/my33uHU.gif");
+
+    // Nothing reliable: no animation, flagged for review instead of a guess.
+    const unknown = await createExercise(a, { ...base, name: "Supino do Zé com elástico" }, meta());
+    expect(await demoOf(a, unknown)).toEqual({ url: null, status: "unmatched", externalId: null });
+    // Renaming it to something known links the animation; renaming back removes it.
+    await updateExercise(a, unknown, { ...base, name: "Hip thrust" }, meta());
+    expect((await demoOf(a, unknown)).url).toBe("https://static.exercisedb.dev/media/qg2PGl6.gif");
+    await updateExercise(a, unknown, { ...base, name: "Movimento secreto" }, meta());
+    expect((await demoOf(a, unknown)).status).toBe("unmatched");
+
+    // A copy keeps the animation of its origin even under a personal name.
+    const [platform] = await listExercises(a, { q: "Rosca martelo" });
+    const copy = await copyExercise(a, platform!.id, meta());
+    await updateExercise(a, copy, { ...base, muscleGroup: "biceps", name: "Martelo da casa" }, meta());
+    expect((await demoOf(a, copy)).url).toBe("https://static.exercisedb.dev/media/2NpxjC1.gif");
+    // The list the library and the workout builder read carries it too.
+    expect((await listExercises(a, { q: "Martelo da casa" }))[0]!.demoUrl).toBe("https://static.exercisedb.dev/media/2NpxjC1.gif");
+  });
+
+  it("only platform admins sync or review, and the sync is repeatable", async () => {
+    const a = await trainer();
+    expect(await code(syncDemos(a, meta(), source()))).toBe("FORBIDDEN");
+    expect(await code(getDemoOverview(a))).toBe("FORBIDDEN");
+    const [platform] = await listExercises(a, { q: "Peck deck" });
+    expect(await code(setPlatformMedia(a, platform!.id, { videoUrl: null, demoExternalId: null, aliases: [] }, meta(), source()))).toBe("FORBIDDEN");
+
+    const ad = await admin();
+    const first = await syncDemos(ad, meta(), source());
+    expect(first.checked).toBeGreaterThanOrEqual(135);
+    expect(first).toMatchObject({ available: first.checked, broken: 0 });
+    const again = await syncDemos(ad, meta(), source());
+    expect(again).toMatchObject({ checked: first.checked, available: first.checked, broken: 0 });
+    const overview = await getDemoOverview(ad);
+    expect(overview.platform.withDemo).toBe(first.checked);
+    expect(overview.runs[0]).toMatchObject({ checked: first.checked, broken: 0, error: null });
+  });
+
+  it("an animation that left the source is dropped everywhere, and comes back when the source has it again", async () => {
+    const a = await trainer();
+    const ad = await admin();
+    const url = "https://static.exercisedb.dev/media/j9Q5crt.gif"; // Simulador de escada
+    const mine = await createExercise(a, { name: "Simulador de escada", muscleGroup: "cardio", equipment: null, description: null, instructions: null }, meta());
+    expect((await demoOf(a, mine)).url).toBe(url);
+
+    const r = await syncDemos(ad, meta(), source([url]));
+    expect(r.broken).toBe(1);
+    expect(await demoOf(a, mine)).toMatchObject({ url: null, status: "unmatched" });
+    expect((await getDemoOverview(ad)).unmatchedNames.some((u) => u.name_key === "simulador de escada")).toBe(true);
+
+    // The source moved the file: the catalogue gives the new address and everything is linked again.
+    const moved = "https://static.exercisedb.dev/media/j9Q5crt-2.gif";
+    await syncDemos(ad, meta(), source([url], { j9Q5crt: moved }));
+    expect(await demoOf(a, mine)).toMatchObject({ url: moved, status: "matched" });
+    // Back to the original address for the other tests.
+    await syncDemos(ad, meta(), source([moved], { j9Q5crt: url }));
+    expect((await demoOf(a, mine)).url).toBe(url);
+  });
+
+  it("when the source is down nothing is touched", async () => {
+    const a = await trainer();
+    const ad = await admin();
+    const [platform] = await listExercises(a, { q: "Leg press 45" });
+    const before = await demoOf(a, platform!.id);
+    expect(await code(syncDemos(ad, meta(), down))).toBe("CONFLICT");
+    expect(await demoOf(a, platform!.id)).toEqual(before);
+    expect((await getDemoOverview(ad)).runs[0]!.error).toContain("não respondeu");
+  });
+
+  it("manual review: an id is checked against the source, and a new usual name reaches trainers at once", async () => {
+    const a = await trainer();
+    const ad = await admin();
+    const row = (await listPlatformExercises(ad)).find((e) => e.name === "Prancha frontal")!;
+    expect(row.demoUrl).toBeNull();
+    const keep = { videoUrl: null, aliases: row.aliases };
+    const plank = "https://static.exercisedb.dev/media/planktest.gif";
+
+    expect(await code(setPlatformMedia(ad, row.id, { ...keep, demoExternalId: "missing" }, meta(), source()))).toBe("VALIDATION");
+    expect(await code(setPlatformMedia(ad, row.id, { ...keep, demoExternalId: "planktest" }, meta(), down))).toBe("CONFLICT");
+
+    const mine = await createExercise(a, { name: "Prancha isométrica", muscleGroup: "core", equipment: null, description: null, instructions: null }, meta());
+    expect((await demoOf(a, mine)).status).toBe("unmatched");
+    await setPlatformMedia(ad, row.id, { videoUrl: null, aliases: ["prancha isometrica"], demoExternalId: "planktest" }, meta(), source([], { planktest: plank }));
+    expect(await demoOf(a, row.id)).toEqual({ url: plank, status: "manual", externalId: "planktest" });
+    expect(await demoOf(a, mine)).toMatchObject({ url: plank, status: "matched" });
+    // A manual choice survives the sync.
+    await syncDemos(ad, meta(), source());
+    expect((await demoOf(a, row.id)).status).toBe("manual");
+
+    // Clearing it puts both back in the review list.
+    await setPlatformMedia(ad, row.id, { ...keep, demoExternalId: null }, meta(), source());
+    expect(await demoOf(a, row.id)).toEqual({ url: null, status: "unmatched", externalId: null });
+    expect((await demoOf(a, mine)).status).toBe("unmatched");
   });
 });

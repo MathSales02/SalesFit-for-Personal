@@ -38,7 +38,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ progra
   }
   const { program, published, draft, assignments } = data;
   const [catalogRows, students] = await Promise.all([draft ? listExercises(actor, { q: "" }) : Promise.resolve([]), published ? assignableStudents(actor) : Promise.resolve([])]);
-  const catalog = catalogRows.map((c) => ({ id: c.id, name: c.name, group: MUSCLE_GROUP_LABEL[c.muscleGroup], own: c.own }));
+  const catalog = catalogRows.map((c) => ({ id: c.id, name: c.name, group: MUSCLE_GROUP_LABEL[c.muscleGroup], own: c.own, demoUrl: c.demoUrl }));
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
 
   return (

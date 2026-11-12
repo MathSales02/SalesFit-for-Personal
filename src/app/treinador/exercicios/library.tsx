@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ExerciseThumb } from "@/components/exercises/video";
 import { indexExercises, searchExercises } from "@/lib/exercise-search";
 import { DIFFICULTY_LABEL, MUSCLE_GROUP_LABEL, MUSCLE_GROUPS, type Difficulty, type MuscleGroup } from "@/lib/validation/exercises";
@@ -14,6 +14,7 @@ export type LibraryExercise = {
   equipment: string | null;
   difficulty: Difficulty | null;
   videoUrl: string | null;
+  demoUrl: string | null;
   sourceExerciseId: string | null;
   own: boolean;
   hasVideo: boolean;
@@ -44,12 +45,21 @@ export function ExerciseLibrary({ exercises, initialQuery, initialGroup }: { exe
   const filtered = query.trim() !== "" || group !== null;
 
   // The address keeps the current view, so a reload or a shared link opens the same results.
+  // Not on the first render: the address is already right, and rewriting it then could cut a
+  // navigation the person started while the page was still loading.
+  const mounted = useRef(false);
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     const params = new URLSearchParams();
     if (query.trim()) params.set("q", query.trim());
     if (group) params.set("group", group);
     const qs = params.toString();
-    window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
+    // Keeping the router's own history entry means it does not treat this as a navigation, which
+    // would cancel one in flight (opening an exercise right after touching a filter).
+    window.history.replaceState(window.history.state, "", qs ? `?${qs}` : window.location.pathname);
   }, [query, group]);
 
   const clear = () => {
@@ -153,7 +163,7 @@ function Section({ title, rows, copied, empty }: { title: string; rows: LibraryE
           {rows.map((e) => (
             <li key={e.id} className="min-w-0">
               <Link href={`/treinador/exercicios/${e.id}`} className="flex h-full items-center gap-3.5 rounded-[var(--radius-panel)] border border-line bg-paper p-3 transition-colors hover:border-turf/50">
-                <ExerciseThumb externalUrl={e.videoUrl} hasVideo={e.hasVideo} />
+                <ExerciseThumb externalUrl={e.videoUrl} demoUrl={e.demoUrl} hasVideo={e.hasVideo} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-ink">{e.name}</span>
                   <span className="mt-1 flex flex-wrap items-center gap-1.5">

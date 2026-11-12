@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectAccessible, expectNoHorizontalScroll, mobilePage, signUpTrainer } from "./helpers";
+import { expectAccessible, expectNoHorizontalScroll, inviteStudent, mobilePage, signUpTrainer } from "./helpers";
 
 // Set E2E_SHOTS=1 to keep screenshots of the main screens in test-results/exercises.
 const shot = async (page: Page, name: string) => {
@@ -49,7 +49,10 @@ test("the exercise library: instant search, muscle group chips, details, video a
   // The detail page: no video yet, but the whole guidance is there.
   await card("Supino reto com barra").click();
   await expect(page.getByRole("heading", { name: "Supino reto com barra" })).toBeVisible();
-  await expect(page.getByText("Demonstração em breve")).toBeVisible();
+  // The animation is already there, served by the source's media host, with nobody attaching it.
+  const demo = page.getByRole("img", { name: "Demonstração animada: Supino reto com barra" });
+  await expect(demo).toBeVisible();
+  await expect(demo).toHaveAttribute("src", "https://static.exercisedb.dev/media/EIeI8Vf.gif");
   for (const h of ["Sobre o movimento", "Passo a passo", "Dicas de execução", "Erros comuns"]) await expect(page.getByRole("heading", { name: h })).toBeVisible();
   await expect(page.getByText("Também trabalha")).toBeVisible();
   await expectAccessible(page, "exercício da biblioteca SalesFit");
@@ -92,13 +95,59 @@ test("on a phone the library fits the screen and the chips scroll sideways", asy
   await signUpTrainer(page);
   await page.goto("/treinador/exercicios");
   await page.getByLabel("Buscar exercícios").fill("gluteo");
-  await expect(page.getByRole("link", { name: /^Elevação pélvica/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Elevação pélvica\s*Glúteos/ })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await expectAccessible(page, "/treinador/exercicios (celular)");
   await shot(page, "library-mobile");
-  await page.getByRole("link", { name: /^Elevação pélvica/ }).click();
+  await page.getByRole("link", { name: /^Elevação pélvica\s*Glúteos/ }).click();
   await expect(page.getByRole("heading", { name: "Passo a passo" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Demonstração animada: Elevação pélvica" })).toBeVisible();
   await expectNoHorizontalScroll(page);
   await shot(page, "detail-mobile");
+
+  // The few exercises without a reliable match say so instead of showing a wrong movement.
+  await page.goto("/treinador/exercicios?q=prancha+frontal");
+  await page.getByRole("link", { name: /^Prancha frontal/ }).click();
+  await expect(page.getByText("Demonstração em breve")).toBeVisible();
   await page.context().close();
+});
+
+test("a workout carries each exercise's demonstration from the trainer's builder to the student's phone", async ({ page, browser }) => {
+  test.setTimeout(180_000);
+  await signUpTrainer(page);
+  const { page: s } = await inviteStudent(page, browser, "Alice Prado");
+
+  // The trainer only picks the exercise; the animation comes with it.
+  await page.goto("/treinador/treinos");
+  await page.getByText("Novo programa").click();
+  await page.getByLabel("Nome do programa").fill("Peito e costas");
+  await page.getByRole("button", { name: "Criar programa" }).click();
+  const picker = page.getByLabel("Adicionar exercício");
+  await picker.fill("supino reto com barra");
+  const option = page.getByRole("button", { name: /Supino reto com barra/ });
+  await expect(option.locator("img")).toHaveAttribute("src", "https://static.exercisedb.dev/media/EIeI8Vf.gif");
+  await option.click();
+  await picker.fill("prancha frontal");
+  await page.getByRole("button", { name: /Prancha frontal/ }).click();
+  await page.getByRole("button", { name: "Publicar" }).click();
+  await page.getByRole("checkbox", { name: /Alice Prado/ }).check();
+  await page.getByRole("button", { name: "Atribuir programa" }).click();
+  await expect(page.getByText("Programa atribuído a 1 aluno.")).toBeVisible();
+
+  // The student opens the workout on the phone: animation, muscles, equipment and instructions.
+  await s.goto("/aluno");
+  await s.getByRole("button", { name: /Iniciar|Começar/ }).first().click();
+  await s.waitForURL("**/aluno/treino/**");
+  const demo = s.getByRole("img", { name: "Demonstração animada: Supino reto com barra" });
+  await expect(demo).toBeVisible();
+  await expect(demo).toHaveAttribute("src", "https://static.exercisedb.dev/media/EIeI8Vf.gif");
+  await expect(s.getByText("Músculos").first()).toBeVisible();
+  await expect(s.getByText("Peito", { exact: true }).first()).toBeVisible();
+  await expect(s.getByText("Barra e banco").first()).toBeVisible();
+  await s.getByText("Como executar").first().click();
+  await expect(s.getByText(/Deite no banco com os olhos sob a barra/)).toBeVisible();
+  await expectNoHorizontalScroll(s);
+  await expectAccessible(s, "/aluno/treino (com demonstração)");
+  await shot(s, "student-workout");
+  await s.context().close();
 });

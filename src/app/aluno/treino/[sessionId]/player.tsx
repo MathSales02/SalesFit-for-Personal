@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { ExerciseVideo } from "@/components/exercises/video";
+import { DemoAnimation, ExerciseVideo } from "@/components/exercises/video";
 import { buttonClass } from "@/components/ui/button-styles";
 import { Notice } from "@/components/ui/notice";
 import { EFFORT_LABEL } from "@/lib/validation/workouts";
@@ -24,6 +24,11 @@ export type PlayerExercise = {
   videoUrl: string | null;
   /** YouTube demonstration, used when there is no uploaded video. */
   externalVideoUrl: string | null;
+  /** Animated demonstration, linked automatically to the exercise. */
+  demoUrl: string | null;
+  /** Main muscle first, then the secondary ones. */
+  muscles: string[];
+  equipment: string | null;
   previous: { setNumber: number; reps: number; loadKg: number | null }[];
   previousVariation: { setNumber: number; reps: number; loadKg: number | null }[];
 };
@@ -195,10 +200,10 @@ export function WorkoutPlayer({
             Fazer a variação: {ex.variationName}
           </label>
         )}
-        {(ex.videoUrl || ex.externalVideoUrl || ex.instructions) && (
+        <ExerciseDemo key={ex.id} ex={ex} />
+        {ex.instructions && (
           <details className="mt-3">
             <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-            <ExerciseVideo src={ex.videoUrl} externalUrl={ex.externalVideoUrl} title={ex.exerciseName} preload="none" className="mt-2" />
             {ex.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{ex.instructions}</p>}
           </details>
         )}
@@ -241,8 +246,10 @@ export function WorkoutPlayer({
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] border border-turf bg-paper px-4 font-semibold text-turf" aria-label={`Concluir série ${n}`}>
+                  <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] border border-turf bg-paper px-4 font-semibold text-turf">
                     Feita
+                    {/* The name starts with the visible word, so voice control finds it. */}
+                    <span className="sr-only">: série {n}</span>
                   </button>
                 )}
               </li>
@@ -417,6 +424,48 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** What the movement looks like and what it works, shown without the student having to ask. */
+function ExerciseDemo({ ex }: { ex: PlayerExercise }) {
+  const hasVideo = !!(ex.videoUrl || ex.externalVideoUrl);
+  if (!hasVideo && !ex.demoUrl && ex.muscles.length === 0 && !ex.equipment) return null;
+  const facts = (
+    <dl className="min-w-0 flex-1 text-sm">
+      {ex.muscles.length > 0 && (
+        <>
+          <dt className="font-semibold text-ink-soft">Músculos</dt>
+          <dd className="mt-1 mb-2.5 flex flex-wrap gap-1.5">
+            {ex.muscles.map((m, i) => (
+              <span key={m} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${i === 0 ? "bg-turf-tint text-turf" : "border border-line-strong text-ink-soft"}`}>
+                {m}
+              </span>
+            ))}
+          </dd>
+        </>
+      )}
+      {ex.equipment && (
+        <>
+          <dt className="font-semibold text-ink-soft">Equipamento</dt>
+          <dd className="mt-0.5 text-ink">{ex.equipment}</dd>
+        </>
+      )}
+    </dl>
+  );
+  if (hasVideo) {
+    return (
+      <div className="mt-3 flex flex-col gap-3">
+        <ExerciseVideo src={ex.videoUrl} externalUrl={ex.externalVideoUrl} title={ex.exerciseName} preload="none" />
+        {facts}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-3 flex items-start gap-4">
+      {ex.demoUrl && <DemoAnimation url={ex.demoUrl} title={ex.exerciseName} className="w-36 shrink-0 sm:w-44" />}
+      {facts}
     </div>
   );
 }

@@ -60,6 +60,9 @@ export const muscleGroup = pgEnum("muscle_group", [
   "mobility",
 ]);
 
+/** matched: found automatically; manual: chosen by an admin; unmatched: nothing reliable, needs review. */
+export const exerciseDemoStatus = pgEnum("exercise_demo_status", ["matched", "manual", "unmatched"]);
+
 export const exerciseDifficulty = pgEnum("exercise_difficulty", ["beginner", "intermediate", "advanced"]);
 
 /**
@@ -84,6 +87,16 @@ export const exercises = pgTable(
     videoUrl: text("video_url"),
     tips: text("tips"),
     commonMistakes: text("common_mistakes"),
+    /**
+     * Animated demonstration from the external catalogue (ExerciseDB). Platform exercises hold the
+     * reference; trainers' exercises receive theirs by name, alias or origin (app_propagate_exercise_demos).
+     */
+    demoExternalId: text("demo_external_id"),
+    demoUrl: text("demo_url"),
+    demoStatus: exerciseDemoStatus("demo_status"),
+    demoSyncedAt: timestamp("demo_synced_at", { withTimezone: true }),
+    /** Platform exercises: other names trainers use for the same movement (normalized keys). */
+    aliases: text("aliases").array().notNull().default(sql`'{}'`),
     /** The platform exercise this one was copied from, so the same exercise is not copied twice. */
     sourceExerciseId: uuid("source_exercise_id").references((): AnyPgColumn => exercises.id, { onDelete: "set null" }),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
@@ -97,6 +110,22 @@ export const exercises = pgTable(
     index("exercises_ws_group_idx").on(t.workspaceId, t.muscleGroup),
   ],
 );
+
+/** One row per run of the demonstration sync, for the admin panel. */
+export const demoSyncRuns = pgTable("demo_sync_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  /** Platform exercises whose media was checked, and how many answered / were broken. */
+  checked: integer("checked").notNull().default(0),
+  available: integer("available").notNull().default(0),
+  broken: integer("broken").notNull().default(0),
+  /** Trainers' exercises after propagation. */
+  trainerMatched: integer("trainer_matched").notNull().default(0),
+  trainerUnmatched: integer("trainer_unmatched").notNull().default(0),
+  error: text("error"),
+});
 
 /** A training program. Content lives in versions so edits never rewrite history. */
 export const programs = pgTable(

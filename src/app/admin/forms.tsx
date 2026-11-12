@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, SelectField, TextAreaField } from "@/components/ui/field";
-import { closeSupportAction, openSupportAction, exerciseVideoAction, planUpdateAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
+import { closeSupportAction, openSupportAction, exerciseVideoAction, planUpdateAction, syncDemosAction, reprocessBillingEventAction, subscriptionOverrideAction, userStatusAction, workspaceStatusAction } from "./actions";
 
 const reasonHint = "Fica registrado na auditoria.";
 
@@ -183,18 +183,34 @@ export function CloseSupportForm({ workspaceId }: { workspaceId: string }) {
   );
 }
 
-export function ExerciseVideoForm({ exercise }: { exercise: { id: string; name: string; videoUrl: string | null } }) {
+export function ExerciseMediaForm({ exercise }: { exercise: { id: string; name: string; videoUrl: string | null; demoExternalId: string | null; aliases: string[] } }) {
   return (
     <ActionForm action={exerciseVideoAction}>
       {(s) => (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <>
           <input type="hidden" name="exerciseId" value={exercise.id} />
-          <div className="flex-1">
-            <Field label={`Link do YouTube: ${exercise.name}`} name="videoUrl" required={false} maxLength={200} defaultValue={exercise.videoUrl ?? ""} errors={fieldErrors(s, "videoUrl")} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="ID na ExerciseDB" name="demoExternalId" required={false} maxLength={40} defaultValue={exercise.demoExternalId ?? ""} hint="Em branco: sem animação." errors={fieldErrors(s, "demoExternalId")} />
+            <Field label="Link do YouTube" name="videoUrl" required={false} maxLength={200} defaultValue={exercise.videoUrl ?? ""} hint="Opcional. Tem prioridade sobre a animação." errors={fieldErrors(s, "videoUrl")} />
           </div>
-          <SubmitButton variant="secondary" pendingLabel="Salvando…">
-            Salvar
-          </SubmitButton>
+          <Field label="Outros nomes" name="aliases" required={false} maxLength={600} defaultValue={exercise.aliases.join(", ")} hint="Separados por vírgula. Exercícios de treinadores com esses nomes recebem esta animação." errors={fieldErrors(s, "aliases")} />
+          <div>
+            <SubmitButton variant="secondary" pendingLabel="Salvando…">
+              Salvar
+            </SubmitButton>
+          </div>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function SyncDemosButton() {
+  return (
+    <ActionForm action={syncDemosAction}>
+      {() => (
+        <div>
+          <SubmitButton pendingLabel="Sincronizando… pode levar um minuto">Sincronizar agora</SubmitButton>
         </div>
       )}
     </ActionForm>

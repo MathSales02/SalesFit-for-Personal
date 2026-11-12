@@ -7,7 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { MAX_DAYS, MAX_EXERCISES_PER_DAY } from "@/lib/validation/programs";
 import { saveDraftAction } from "./actions";
 
-export type CatalogExercise = { id: string; name: string; group: string; own: boolean };
+export type CatalogExercise = { id: string; name: string; group: string; own: boolean; demoUrl?: string | null };
 
 type Row = {
   key: string;
@@ -350,8 +350,15 @@ function ExercisePicker({ catalog, onPick, disabled }: { catalog: CatalogExercis
                   setQ("");
                 }}
               >
-                <span className="font-medium">{c.name}</span>
-                <span className="text-xs text-muted">{c.group}</span>
+                <span className="flex min-w-0 items-center gap-3">
+                  {c.demoUrl && (
+                    // The demonstration the student will see comes with the exercise.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.demoUrl} alt="" loading="lazy" decoding="async" className="size-11 shrink-0 rounded-lg border border-line bg-white object-contain" />
+                  )}
+                  <span className="truncate font-medium">{c.name}</span>
+                </span>
+                <span className="shrink-0 text-xs text-muted">{c.group}</span>
               </button>
             </li>
           ))}

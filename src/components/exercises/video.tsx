@@ -10,13 +10,28 @@ const PlayIcon = ({ className = "size-6" }: { className?: string }) => (
 );
 
 /**
- * Demonstration of an exercise. An uploaded file (signed `src`) plays in the native player;
- * a YouTube link shows its thumbnail and only loads the player after the person presses play,
- * so nothing starts by itself. `placeholder` shows the "coming soon" state when there is no video.
+ * The animated demonstration linked to an exercise (a looping GIF drawn on white). It plays by
+ * itself, silently, and is only fetched when it gets close to the screen.
+ */
+export function DemoAnimation({ url, title, className = "" }: { url: string; title: string; className?: string }) {
+  return (
+    <span className={`block overflow-hidden rounded-[var(--radius-panel)] border border-line bg-white ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={`Demonstração animada: ${title}`} loading="lazy" decoding="async" className="aspect-square size-full object-contain" />
+    </span>
+  );
+}
+
+/**
+ * Demonstration of an exercise, in order of preference: the trainer's uploaded file (signed
+ * `src`, native player), a YouTube link (thumbnail first; the player loads after a press, so
+ * nothing with sound starts by itself), then the animation linked automatically.
+ * `placeholder` shows the "coming soon" state when there is nothing at all.
  */
 export function ExerciseVideo({
   src,
   externalUrl,
+  demoUrl,
   title,
   placeholder = false,
   preload = "metadata",
@@ -24,6 +39,7 @@ export function ExerciseVideo({
 }: {
   src?: string | null;
   externalUrl?: string | null;
+  demoUrl?: string | null;
   title: string;
   placeholder?: boolean;
   preload?: "metadata" | "none";
@@ -65,6 +81,8 @@ export function ExerciseVideo({
     );
   }
 
+  if (demoUrl) return <DemoAnimation url={demoUrl} title={title} className={`mx-auto w-full max-w-md ${className}`} />;
+
   if (!placeholder) return null;
   return (
     <div className={`${frame} grid place-items-center border border-dashed border-line-strong bg-surface-subtle px-6 text-center`}>
@@ -73,31 +91,35 @@ export function ExerciseVideo({
           <PlayIcon className="ml-0.5 size-5" />
         </span>
         <p className="mt-3 font-semibold text-ink">Demonstração em breve</p>
-        <p className="mt-1 text-sm text-ink-soft">O vídeo deste exercício ainda não está disponível. Siga o passo a passo abaixo.</p>
+        <p className="mt-1 text-sm text-ink-soft">A demonstração deste exercício ainda não está disponível. Siga o passo a passo abaixo.</p>
       </div>
     </div>
   );
 }
 
-/** Small square preview for lists: the video thumbnail when there is one, else a neutral tile. */
-export function ExerciseThumb({ externalUrl, hasVideo }: { externalUrl: string | null; hasVideo: boolean }) {
+/** Small square preview for lists: the animation or video thumbnail when there is one, else a neutral tile. */
+export function ExerciseThumb({ externalUrl, demoUrl, hasVideo }: { externalUrl: string | null; demoUrl?: string | null; hasVideo: boolean }) {
   const id = youtubeId(externalUrl);
+  const media = id || demoUrl;
   return (
-    <span className={`relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl ${id ? "bg-black" : hasVideo ? "bg-signal-tint text-turf" : "bg-surface-subtle text-ink-soft"}`}>
+    <span className={`relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl ${id ? "bg-black" : demoUrl ? "border border-line bg-white" : hasVideo ? "bg-signal-tint text-turf" : "bg-surface-subtle text-ink-soft"}`}>
       {id ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={youtubeThumbnail(id)} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
-          <span className="absolute grid size-7 place-items-center rounded-full bg-signal text-on-accent">
-            <PlayIcon className="ml-px size-3.5" />
-          </span>
-        </>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={youtubeThumbnail(id)} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+      ) : demoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={demoUrl} alt="" loading="lazy" decoding="async" className="size-full object-contain" />
       ) : hasVideo ? (
         <PlayIcon />
       ) : (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" className="size-6">
           <path d="M6.5 8v8M17.5 8v8M3.5 10.5v3M20.5 10.5v3M6.5 12h11" />
         </svg>
+      )}
+      {(id || (hasVideo && media)) && (
+        <span className="absolute right-1 bottom-1 grid size-5 place-items-center rounded-full bg-signal text-on-accent">
+          <PlayIcon className="ml-px size-3" />
+        </span>
       )}
     </span>
   );

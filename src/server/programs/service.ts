@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, count, desc, eq, inArray, isNull, max, or, sql } from "drizzle-orm";
+import type { MuscleGroup } from "@/lib/validation/exercises";
 import type { DraftDay } from "@/lib/validation/programs";
 import { withTenant } from "../db/context";
 import type { Tx } from "../db/client";
@@ -51,6 +52,10 @@ export type ProgramContent = {
       exerciseName: string;
       videoAssetId: string | null;
       videoUrl: string | null;
+      demoUrl: string | null;
+      muscleGroup: MuscleGroup;
+      secondaryMuscles: MuscleGroup[];
+      equipment: string | null;
       instructions: string | null;
       variationExerciseId: string | null;
       variationName: string | null;
@@ -77,6 +82,10 @@ export async function loadContent(tx: Tx, versionId: string): Promise<ProgramCon
       exerciseName: exercises.name,
       videoAssetId: exercises.videoAssetId,
       videoUrl: exercises.videoUrl,
+      demoUrl: exercises.demoUrl,
+      muscleGroup: exercises.muscleGroup,
+      secondaryMuscles: exercises.secondaryMuscles,
+      equipment: exercises.equipment,
       instructions: exercises.instructions,
       variationExerciseId: programExercises.variationExerciseId,
       variationName: variation,

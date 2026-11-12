@@ -49,7 +49,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex min-w-0 flex-col gap-8">
-          <ExerciseVideo src={videoUrl} externalUrl={e.videoUrl} title={e.name} placeholder />
+          <ExerciseVideo src={videoUrl} externalUrl={e.videoUrl} demoUrl={e.demoUrl} title={e.name} placeholder />
 
           {e.description && (
             <section aria-labelledby="about-h">

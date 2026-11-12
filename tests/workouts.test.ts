@@ -93,6 +93,16 @@ describe("running a workout", () => {
       { setNumber: 1, reps: 10, loadKg: 40 },
       { setNumber: 2, reps: 8, loadKg: 45 },
     ]);
+    // The student's workout carries the demonstration, muscles and equipment of each exercise,
+    // without the trainer having attached anything.
+    const bench = view.day.exercises.find((e) => e.exerciseId === supino)!;
+    expect(bench).toMatchObject({
+      demoUrl: "https://static.exercisedb.dev/media/EIeI8Vf.gif",
+      muscleGroup: "chest",
+      secondaryMuscles: ["triceps", "shoulders"],
+      equipment: "Barra e banco",
+    });
+    expect(bench.instructions).toContain("Deite no banco");
   });
 
   it("detects a personal record by estimated 1RM, once, and keeps finishing idempotent", async () => {

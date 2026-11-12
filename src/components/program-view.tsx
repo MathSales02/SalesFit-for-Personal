@@ -46,10 +46,10 @@ export function ProgramView({
                       <p className="text-sm text-ink-soft">{meta.join(" · ")}</p>
                       {e.notes && <p className="mt-1 text-sm text-muted">{e.notes}</p>}
                       {e.variationName && <p className="mt-1 text-sm text-muted">Variação: {e.variationName}</p>}
-                      {(showInstructions && (e.instructions || video || e.videoUrl)) && (
+                      {(showInstructions && (e.instructions || video || e.videoUrl || e.demoUrl)) && (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
-                          <ExerciseVideo src={video} externalUrl={e.videoUrl} title={e.exerciseName} preload="none" className="mt-2 max-w-xl" />
+                          <ExerciseVideo src={video} externalUrl={e.videoUrl} demoUrl={e.demoUrl} title={e.exerciseName} preload="none" className="mt-2 max-w-md" />
                           {e.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{e.instructions}</p>}
                         </details>
                       )}

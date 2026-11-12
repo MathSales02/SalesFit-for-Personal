@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
+import { MUSCLE_GROUP_LABEL } from "@/lib/validation/exercises";
 import { requirePageActor } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 import { playbackUrls } from "@/server/media/service";
@@ -40,6 +41,9 @@ export default async function WorkoutPage({ params }: { params: Promise<{ sessio
     instructions: e.instructions,
     videoUrl: e.videoAssetId ? (videos.get(e.videoAssetId) ?? null) : null,
     externalVideoUrl: e.videoUrl,
+    demoUrl: e.demoUrl,
+    muscles: [e.muscleGroup, ...e.secondaryMuscles].map((g) => MUSCLE_GROUP_LABEL[g]),
+    equipment: e.equipment,
     previous: view.previous.get(e.exerciseId) ?? [],
     previousVariation: e.variationExerciseId ? (view.previous.get(e.variationExerciseId) ?? []) : [],
   }));

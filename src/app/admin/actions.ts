@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionResult } from "@/lib/action-result";
-import { platformVideoSchema } from "@/lib/validation/exercises";
-import { setPlatformVideoUrl } from "@/server/exercises/service";
+import { platformMediaSchema } from "@/lib/validation/exercises";
+import { setPlatformMedia, syncDemos } from "@/server/exercises/service";
 import { overrideSubscription, setUserStatus, setWorkspaceStatus, updatePlan } from "@/server/admin/service";
 import { closeSupportAccess, openSupportAccess } from "@/server/admin/support";
 import { reprocessBillingEvent } from "@/server/billing/provider";
@@ -97,10 +97,23 @@ export async function planUpdateAction(_prev: ActionResult, form: FormData): Pro
 export async function exerciseVideoAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   return runAction("admin_exercise_video", async () => {
     const actor = await requireActionActor("admin.exercises.manage");
-    const { exerciseId, videoUrl } = parseForm(platformVideoSchema, form);
-    await setPlatformVideoUrl(actor, exerciseId, videoUrl, await requestMeta());
+    const { exerciseId, ...input } = parseForm(platformMediaSchema, form);
+    await setPlatformMedia(actor, exerciseId, input, await requestMeta());
     revalidatePath("/admin/exercicios");
-    return { ok: true, message: videoUrl ? "Vídeo salvo." : "Vídeo removido." };
+    return { ok: true, message: "Exercício salvo." };
+  });
+}
+
+/** Checks every demonstration against the source and passes the result on to trainers' exercises. */
+export async function syncDemosAction(_prev: ActionResult, _form: FormData): Promise<ActionResult> {
+  return runAction("admin_sync_demos", async () => {
+    const actor = await requireActionActor("admin.exercises.manage");
+    const r = await syncDemos(actor, await requestMeta());
+    revalidatePath("/admin/exercicios");
+    return {
+      ok: true,
+      message: `Sincronização concluída: ${r.available} de ${r.checked} animações disponíveis${r.broken ? `, ${r.broken} fora do ar` : ""}. Exercícios dos treinadores: ${r.trainerMatched} com animação, ${r.trainerUnmatched} para revisar.`,
+    };
   });
 }
 

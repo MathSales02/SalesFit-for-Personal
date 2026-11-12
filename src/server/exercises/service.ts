@@ -1,9 +1,9 @@
 import "server-only";
-import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
 import type { Difficulty, MuscleGroup } from "@/lib/validation/exercises";
 import { withTenant } from "../db/context";
 import type { Tx } from "../db/client";
-import { exercises, mediaAssets } from "../db/schema";
+import { demoSyncRuns, exercises, mediaAssets } from "../db/schema";
 import { assertCan, requireMembership, type Actor } from "../authz/policy";
 import { AppError, Errors } from "../lib/errors";
 import { errorFields, log } from "../lib/logger";
@@ -11,6 +11,7 @@ import type { RequestMeta } from "../http/request-meta";
 import { audit } from "../security/audit";
 import { enforceRateLimit } from "../security/rate-limit";
 import { deleteObject } from "../storage/s3";
+import { exerciseDb, type DemoSource } from "./exercisedb";
 
 export type ExerciseInput = {
   name: string;
@@ -55,6 +56,7 @@ export async function listExercises(actor: Actor, opts: { q: string; group?: Mus
         equipment: exercises.equipment,
         difficulty: exercises.difficulty,
         videoUrl: exercises.videoUrl,
+        demoUrl: exercises.demoUrl,
         sourceExerciseId: exercises.sourceExerciseId,
         own: sql<boolean>`${exercises.workspaceId} is not null`,
         hasVideo: sql<boolean>`${exercises.videoAssetId} is not null`,
@@ -71,6 +73,23 @@ export async function listExercises(actor: Actor, opts: { q: string; group?: Mus
       .orderBy(asc(sql`lower(${exercises.name})`))
       .limit(1000),
   );
+}
+
+/**
+ * Links the animated demonstration of the equivalent platform exercise (same name, a known
+ * alias, or the exercise it was copied from). Runs whenever a trainer's exercise is created,
+ * renamed or copied, so nobody has to attach media by hand.
+ */
+async function linkDemo(tx: Tx, exerciseId: string) {
+  await tx.execute(sql`
+    UPDATE exercises e
+    SET demo_external_id = p.demo_external_id, demo_url = p.demo_url,
+        demo_status = (CASE WHEN p.id IS NULL THEN 'unmatched' ELSE 'matched' END)::exercise_demo_status,
+        demo_synced_at = now()
+    FROM (SELECT app_demo_source(x.name, x.source_exercise_id) AS source FROM exercises x WHERE x.id = ${exerciseId}) r
+    LEFT JOIN exercises p ON p.id = r.source
+    WHERE e.id = ${exerciseId} AND e.workspace_id IS NOT NULL
+  `);
 }
 
 async function loadVisible(tx: Tx, workspaceId: string, exerciseId: string) {
@@ -119,6 +138,7 @@ export async function createExercise(actor: Actor, input: ExerciseInput, meta: R
         .insert(exercises)
         .values({ ...clean(input), workspaceId: m.workspaceId, createdByUserId: actor.userId })
         .returning({ id: exercises.id });
+      await linkDemo(tx, row!.id);
       await audit(tx, { action: "exercises.created", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "exercise", targetId: row!.id, ipHash: meta.ipHash });
       return row!.id;
     });
@@ -135,6 +155,7 @@ export async function updateExercise(actor: Actor, exerciseId: string, input: Ex
     await withTenant(ctx, async (tx) => {
       await loadOwn(tx, m.workspaceId, exerciseId);
       await tx.update(exercises).set(clean(input)).where(eq(exercises.id, exerciseId));
+      await linkDemo(tx, exerciseId);
       await audit(tx, { action: "exercises.updated", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "exercise", targetId: exerciseId, ipHash: meta.ipHash });
     });
   } catch (err) {
@@ -182,6 +203,7 @@ export async function copyExercise(actor: Actor, exerciseId: string, meta: Reque
         createdByUserId: actor.userId,
       })
       .returning({ id: exercises.id });
+    await linkDemo(tx, row!.id);
     await audit(tx, { action: "exercises.copied", actorUserId: actor.userId, workspaceId: m.workspaceId, targetType: "exercise", targetId: row!.id, metadata: { from: exerciseId }, ipHash: meta.ipHash });
     return row!.id;
   });
@@ -244,30 +266,164 @@ async function retireAsset(tx: Tx, workspaceId: string, assetId: string): Promis
 }
 
 // ---------------------------------------------------------------------------
-// Platform library (admins)
+// Platform library and demonstration sync (admins)
 // ---------------------------------------------------------------------------
+
+const asAdmin = <T>(actor: Actor, fn: (tx: Tx) => Promise<T>) => withTenant({ userId: actor.userId, isPlatformAdmin: true }, fn);
 
 export async function listPlatformExercises(actor: Actor) {
   assertCan(actor, "admin.exercises.manage");
-  return withTenant({ userId: actor.userId, isPlatformAdmin: true }, (tx) =>
+  return asAdmin(actor, (tx) =>
     tx
-      .select({ id: exercises.id, name: exercises.name, muscleGroup: exercises.muscleGroup, videoUrl: exercises.videoUrl })
+      .select({
+        id: exercises.id,
+        name: exercises.name,
+        muscleGroup: exercises.muscleGroup,
+        videoUrl: exercises.videoUrl,
+        demoExternalId: exercises.demoExternalId,
+        demoUrl: exercises.demoUrl,
+        demoStatus: exercises.demoStatus,
+        aliases: exercises.aliases,
+      })
       .from(exercises)
       .where(and(isNull(exercises.workspaceId), isNull(exercises.archivedAt)))
       .orderBy(asc(exercises.muscleGroup), asc(sql`lower(${exercises.name})`)),
   );
 }
 
-/** Sets or clears the demonstration video of a platform exercise. Copies trainers already made keep theirs. */
-export async function setPlatformVideoUrl(actor: Actor, exerciseId: string, videoUrl: string | null, meta: RequestMeta) {
+async function propagate(tx: Tx): Promise<{ matched: number; unmatched: number }> {
+  const res = await tx.execute(sql`SELECT matched, unmatched FROM app_propagate_exercise_demos()`);
+  const row = res.rows[0] as { matched: number; unmatched: number } | undefined;
+  return { matched: row?.matched ?? 0, unmatched: row?.unmatched ?? 0 };
+}
+
+export type PlatformMediaInput = { videoUrl: string | null; demoExternalId: string | null; aliases: string[] };
+
+/**
+ * Admin's manual review of one platform exercise: the YouTube link, the catalogue entry used as
+ * demonstration (checked against the source before it is accepted) and the other names trainers
+ * use for it. Trainers' exercises follow right away.
+ */
+export async function setPlatformMedia(actor: Actor, exerciseId: string, input: PlatformMediaInput, meta: RequestMeta, source: DemoSource = exerciseDb) {
   assertCan(actor, "admin.exercises.manage");
-  await withTenant({ userId: actor.userId, isPlatformAdmin: true }, async (tx) => {
-    const [row] = await tx
+  const [current] = await asAdmin(actor, (tx) =>
+    tx.select({ demoExternalId: exercises.demoExternalId }).from(exercises).where(and(eq(exercises.id, exerciseId), isNull(exercises.workspaceId))),
+  );
+  if (!current) throw Errors.notFound();
+
+  let demo: { demoExternalId: string | null; demoUrl: string | null; demoStatus: "manual" | "unmatched"; demoSyncedAt: Date } | undefined;
+  if (input.demoExternalId !== current.demoExternalId) {
+    if (input.demoExternalId === null) demo = { demoExternalId: null, demoUrl: null, demoStatus: "unmatched", demoSyncedAt: new Date() };
+    else {
+      let found;
+      try {
+        found = await source.fetchExercise(input.demoExternalId);
+        if (found && !(await source.mediaAvailable(found.gifUrl))) found = null;
+      } catch (err) {
+        log.error("exercisedb lookup failed", errorFields(err));
+        throw new AppError("CONFLICT", "Não foi possível consultar a ExerciseDB agora. Tente de novo em instantes.");
+      }
+      if (!found) throw Errors.validation({ demoExternalId: ["Este ID não existe na ExerciseDB ou está sem animação."] });
+      demo = { demoExternalId: found.id, demoUrl: found.gifUrl, demoStatus: "manual", demoSyncedAt: new Date() };
+    }
+  }
+
+  await asAdmin(actor, async (tx) => {
+    await tx
       .update(exercises)
-      .set({ videoUrl })
-      .where(and(eq(exercises.id, exerciseId), isNull(exercises.workspaceId)))
-      .returning({ id: exercises.id });
-    if (!row) throw Errors.notFound();
-    await audit(tx, { action: "admin.exercise_video_set", actorUserId: actor.userId, targetType: "exercise", targetId: exerciseId, metadata: { videoUrl }, ipHash: meta.ipHash });
+      .set({ videoUrl: input.videoUrl, aliases: input.aliases, ...demo })
+      .where(and(eq(exercises.id, exerciseId), isNull(exercises.workspaceId)));
+    await propagate(tx);
+    await audit(tx, { action: "admin.exercise_media_set", actorUserId: actor.userId, targetType: "exercise", targetId: exerciseId, metadata: { ...input }, ipHash: meta.ipHash });
+  });
+}
+
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]!);
+      }
+    }),
+  );
+  return out;
+}
+
+export type DemoSyncResult = { checked: number; available: number; broken: number; trainerMatched: number; trainerUnmatched: number };
+
+/**
+ * Checks the media of every platform exercise against the source, refreshes addresses that
+ * changed, drops the ones that no longer exist, and passes the result on to trainers' exercises.
+ * Running it again changes nothing that is already right. If the source looks down (most checks
+ * fail), nothing is touched.
+ */
+export async function syncDemos(actor: Actor, meta: RequestMeta, source: DemoSource = exerciseDb): Promise<DemoSyncResult> {
+  assertCan(actor, "admin.exercises.manage");
+  const rows = await asAdmin(actor, (tx) =>
+    tx
+      .select({ id: exercises.id, demoExternalId: exercises.demoExternalId, demoUrl: exercises.demoUrl, demoStatus: exercises.demoStatus })
+      .from(exercises)
+      .where(and(isNull(exercises.workspaceId), isNull(exercises.archivedAt), isNotNull(exercises.demoExternalId))),
+  );
+
+  type Check = { id: string; url: string | null; failed: boolean };
+  const checks = await mapLimit(rows, 6, async (r): Promise<Check> => {
+    try {
+      if (r.demoUrl && (await source.mediaAvailable(r.demoUrl))) return { id: r.id, url: r.demoUrl, failed: false };
+      // The file moved or is gone: ask the catalogue for the current address.
+      const fresh = await source.fetchExercise(r.demoExternalId!);
+      if (fresh && (await source.mediaAvailable(fresh.gifUrl))) return { id: r.id, url: fresh.gifUrl, failed: false };
+      return { id: r.id, url: null, failed: false };
+    } catch {
+      return { id: r.id, url: r.demoUrl, failed: true };
+    }
+  });
+
+  const failed = checks.filter((c) => c.failed).length;
+  if (rows.length > 0 && failed > rows.length / 2) {
+    const error = "A ExerciseDB não respondeu à maioria das consultas. Nada foi alterado.";
+    await asAdmin(actor, (tx) => tx.insert(demoSyncRuns).values({ actorUserId: actor.userId, finishedAt: new Date(), checked: rows.length, error }));
+    throw new AppError("CONFLICT", `${error} Tente de novo mais tarde.`);
+  }
+
+  const before = new Map(rows.map((r) => [r.id, r]));
+  return asAdmin(actor, async (tx) => {
+    let available = 0;
+    let broken = 0;
+    for (const c of checks) {
+      if (c.failed) continue;
+      const was = before.get(c.id)!;
+      if (c.url) available++;
+      else broken++;
+      const status = c.url ? (was.demoStatus === "manual" ? "manual" : "matched") : "unmatched";
+      if (c.url !== was.demoUrl || status !== was.demoStatus) {
+        await tx.update(exercises).set({ demoUrl: c.url, demoStatus: status, demoSyncedAt: new Date() }).where(eq(exercises.id, c.id));
+      }
+    }
+    const p = await propagate(tx);
+    const result = { checked: rows.length, available, broken, trainerMatched: p.matched, trainerUnmatched: p.unmatched };
+    await tx.insert(demoSyncRuns).values({ actorUserId: actor.userId, finishedAt: new Date(), ...result });
+    await audit(tx, { action: "admin.exercise_demos_synced", actorUserId: actor.userId, targetType: "exercise", metadata: result, ipHash: meta.ipHash });
+    return result;
+  });
+}
+
+/** Numbers and lists for the admin panel. */
+export async function getDemoOverview(actor: Actor) {
+  assertCan(actor, "admin.exercises.manage");
+  return asAdmin(actor, async (tx) => {
+    const [platform] = await tx
+      .select({
+        total: sql<number>`count(*)::int`,
+        withDemo: sql<number>`count(*) filter (where ${exercises.demoUrl} is not null)::int`,
+      })
+      .from(exercises)
+      .where(and(isNull(exercises.workspaceId), isNull(exercises.archivedAt)));
+    const unmatchedNames = (await tx.execute(sql`SELECT name_key, sample, uses FROM app_unmatched_exercise_names()`)).rows as { name_key: string; sample: string; uses: number }[];
+    const runs = await tx.select().from(demoSyncRuns).orderBy(desc(demoSyncRuns.startedAt)).limit(5);
+    return { platform: platform!, unmatchedNames, runs };
   });
 }

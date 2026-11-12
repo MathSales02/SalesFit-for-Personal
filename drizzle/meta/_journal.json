@@ -253,6 +253,20 @@
       "when": 1794440016121,
       "tag": "0035_exercise_library_security",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794441643507,
+      "tag": "0036_exercise_demos",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794441645710,
+      "tag": "0037_exercise_demos_security",
+      "breakpoints": true
     }
   ]
 }

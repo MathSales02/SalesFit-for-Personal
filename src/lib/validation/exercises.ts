@@ -30,6 +30,15 @@ export const DIFFICULTIES = [
 export type Difficulty = (typeof DIFFICULTIES)[number][0];
 export const DIFFICULTY_LABEL = Object.fromEntries(DIFFICULTIES) as Record<Difficulty, string>;
 
+/** Same rule as the database's app_exercise_key: no accents, case or punctuation. */
+export const normalizeName = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
 const optionalText = (max: number) =>
   z
     .string()
@@ -74,8 +83,24 @@ const exerciseFields = {
 
 export const createExerciseSchema = z.strictObject(exerciseFields);
 export const updateExerciseSchema = z.strictObject({ exerciseId: z.uuid(), ...exerciseFields });
-/** Admin: the demonstration video of a platform exercise (empty clears it). */
-export const platformVideoSchema = z.strictObject({ exerciseId: z.uuid(), videoUrl: exerciseFields.videoUrl });
+/** Admin: media and other names of one platform exercise (empty fields clear them). */
+export const platformMediaSchema = z.strictObject({
+  exerciseId: z.uuid(),
+  videoUrl: exerciseFields.videoUrl,
+  demoExternalId: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]{0,40}$/, "Use o ID do exercício na ExerciseDB (letras e números).")
+    .default("")
+    .transform((v) => (v === "" ? null : v)),
+  /** Comma-separated; compared without accents, case or punctuation. */
+  aliases: z
+    .string()
+    .max(600, "Use no máximo 600 caracteres.")
+    .default("")
+    .transform((v) => [...new Set(v.split(",").map(normalizeName).filter(Boolean))])
+    .pipe(z.array(z.string().max(80)).max(30, "Use no máximo 30 nomes.")),
+});
 export const exerciseIdSchema = z.strictObject({ exerciseId: z.uuid() });
 
 export const exerciseListQuerySchema = z.object({
