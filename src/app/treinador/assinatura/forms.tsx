@@ -79,8 +79,11 @@ export function CheckoutForm({
             <legend className="sr-only">Plano</legend>
             <div className="grid gap-4 lg:grid-cols-3">
               {plans.map((p, i) => {
-                // Always the price of one month, so only the number changes between the two ways of paying.
-                const perMonth = yearly && p.annualPriceCents !== null ? Math.round(p.annualPriceCents / 12) : p.priceCents;
+                // Two numbers, each in its fixed place: what is charged, and what it comes to per month.
+                // Switching between monthly and yearly only runs the digits; nothing else moves.
+                const byYear = yearly && p.annualPriceCents !== null;
+                const charged = byYear ? p.annualPriceCents! : p.priceCents;
+                const perMonth = byYear ? Math.round(p.annualPriceCents! / 12) : p.priceCents;
                 const previous = i > 0 ? plans[i - 1]! : null;
                 const added = FEATURES.filter((f) => p.features[f] && !previous?.features[f]);
                 const isCurrent = p.current === cycle && !p.pending;
@@ -94,10 +97,12 @@ export function CheckoutForm({
                       <input type="radio" name="planId" value={p.id} checked={planId === p.id} onChange={() => setPlanId(p.id)} className="mt-1.5 size-4 accent-turf" />
                     </span>
                     <span className="mt-2">
-                      <AnimatedPrice cents={perMonth} className="font-display text-4xl font-bold" />
-                      <span className="text-muted">/mês</span>
+                      <AnimatedPrice cents={charged} className="font-display text-4xl font-bold" />
+                      <span className="text-muted">{byYear ? "/ano" : "/mês"}</span>
                     </span>
-                    {p.annualPriceCents !== null && <span className="mt-1 text-sm text-ink-soft">No anual, {brl(p.annualPriceCents)} por ano</span>}
+                    <span className="mt-1 text-sm text-ink-soft">
+                      <AnimatedPrice cents={perMonth} className="font-semibold text-ink" /> por mês
+                    </span>
                     <span className="mt-4 flex-1 space-y-1.5 text-sm text-ink-soft">
                       <span className="block font-semibold text-ink">Até {p.maxStudents} alunos</span>
                       <span className="block">{p.storageGb} GB para vídeos e fotos</span>
@@ -117,11 +122,12 @@ export function CheckoutForm({
             {fieldErrors(s, "cycle") && <p className="mt-2 text-sm font-medium text-danger">{fieldErrors(s, "cycle")!.join(" ")}</p>}
           </fieldset>
 
-          {yearly ? (
-            <div className="max-w-sm">
-              <label htmlFor="installments" className="text-sm font-semibold text-ink">
-                Parcelas
-              </label>
+          {/* Always in its place, so choosing yearly does not push the rest of the form down. */}
+          <div className="max-w-sm">
+            <label htmlFor="installments" className="text-sm font-semibold text-ink">
+              Parcelas
+            </label>
+            {yearly ? (
               <select
                 id="installments"
                 name="installments"
@@ -135,14 +141,23 @@ export function CheckoutForm({
                   </option>
                 ))}
               </select>
-              <p className="mt-1.5 text-sm text-muted">
-                {split ? "Parcelado, o plano vale por 12 meses e não renova sozinho: perto do fim você escolhe de novo." : "À vista, o plano renova a cada 12 meses. Cancele quando quiser."}
-              </p>
-              {fieldErrors(s, "installments") && <p className="mt-1 text-sm font-medium text-danger">{fieldErrors(s, "installments")!.join(" ")}</p>}
-            </div>
-          ) : (
-            <input type="hidden" name="installments" value="1" />
-          )}
+            ) : (
+              <>
+                <input type="hidden" name="installments" value="1" />
+                <select id="installments" disabled className="mt-1.5 h-11 w-full rounded-[var(--radius-control)] border border-line bg-surface-subtle px-3 text-base text-ink-soft">
+                  <option>Cobrança mensal, sem parcelas</option>
+                </select>
+              </>
+            )}
+            <p className="mt-1.5 min-h-10 text-sm text-muted">
+              {!yearly
+                ? "No anual você pode parcelar em até 12x no cartão."
+                : split
+                  ? "Parcelado, o plano vale por 12 meses e não renova sozinho: perto do fim você escolhe de novo."
+                  : "À vista, o plano renova a cada 12 meses. Cancele quando quiser."}
+            </p>
+            {fieldErrors(s, "installments") && <p className="mt-1 text-sm font-medium text-danger">{fieldErrors(s, "installments")!.join(" ")}</p>}
+          </div>
 
           {needsTaxId && (
             <div className="max-w-sm">
