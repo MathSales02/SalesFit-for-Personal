@@ -25,8 +25,9 @@ import {
   IconUsers,
 } from "./icons";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 import { SwipeNavigation } from "./swipe-navigation";
-import { HeaderIconLink,MoreTab, RailLink, SideNavLink, TabNavLink, type NavItem } from "./nav-link";
+import { HeaderIconLink, RailLink, SideNavLink, type NavItem } from "./nav-link";
 
 type Variant = "trainer" | "student" | "admin";
 type Badges = { messages: number; notifications: number };
@@ -131,7 +132,7 @@ export async function AppShell({
 
   if (variant === "student") {
     return (
-      <div className="min-h-dvh bg-chalk pb-20 [--tabbar-h:4rem] xl:pb-0 xl:[--tabbar-h:0px]">
+      <div className="min-h-dvh bg-chalk pb-28 [--tabbar-h:5rem] xl:pb-0 xl:[--tabbar-h:0px]">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
             <Link href="/aluno" aria-label="SalesFit, início">
@@ -154,14 +155,7 @@ export async function AppShell({
           </div>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
-        <nav
-          aria-label="Principal"
-          className="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-paper xl:hidden"
-        >
-          {main.map((i) => (
-            <TabNavLink key={i.href} item={i} />
-          ))}
-        </nav>
+        <TubelightNavBar items={main} className="xl:hidden" />
         <SwipeNavigation hrefs={main.map((i) => i.href)} mobileQuery="(max-width: 79.99rem)" />
       </div>
     );
@@ -175,7 +169,7 @@ export async function AppShell({
     const tabs = main.filter((i) => TAB_HREFS.includes(i.href)).map((i) => (i.href === "/treinador" ? { ...i, label: "Início" } : i));
     const more = main.filter((i) => !TAB_HREFS.includes(i.href) && !header.some((h) => h.href === i.href));
     return (
-      <div className="min-h-dvh bg-chalk pb-20 [--tabbar-h:4rem] lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:pb-0 lg:[--tabbar-h:0px]">
+      <div className="min-h-dvh bg-chalk pb-28 [--tabbar-h:5rem] lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:pb-0 lg:[--tabbar-h:0px]">
         {/* Desktop: a floating icon rail, as in the reference dashboard. */}
         <aside className="sticky top-0 hidden h-dvh py-4 pl-4 lg:block">
           <div className="flex h-full flex-col items-center gap-5 rounded-[var(--radius-panel)] bg-paper py-5 shadow-[var(--shadow-card)]">
@@ -233,12 +227,7 @@ export async function AppShell({
           {children}
         </main>
 
-        <nav aria-label="Principal" className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-paper lg:hidden">
-          {tabs.map((i) => (
-            <TabNavLink key={i.href} item={i} />
-          ))}
-          <MoreTab items={more} footer={<LogoutButton tone="light" />} />
-        </nav>
+        <TubelightNavBar items={tabs} more={more} moreFooter={<LogoutButton tone="light" />} className="lg:hidden" />
         {/* Swipes follow what the phone shows: the tabs, then the "Mais" list. */}
         <SwipeNavigation hrefs={[...tabs, ...more].map((i) => i.href)} mobileQuery="(max-width: 63.99rem)" />
       </div>

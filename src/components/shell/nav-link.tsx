@@ -72,23 +72,6 @@ export function SideNavLink({
   );
 }
 
-export function TabNavLink({ item }: { item: NavItem }) {
-  const active = isActive(usePathname(), item.href);
-  return (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[0.66rem] tracking-[-0.01em] font-medium transition-colors ${
-        active ? "text-turf font-semibold" : "text-muted hover:text-ink"
-      }`}
-    >
-      <span className="size-5">{item.icon}</span>
-      {item.label}
-      <UnreadText n={item.badge} />
-    </Link>
-  );
-}
-
 /** Compact icon link with a badge, for headers (messages, notifications). */
 export function HeaderIconLink({ item }: { item: NavItem }) {
   const active = isActive(usePathname(), item.href);
@@ -177,9 +160,9 @@ export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.Re
   }, [open]);
 
   return (
-    <div ref={root} className="flex min-w-0 flex-1">
+    <div ref={root} className="z-10 flex min-w-0 flex-1">
       {open && (
-        <div id="more-menu" className="absolute inset-x-3 bottom-full mb-2 flex flex-col gap-1 rounded-[var(--radius-panel)] border border-line bg-paper p-2 shadow-[var(--shadow-card)]">
+        <div id="more-menu" className="absolute inset-x-0 bottom-full mb-3 flex flex-col gap-1 rounded-[var(--radius-panel)] border border-line bg-paper p-2 shadow-[var(--shadow-card)]">
           {items.map((i) => (
             <SideNavLink key={i.href} item={i} />
           ))}
@@ -190,8 +173,9 @@ export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.Re
         type="button"
         aria-expanded={open}
         aria-controls="more-menu"
+        data-active={active || undefined}
         onClick={() => setOpen((v) => !v)}
-        className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-[0.66rem] tracking-[-0.01em] font-medium transition-colors ${
+        className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-1.5 text-[0.66rem] tracking-[-0.01em] font-medium transition-colors ${
           active || open ? "text-turf font-semibold" : "text-muted hover:text-ink"
         }`}
       >
