@@ -50,6 +50,13 @@ describe("exercise search", () => {
     expect(names("abdomen")).toEqual(["Prancha frontal"]);
   });
 
+  it("finds muscle groups by their English and Spanish names too", () => {
+    expect(names("chest").slice(0, 4).sort()).toEqual(["Crucifixo com halteres", "Peck deck", "Supino inclinado com halteres", "Supino reto com barra"]);
+    expect(names("espalda")).toEqual(["Puxada frontal", "Remada curvada com barra"]);
+    expect(names("shoulders")[0]).toBe("Elevação lateral");
+    expect(names("abs")).toEqual(["Prancha frontal"]);
+  });
+
   it("matches while typing, by equipment, and needs every word to match", () => {
     expect(names("sup")).toEqual(["Supino inclinado com halteres", "Supino reto com barra"]);
     expect(names("polia")).toEqual(["Tríceps na polia", "Puxada frontal"]);

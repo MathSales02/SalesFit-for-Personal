@@ -7,6 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { EFFORT_LABEL } from "@/lib/validation/workouts";
 import { finishSessionAction, logSetAction, removeSetAction } from "../actions";
 import { AbandonButton } from "./abandon-button";
+import { useT } from "@/i18n/client";
 
 export type PlayerExercise = {
   id: string; // program exercise id
@@ -63,6 +64,7 @@ export function WorkoutPlayer({
   exercises: PlayerExercise[];
   initialSets: LoggedSet[];
 }) {
+  const t = useT();
   const [index, setIndex] = useState(() => {
     const firstOpen = exercises.findIndex((e) => initialSets.filter((s) => s.programExerciseId === e.id).length < e.sets);
     return firstOpen === -1 ? 0 : firstOpen;
@@ -101,8 +103,8 @@ export function WorkoutPlayer({
     const d = draftFor(n);
     const reps = Number(d.reps);
     const loadKg = parseKg(d.load);
-    if (!Number.isInteger(reps) || reps < 0 || reps > 200) return setError("Informe as repetições (número inteiro).");
-    if (Number.isNaN(loadKg) || (loadKg != null && (loadKg < 0 || loadKg > 1000))) return setError("Carga inválida.");
+    if (!Number.isInteger(reps) || reps < 0 || reps > 200) return setError(t("Informe as repetições (número inteiro)."));
+    if (Number.isNaN(loadKg) || (loadKg != null && (loadKg < 0 || loadKg > 1000))) return setError(t("Carga inválida."));
     setError(null);
     const entry: LoggedSet = { programExerciseId: ex.id, exerciseId: currentExerciseId, setNumber: n, reps, loadKg };
     const key = slot(ex.id, n);
@@ -151,7 +153,7 @@ export function WorkoutPlayer({
           <Elapsed startedAt={startedAt} />
         </div>
         <div className="mt-3 flex items-center gap-3">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-turf-tint" role="progressbar" aria-valuemin={0} aria-valuemax={planned} aria-valuenow={Math.min(done, planned)} aria-label="Séries feitas">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-turf-tint" role="progressbar" aria-valuemin={0} aria-valuemax={planned} aria-valuenow={Math.min(done, planned)} aria-label={t("Séries feitas")}>
             <div className="h-full rounded-full bg-turf transition-[width]" style={{ width: `${planned ? Math.min(100, (done / planned) * 100) : 0}%` }} />
           </div>
           <span className="text-sm font-semibold tabular-nums">
@@ -160,7 +162,7 @@ export function WorkoutPlayer({
         </div>
       </header>
 
-      <nav aria-label="Exercícios do treino" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      <nav aria-label={t("Exercícios do treino")} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {exercises.map((e, i) => {
           const n = [...logged.values()].filter((s) => s.programExerciseId === e.id).length;
           const complete = n >= e.sets;
@@ -170,7 +172,7 @@ export function WorkoutPlayer({
               type="button"
               onClick={() => setIndex(i)}
               aria-current={i === index ? "step" : undefined}
-              aria-label={`${i + 1}. ${e.exerciseName}${complete ? ", concluído" : ""}`}
+              aria-label={`${i + 1}. ${e.exerciseName}${complete ? t(", concluído") : ""}`}
               className={`grid size-10 shrink-0 place-items-center rounded-full border text-sm font-bold ${
                 i === index ? "border-turf-solid bg-turf-solid text-white" : complete ? "border-turf bg-turf-tint text-turf" : "border-line-strong bg-paper text-ink-soft"
               }`}
@@ -186,24 +188,24 @@ export function WorkoutPlayer({
           {variation ? ex.variationName : ex.exerciseName}
         </h2>
         <p className="mt-0.5 text-sm text-ink-soft">
-          {[`${ex.sets} × ${ex.reps}`, ex.load, ex.restSeconds ? `descanso ${fmtTime(ex.restSeconds)}` : null, ex.tempo && `cadência ${ex.tempo}`].filter(Boolean).join(" · ")}
+          {[`${ex.sets} × ${ex.reps}`, ex.load, ex.restSeconds ? `descanso ${fmtTime(ex.restSeconds)}` : null, ex.tempo && t("cadência {0}", { 0: ex.tempo })].filter(Boolean).join(" · ")}
         </p>
         {ex.notes && <p className="mt-1 text-sm text-muted">{ex.notes}</p>}
         {previous.length > 0 && (
           <p className="mt-2 rounded-[var(--radius-control)] bg-chalk px-3 py-2 text-sm">
-            <span className="font-semibold">Última vez:</span> {prevLabel(previous)}
+            <span className="font-semibold">{t("Última vez:")}</span> {prevLabel(previous)}
           </p>
         )}
         {ex.variationExerciseId && (
           <label className="mt-3 flex items-center gap-2 text-sm">
             <input type="checkbox" className="size-4 accent-turf" checked={variation} onChange={(e) => setUseVariation((m) => new Map(m).set(ex.id, e.target.checked))} />
-            Fazer a variação: {ex.variationName}
+            {t("Fazer a variação:")} {ex.variationName}
           </label>
         )}
         <ExerciseDemo key={ex.id} ex={ex} />
         {ex.instructions && (
           <details className="mt-3">
-            <summary className="cursor-pointer text-sm font-semibold text-turf">Como executar</summary>
+            <summary className="cursor-pointer text-sm font-semibold text-turf">{t("Como executar")}</summary>
             {ex.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{ex.instructions}</p>}
           </details>
         )}
@@ -216,7 +218,7 @@ export function WorkoutPlayer({
               <li key={n} className={`flex items-end gap-2 rounded-[var(--radius-control)] p-2 ${isLogged ? "bg-turf-tint" : "bg-chalk"}`}>
                 <span className="w-7 pb-2.5 text-center font-display text-lg font-bold text-muted">{n}</span>
                 <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs font-semibold text-muted">
-                  Reps
+                  {t("Reps")}
                   <input
                     inputMode="numeric"
                     value={d.reps}
@@ -226,7 +228,7 @@ export function WorkoutPlayer({
                   />
                 </label>
                 <label className="flex min-w-0 flex-1 flex-col gap-0.5 text-xs font-semibold text-muted">
-                  Kg
+                  {t("Kg")}
                   <input
                     inputMode="decimal"
                     value={d.load}
@@ -238,18 +240,18 @@ export function WorkoutPlayer({
                 </label>
                 {isLogged ? (
                   <div className="flex gap-1">
-                    <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] bg-turf-solid px-3 font-semibold text-white" aria-label={`Atualizar série ${n}`}>
+                    <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] bg-turf-solid px-3 font-semibold text-white" aria-label={t("Atualizar série {0}", { 0: n })}>
                       ✓
                     </button>
-                    <button type="button" onClick={() => undo(n)} className="h-11 px-2 text-sm font-semibold text-ink-soft" aria-label={`Desfazer série ${n}`}>
-                      Desfazer
+                    <button type="button" onClick={() => undo(n)} className="h-11 px-2 text-sm font-semibold text-ink-soft" aria-label={t("Desfazer série {0}", { 0: n })}>
+                      {t("Desfazer")}
                     </button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => logOne(n)} className="h-11 rounded-[var(--radius-control)] border border-turf bg-paper px-4 font-semibold text-turf">
-                    Feita
+                    {t("Feita")}
                     {/* The name starts with the visible word, so voice control finds it. */}
-                    <span className="sr-only">: série {n}</span>
+                    <span className="sr-only">{t(": série")} {n}</span>
                   </button>
                 )}
               </li>
@@ -258,7 +260,7 @@ export function WorkoutPlayer({
         </ol>
         {setCount < ex.sets + 5 && (
           <button type="button" className="mt-2 text-sm font-semibold text-turf" onClick={() => setExtraSets((m) => new Map(m).set(ex.id, (m.get(ex.id) ?? 0) + 1))}>
-            + Série extra
+            {t("+ Série extra")}
           </button>
         )}
         {error && (
@@ -270,21 +272,21 @@ export function WorkoutPlayer({
 
       <div className="flex gap-2">
         <button type="button" className={`${buttonClass("secondary")} flex-1`} onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0}>
-          Anterior
+          {t("Anterior")}
         </button>
         {index < exercises.length - 1 ? (
           <button type="button" className={`${buttonClass("primary")} flex-1`} onClick={() => setIndex((i) => i + 1)}>
-            Próximo exercício
+            {t("Próximo exercício")}
           </button>
         ) : (
           <button type="button" className={`${buttonClass("primary")} flex-1`} onClick={() => setFinishing(true)}>
-            Concluir treino
+            {t("Concluir treino")}
           </button>
         )}
       </div>
       {index < exercises.length - 1 && (
         <button type="button" className="self-center text-sm font-semibold text-turf" onClick={() => setFinishing(true)}>
-          Concluir treino agora
+          {t("Concluir treino agora")}
         </button>
       )}
 
@@ -297,6 +299,7 @@ export function WorkoutPlayer({
 }
 
 function Elapsed({ startedAt }: { startedAt: string }) {
+  const t = useT();
   const start = useMemo(() => new Date(startedAt).getTime(), [startedAt]);
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -311,7 +314,7 @@ function Elapsed({ startedAt }: { startedAt: string }) {
   }, []);
   const secs = now == null ? 0 : Math.max(0, Math.floor((now - start) / 1000));
   return (
-    <span className="font-display text-xl font-bold text-muted tabular-nums" aria-label="Tempo de treino">
+    <span className="font-display text-xl font-bold text-muted tabular-nums" aria-label={t("Tempo de treino")}>
       {now == null ? "–:––" : fmtTime(secs)}
     </span>
   );
@@ -319,6 +322,7 @@ function Elapsed({ startedAt }: { startedAt: string }) {
 
 /** Rest countdown. Vibrates (where supported) and announces when rest is over. */
 function RestTimer({ endsAt, total, onAdd, onClose }: { endsAt: number; total: number; onAdd: (s: number) => void; onClose: () => void }) {
+  const t = useT();
   const [left, setLeft] = useState(() => Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)));
   const notified = useRef(false);
   useEffect(() => {
@@ -336,11 +340,11 @@ function RestTimer({ endsAt, total, onAdd, onClose }: { endsAt: number; total: n
     return () => clearInterval(t);
   }, [endsAt]);
   return (
-    <div role="region" aria-label="Descanso" className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-night px-4 py-3 text-white sm:bottom-0">
+    <div role="region" aria-label={t("Descanso")} className="fixed inset-x-0 bottom-16 z-20 border-t border-line bg-night px-4 py-3 text-white sm:bottom-0">
       <div className="mx-auto flex max-w-3xl items-center gap-4">
         <div className="flex-1">
           <p className="text-xs font-semibold text-white/60" aria-live="polite">
-            {left === 0 ? "Descanso acabou. Próxima série!" : "Descanso"}
+            {left === 0 ? t("Descanso acabou. Próxima série!") : t("Descanso")}
           </p>
           <p className="font-display text-3xl font-bold tabular-nums">{fmtTime(left)}</p>
           <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/15">
@@ -351,7 +355,7 @@ function RestTimer({ endsAt, total, onAdd, onClose }: { endsAt: number; total: n
           +15s
         </button>
         <button type="button" onClick={onClose} className="h-11 rounded-[var(--radius-control)] bg-white px-4 font-semibold text-ink">
-          {left === 0 ? "Fechar" : "Pular"}
+          {left === 0 ? t("Fechar") : t("Pular")}
         </button>
       </div>
     </div>
@@ -359,6 +363,7 @@ function RestTimer({ endsAt, total, onAdd, onClose }: { endsAt: number; total: n
 }
 
 function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: string; done: number; planned: number; onCancel: () => void; busy: boolean }) {
+  const t = useT();
   const [effort, setEffort] = useState<number | null>(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -367,13 +372,13 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
     <div role="dialog" aria-modal="true" aria-labelledby="finish-h" className="fixed inset-0 z-30 flex items-end bg-black/60 sm:items-center sm:justify-center">
       <div className="w-full max-w-lg rounded-t-[var(--radius-panel)] bg-paper p-5 sm:rounded-[var(--radius-panel)]">
         <h2 id="finish-h" className="font-display text-2xl font-bold">
-          Concluir treino
+          {t("Concluir treino")}
         </h2>
         <p className="mt-1 text-sm text-muted">
-          {done} de {planned} séries registradas.
+          {done} {t("de")} {planned} {t("séries registradas.")}
         </p>
         <fieldset className="mt-4">
-          <legend className="text-sm font-semibold">Como foi o esforço?</legend>
+          <legend className="text-sm font-semibold">{t("Como foi o esforço?")}</legend>
           <div className="mt-2 grid grid-cols-5 gap-1.5">
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button
@@ -387,16 +392,16 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
               </button>
             ))}
           </div>
-          <p className="mt-1 h-5 text-sm text-muted">{effort ? EFFORT_LABEL[effort] : "1 = muito leve, 10 = no limite"}</p>
+          <p className="mt-1 h-5 text-sm text-muted">{effort ? t(EFFORT_LABEL[effort]) : t("1 = muito leve, 10 = no limite")}</p>
         </fieldset>
         <label className="mt-3 flex flex-col gap-1.5 text-sm font-semibold">
-          Observações para o treinador (opcional)
+          {t("Observações para o treinador (opcional)")}
           <textarea
             value={notes}
             maxLength={500}
             rows={2}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ex.: a última série do supino ficou pesada"
+            placeholder={t("Ex.: a última série do supino ficou pesada")}
             className="rounded-[var(--radius-control)] border border-line-strong px-3 py-2 font-normal outline-none focus:border-turf"
           />
         </label>
@@ -407,7 +412,7 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
         )}
         <div className="mt-5 flex gap-2">
           <button type="button" className={`${buttonClass("secondary")} flex-1`} onClick={onCancel}>
-            Voltar
+            {t("Voltar")}
           </button>
           <button
             type="button"
@@ -420,7 +425,7 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
               })
             }
           >
-            {pending ? "Salvando…" : "Concluir"}
+            {pending ? t("Salvando…") : t("Concluir")}
           </button>
         </div>
       </div>
@@ -430,13 +435,14 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
 
 /** What the movement looks like and what it works, shown without the student having to ask. */
 function ExerciseDemo({ ex }: { ex: PlayerExercise }) {
+  const t = useT();
   const hasVideo = !!(ex.videoUrl || ex.externalVideoUrl);
   if (!hasVideo && !ex.demoUrl && ex.muscles.length === 0 && !ex.equipment) return null;
   const facts = (
     <dl className="min-w-0 flex-1 text-sm">
       {ex.muscles.length > 0 && (
         <>
-          <dt className="font-semibold text-ink-soft">Músculos</dt>
+          <dt className="font-semibold text-ink-soft">{t("Músculos")}</dt>
           <dd className="mt-1 mb-2.5 flex flex-wrap gap-1.5">
             {ex.muscles.map((m, i) => (
               <span key={m} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${i === 0 ? "bg-turf-tint text-turf" : "border border-line-strong text-ink-soft"}`}>
@@ -448,7 +454,7 @@ function ExerciseDemo({ ex }: { ex: PlayerExercise }) {
       )}
       {ex.equipment && (
         <>
-          <dt className="font-semibold text-ink-soft">Equipamento</dt>
+          <dt className="font-semibold text-ink-soft">{t("Equipamento")}</dt>
           <dd className="mt-0.5 text-ink">{ex.equipment}</dd>
         </>
       )}

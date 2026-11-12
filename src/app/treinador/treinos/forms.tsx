@@ -14,27 +14,29 @@ import {
   startDraftAction,
   updateProgramInfoAction,
 } from "./actions";
+import { useT } from "@/i18n/client";
 
 type Info = { name: string; description: string | null; isTemplate: boolean };
 
 export function ProgramInfoForm({ programId, values }: { programId?: string; values?: Info }) {
+  const t = useT();
   return (
     <ActionForm action={programId ? updateProgramInfoAction : createProgramAction}>
       {(s) => (
         <>
           {programId && <input type="hidden" name="programId" value={programId} />}
-          <Field label="Nome do programa" name="name" maxLength={80} defaultValue={values?.name} errors={fieldErrors(s, "name")} />
-          <TextAreaField label="Descrição" name="description" maxLength={1000} rows={2} defaultValue={values?.description ?? ""} errors={fieldErrors(s, "description")} />
+          <Field label={t("Nome do programa")} name="name" maxLength={80} defaultValue={values?.name} errors={fieldErrors(s, "name")} />
+          <TextAreaField label={t("Descrição")} name="description" maxLength={1000} rows={2} defaultValue={values?.description ?? ""} errors={fieldErrors(s, "description")} />
           <label className="flex items-start gap-3 text-sm text-ink-soft">
             <input type="checkbox" name="isTemplate" defaultChecked={values?.isTemplate} className="mt-0.5 size-4 accent-turf" />
             <span>
-              <span className="font-semibold text-ink">Usar como modelo</span>
+              <span className="font-semibold text-ink">{t("Usar como modelo")}</span>
               <br />
-              Modelos servem de ponto de partida: duplique e ajuste para cada aluno.
+              {t("Modelos servem de ponto de partida: duplique e ajuste para cada aluno.")}
             </span>
           </label>
           <div>
-            <SubmitButton pendingLabel="Salvando…">{programId ? "Salvar informações" : "Criar programa"}</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{programId ? t("Salvar informações") : t("Criar programa")}</SubmitButton>
           </div>
         </>
       )}
@@ -57,22 +59,35 @@ function ProgramButton({ action, programId, label, variant = "secondary" }: { ac
   );
 }
 
-export const StartDraftButton = ({ programId }: { programId: string }) => <ProgramButton action={startDraftAction} programId={programId} label="Editar treino" variant="primary" />;
-export const DiscardDraftButton = ({ programId }: { programId: string }) => <ProgramButton action={discardDraftAction} programId={programId} label="Descartar rascunho" variant="danger" />;
-export const DuplicateProgramButton = ({ programId }: { programId: string }) => <ProgramButton action={duplicateProgramAction} programId={programId} label="Duplicar programa" />;
-export const ArchiveProgramButton = ({ programId }: { programId: string }) => <ProgramButton action={archiveProgramAction} programId={programId} label="Arquivar programa" variant="danger" />;
+export const StartDraftButton = ({ programId }: { programId: string }) => {
+  const t = useT();
+  return <ProgramButton action={startDraftAction} programId={programId} label={t("Editar treino")} variant="primary" />;
+};
+export const DiscardDraftButton = ({ programId }: { programId: string }) => {
+  const t = useT();
+  return <ProgramButton action={discardDraftAction} programId={programId} label={t("Descartar rascunho")} variant="danger" />;
+};
+export const DuplicateProgramButton = ({ programId }: { programId: string }) => {
+  const t = useT();
+  return <ProgramButton action={duplicateProgramAction} programId={programId} label={t("Duplicar programa")} />;
+};
+export const ArchiveProgramButton = ({ programId }: { programId: string }) => {
+  const t = useT();
+  return <ProgramButton action={archiveProgramAction} programId={programId} label={t("Arquivar programa")} variant="danger" />;
+};
 
 type Student = { memberId: string; displayName: string; currentProgram: string | null };
 
 export function AssignForm({ programId, programName, students, today }: { programId: string; programName: string; students: Student[]; today: string }) {
-  if (students.length === 0) return <p className="text-sm text-muted">Você ainda não tem alunos ativos.</p>;
+  const t = useT();
+  if (students.length === 0) return <p className="text-sm text-muted">{t("Você ainda não tem alunos ativos.")}</p>;
   return (
     <ActionForm action={assignProgramAction} resetOnSuccess>
       {(s) => (
         <>
           <input type="hidden" name="programId" value={programId} />
           <fieldset className="flex flex-col gap-1">
-            <legend className="mb-2 text-sm font-semibold">Alunos</legend>
+            <legend className="mb-2 text-sm font-semibold">{t("Alunos")}</legend>
             <div className="max-h-64 divide-y divide-line overflow-y-auto rounded-[var(--radius-control)] border border-line bg-paper">
               {students.map((st) => (
                 <label key={st.memberId} className="flex cursor-pointer items-center gap-3 px-3 py-2.5 hover:bg-chalk">
@@ -81,7 +96,7 @@ export function AssignForm({ programId, programName, students, today }: { progra
                     <span className="block truncate font-medium">{st.displayName}</span>
                     {st.currentProgram && (
                       <span className="block truncate text-xs text-muted">
-                        {st.currentProgram === programName ? "Já segue este programa" : `Hoje: ${st.currentProgram} (será substituído)`}
+                        {st.currentProgram === programName ? t("Já segue este programa") : t("Hoje: {0} (será substituído)", { 0: st.currentProgram })}
                       </span>
                     )}
                   </span>
@@ -91,11 +106,11 @@ export function AssignForm({ programId, programName, students, today }: { progra
             {fieldErrors(s, "memberIds") && <p className="text-sm font-medium text-danger">{fieldErrors(s, "memberIds")!.join(" ")}</p>}
           </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
-            <DateField label="Início" name="startsOn" defaultValue={today} required errors={fieldErrors(s, "startsOn")} />
-            <DateField label="Fim (opcional)" name="endsOn" errors={fieldErrors(s, "endsOn")} />
+            <DateField label={t("Início")} name="startsOn" defaultValue={today} required errors={fieldErrors(s, "startsOn")} />
+            <DateField label={t("Fim (opcional)")} name="endsOn" errors={fieldErrors(s, "endsOn")} />
           </div>
           <div>
-            <SubmitButton pendingLabel="Atribuindo…">Atribuir programa</SubmitButton>
+            <SubmitButton pendingLabel={t("Atribuindo…")}>{t("Atribuir programa")}</SubmitButton>
           </div>
         </>
       )}
@@ -121,14 +136,15 @@ function DateField({ label, name, defaultValue, required, errors }: { label: str
 }
 
 export function EndAssignmentButton({ programId, assignmentId }: { programId: string; assignmentId: string }) {
+  const t = useT();
   return (
     <ActionForm action={endAssignmentAction} className="flex" successNotice={false}>
       {() => (
         <>
           <input type="hidden" name="programId" value={programId} />
           <input type="hidden" name="assignmentId" value={assignmentId} />
-          <SubmitButton variant="ghost" pendingLabel="Encerrando…">
-            Encerrar
+          <SubmitButton variant="ghost" pendingLabel={t("Encerrando…")}>
+            {t("Encerrar")}
           </SubmitButton>
         </>
       )}

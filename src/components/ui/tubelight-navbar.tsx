@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { isActive, MoreTab, type NavItem } from "@/components/shell/nav-link";
+import { useT } from "@/i18n/client";
 
 /**
  * Tubelight navbar: a floating pill of tabs where a small lamp hangs over the current one and
@@ -26,6 +27,7 @@ export function TubelightNavBar({
   /** Usually the breakpoint where the bar gives way to the desktop navigation, e.g. "lg:hidden". */
   className?: string;
 }) {
+  const t = useT();
   const pathname = usePathname();
   const pill = useRef<HTMLDivElement>(null);
   // Where the lamp sits, measured from the tab that is current. Null: no tab is current.
@@ -48,7 +50,7 @@ export function TubelightNavBar({
 
   return (
     <nav
-      aria-label="Principal"
+      aria-label={t("Principal")}
       className={`pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-chalk via-chalk/85 to-transparent px-3 pt-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${className}`}
     >
       <div ref={pill} className="pointer-events-auto relative flex w-full max-w-md items-stretch rounded-full border border-line bg-paper/95 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-lg">

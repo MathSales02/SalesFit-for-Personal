@@ -69,6 +69,8 @@ test("on a phone, horizontal swipes walk the trainer's menu in order and stop at
   await expectStill(page, "/conta");
 
   // A touch that starts on a field belongs to the field.
+  // The account page got longer: the field has to be on screen for the touch to land on it.
+  await page.locator("main input:visible").first().scrollIntoViewIfNeeded();
   const field = await page.locator("main input:visible").first().boundingBox();
   if (!field) throw new Error("no field on /conta");
   const fy = field.y + field.height / 2;

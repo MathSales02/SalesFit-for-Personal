@@ -4,6 +4,7 @@ import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
 import { MEASUREMENT_FIELDS } from "@/lib/validation/progress";
+import { useT } from "@/i18n/client";
 
 /** Shared by the student (own measurements) and the trainer (assessment). */
 export function MeasurementForm({
@@ -15,13 +16,14 @@ export function MeasurementForm({
   today: string;
   memberId?: string;
 }) {
+  const t = useT();
   return (
     <ActionForm action={action} resetOnSuccess>
       {(s) => (
         <>
           {memberId && <input type="hidden" name="memberId" value={memberId} />}
           <label className="flex max-w-xs flex-col gap-1.5 text-sm font-semibold">
-            Data
+            {t("Data")}
             <input
               type="date"
               name="measuredOn"
@@ -47,11 +49,11 @@ export function MeasurementForm({
             ))}
           </div>
           <label className="flex flex-col gap-1.5 text-sm font-semibold">
-            Observação (opcional)
+            {t("Observação (opcional)")}
             <input name="notes" maxLength={300} className="h-11 rounded-[var(--radius-control)] border border-line-strong bg-paper px-3 font-normal outline-none focus:border-turf" />
           </label>
           <div>
-            <SubmitButton pendingLabel="Salvando…">Salvar medidas</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{t("Salvar medidas")}</SubmitButton>
           </div>
         </>
       )}

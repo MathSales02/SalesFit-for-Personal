@@ -28,27 +28,29 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 import { SwipeNavigation } from "./swipe-navigation";
 import { HeaderIconLink, RailLink, SideNavLink, type NavItem } from "./nav-link";
+import { getT } from "@/i18n/server";
+import type { Translate } from "@/i18n/config";
 
 type Variant = "trainer" | "student" | "admin";
 type Badges = { messages: number; notifications: number };
 
-function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem[] } {
+function navFor(variant: Variant, b: Badges, t: Translate): { main: NavItem[]; header: NavItem[] } {
   if (variant === "trainer") {
     const header = [
-      { href: "/treinador/mensagens", label: "Mensagens", icon: <IconMessage />, badge: b.messages },
-      { href: "/treinador/notificacoes", label: "Notificações", icon: <IconBell />, badge: b.notifications },
+      { href: "/treinador/mensagens", label: t("Mensagens"), icon: <IconMessage />, badge: b.messages },
+      { href: "/treinador/notificacoes", label: t("Notificações"), icon: <IconBell />, badge: b.notifications },
     ];
     return {
       main: [
-        { href: "/treinador", label: "Visão geral", icon: <IconHome /> },
-        { href: "/treinador/alunos", label: "Alunos", icon: <IconUsers /> },
-        { href: "/treinador/treinos", label: "Treinos", icon: <IconClipboard /> },
-        { href: "/treinador/exercicios", label: "Exercícios", icon: <IconDumbbell /> },
-        { href: "/treinador/comunidade", label: "Comunidade", icon: <IconChat /> },
-        { href: "/treinador/ranking", label: "Ranking", icon: <IconTrophy /> },
+        { href: "/treinador", label: t("Visão geral"), icon: <IconHome /> },
+        { href: "/treinador/alunos", label: t("Alunos"), icon: <IconUsers /> },
+        { href: "/treinador/treinos", label: t("Treinos"), icon: <IconClipboard /> },
+        { href: "/treinador/exercicios", label: t("Exercícios"), icon: <IconDumbbell /> },
+        { href: "/treinador/comunidade", label: t("Comunidade"), icon: <IconChat /> },
+        { href: "/treinador/ranking", label: t("Ranking"), icon: <IconTrophy /> },
         ...header,
-        { href: "/treinador/assinatura", label: "Assinatura", icon: <IconCard /> },
-        { href: "/conta", label: "Conta", icon: <IconUser /> },
+        { href: "/treinador/assinatura", label: t("Assinatura"), icon: <IconCard /> },
+        { href: "/conta", label: t("Conta"), icon: <IconUser /> },
       ],
       header,
     };
@@ -56,30 +58,30 @@ function navFor(variant: Variant, b: Badges): { main: NavItem[]; header: NavItem
   if (variant === "student") {
     return {
       main: [
-        { href: "/aluno", label: "Início", icon: <IconActivity /> },
-        { href: "/aluno/comunidade", label: "Comunidade", icon: <IconChat /> },
-        { href: "/aluno/ranking", label: "Ranking", icon: <IconTrophy /> },
-        { href: "/aluno/historico", label: "Histórico", icon: <IconClipboard /> },
-        { href: "/aluno/progresso", label: "Progresso", icon: <IconTrend /> },
-        { href: "/conta", label: "Perfil", icon: <IconUser /> },
+        { href: "/aluno", label: t("Início"), icon: <IconActivity /> },
+        { href: "/aluno/comunidade", label: t("Comunidade"), icon: <IconChat /> },
+        { href: "/aluno/ranking", label: t("Ranking"), icon: <IconTrophy /> },
+        { href: "/aluno/historico", label: t("Histórico"), icon: <IconClipboard /> },
+        { href: "/aluno/progresso", label: t("Progresso"), icon: <IconTrend /> },
+        { href: "/conta", label: t("Perfil"), icon: <IconUser /> },
       ],
       header: [
-        { href: "/aluno/mensagens", label: "Mensagens", icon: <IconMessage />, badge: b.messages },
-        { href: "/aluno/notificacoes", label: "Notificações", icon: <IconBell />, badge: b.notifications },
+        { href: "/aluno/mensagens", label: t("Mensagens"), icon: <IconMessage />, badge: b.messages },
+        { href: "/aluno/notificacoes", label: t("Notificações"), icon: <IconBell />, badge: b.notifications },
       ],
     };
   }
   return {
     main: [
-      { href: "/admin", label: "Plataforma", icon: <IconShield /> },
-      { href: "/admin/consultorias", label: "Consultorias", icon: <IconBuilding /> },
-      { href: "/admin/usuarios", label: "Usuários", icon: <IconUsers /> },
-      { href: "/admin/planos", label: "Planos", icon: <IconCard /> },
-      { href: "/admin/exercicios", label: "Exercícios", icon: <IconDumbbell /> },
-      { href: "/admin/cobranca", label: "Cobrança", icon: <IconActivity /> },
-      { href: "/admin/seguranca", label: "Segurança", icon: <IconAlert /> },
-      { href: "/admin/auditoria", label: "Auditoria", icon: <IconClipboard /> },
-      { href: "/conta", label: "Conta", icon: <IconUser /> },
+      { href: "/admin", label: t("Plataforma"), icon: <IconShield /> },
+      { href: "/admin/consultorias", label: t("Consultorias"), icon: <IconBuilding /> },
+      { href: "/admin/usuarios", label: t("Usuários"), icon: <IconUsers /> },
+      { href: "/admin/planos", label: t("Planos"), icon: <IconCard /> },
+      { href: "/admin/exercicios", label: t("Exercícios"), icon: <IconDumbbell /> },
+      { href: "/admin/cobranca", label: t("Cobrança"), icon: <IconActivity /> },
+      { href: "/admin/seguranca", label: t("Segurança"), icon: <IconAlert /> },
+      { href: "/admin/auditoria", label: t("Auditoria"), icon: <IconClipboard /> },
+      { href: "/conta", label: t("Conta"), icon: <IconUser /> },
     ],
     header: [],
   };
@@ -91,7 +93,8 @@ export function variantFor(actor: Actor): Variant {
   return "admin";
 }
 
-function LogoutButton({ tone }: { tone: "light" | "dark" }) {
+async function LogoutButton({ tone }: { tone: "light" | "dark" }) {
+  const t = await getT();
   return (
     <form action={logoutAction}>
       <button
@@ -105,7 +108,7 @@ function LogoutButton({ tone }: { tone: "light" | "dark" }) {
         <span className="size-5 shrink-0">
           <IconLogout />
         </span>
-        Sair
+        {t("Sair")}
       </button>
     </form>
   );
@@ -125,10 +128,11 @@ export async function AppShell({
   variant?: Variant;
   children: React.ReactNode;
 }) {
+  const t = await getT();
   const badges: Badges = actor.membership
     ? { messages: await unreadConversationCount(actor), notifications: await unreadNotificationCount(actor) }
     : { messages: 0, notifications: 0 };
-  const nav = navFor(variant, badges);
+  const nav = navFor(variant, badges, t);
   const header = nav.header;
   // Students are not offered what the consultancy's plan leaves out (trainers keep the entry: it leads to the plans).
   const hidden = variant === "student" ? [!actorHasFeature(actor, "community") && "/aluno/comunidade", !actorHasFeature(actor, "ranking") && "/aluno/ranking"] : [];
@@ -139,11 +143,11 @@ export async function AppShell({
       <div className="min-h-dvh bg-chalk pb-28 [--tabbar-h:5rem] xl:pb-0 xl:[--tabbar-h:0px]">
         <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
-            <Link href="/aluno" aria-label="SalesFit, início">
+            <Link href="/aluno" aria-label={t("SalesFit, início")}>
               <Logo />
             </Link>
             <div className="flex items-center gap-1">
-              <nav aria-label="Principal" className="hidden items-center gap-1 xl:flex">
+              <nav aria-label={t("Principal")} className="hidden items-center gap-1 xl:flex">
                 {main.map((i) => (
                   <SideNavLink key={i.href} item={i} />
                 ))}
@@ -170,17 +174,17 @@ export async function AppShell({
     const nav = main.filter((i) => i.href !== "/conta");
     // Phones and tablets: a bottom tab bar like the student's. Messages and notifications stay in the header.
     const TAB_HREFS = ["/treinador", "/treinador/alunos", "/treinador/treinos", "/treinador/comunidade"];
-    const tabs = main.filter((i) => TAB_HREFS.includes(i.href)).map((i) => (i.href === "/treinador" ? { ...i, label: "Início" } : i));
+    const tabs = main.filter((i) => TAB_HREFS.includes(i.href)).map((i) => (i.href === "/treinador" ? { ...i, label: t("Início") } : i));
     const more = main.filter((i) => !TAB_HREFS.includes(i.href) && !header.some((h) => h.href === i.href));
     return (
       <div className="min-h-dvh bg-chalk pb-28 [--tabbar-h:5rem] lg:grid lg:grid-cols-[6.5rem_minmax(0,1fr)] lg:pb-0 lg:[--tabbar-h:0px]">
         {/* Desktop: a floating icon rail, as in the reference dashboard. */}
         <aside className="sticky top-0 hidden h-dvh py-4 pl-4 lg:block">
           <div className="flex h-full flex-col items-center gap-5 rounded-[var(--radius-panel)] bg-paper py-5 shadow-[var(--shadow-card)]">
-            <Link href="/treinador" aria-label="SalesFit, início" className="grid size-11 place-items-center">
+            <Link href="/treinador" aria-label={t("SalesFit, início")} className="grid size-11 place-items-center">
               <Logo layout="symbol" height={28} />
             </Link>
-            <nav aria-label="Principal" className="flex flex-1 flex-col items-center gap-2">
+            <nav aria-label={t("Principal")} className="flex flex-1 flex-col items-center gap-2">
               {nav.map((i) => (
                 <RailLink key={i.href} item={i} />
               ))}
@@ -193,7 +197,7 @@ export async function AppShell({
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  aria-label="Sair"
+                  aria-label={t("Sair")}
                   className="group relative grid size-11 place-items-center rounded-full text-ink-soft transition-colors hover:bg-turf-tint hover:text-turf"
                 >
                   <span className="size-5">
@@ -203,7 +207,7 @@ export async function AppShell({
                     aria-hidden="true"
                     className="pointer-events-none absolute left-full z-30 ml-3 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-paper opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
                   >
-                    Sair
+                    {t("Sair")}
                   </span>
                 </button>
               </form>
@@ -215,7 +219,7 @@ export async function AppShell({
         </aside>
 
         <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b border-line bg-paper/95 px-4 lg:hidden">
-          <Link href="/treinador" aria-label="SalesFit, início">
+          <Link href="/treinador" aria-label={t("SalesFit, início")}>
             <Logo />
           </Link>
           <div className="flex items-center gap-1">
@@ -246,18 +250,18 @@ export async function AppShell({
           dark ? "border-r border-white/10 bg-night" : "border-r border-line bg-paper"
         }`}
       >
-        <Link href={main[0]!.href} className="px-3" aria-label="SalesFit, início">
+        <Link href={main[0]!.href} className="px-3" aria-label={t("SalesFit, início")}>
           <Logo tone={dark ? "dark" : "auto"} />
         </Link>
         <div className={`px-3 ${dark ? "text-white" : ""}`}>
           <p className={`text-[0.7rem] uppercase tracking-wider font-bold ${dark ? "text-turf" : "text-muted"}`}>
-            {dark ? "Administração" : "Consultoria"}
+            {dark ? t("Administração") : t("Consultoria")}
           </p>
           <p className="mt-0.5 truncate font-semibold text-sm">
-            {dark ? "SalesFit Platform" : actor.membership?.workspaceName}
+            {dark ? t("SalesFit Platform") : actor.membership?.workspaceName}
           </p>
         </div>
-        <nav aria-label="Principal" className="flex flex-col gap-1">
+        <nav aria-label={t("Principal")} className="flex flex-col gap-1">
           {main.map((i) => (
             <SideNavLink key={i.href} item={i} tone={dark ? "dark" : "light"} />
           ))}
@@ -286,14 +290,14 @@ export async function AppShell({
               className={`grid size-10 cursor-pointer list-none place-items-center rounded-full ${
                 dark ? "text-white" : "text-ink-soft hover:bg-turf-tint/60"
               }`}
-              aria-label="Menu"
+              aria-label={t("Menu")}
             >
               <span className="size-[22px]">
                 <IconMenu />
               </span>
             </summary>
             <nav
-              aria-label="Principal"
+              aria-label={t("Principal")}
               className={`absolute inset-x-0 top-14 z-20 flex flex-col gap-1 border-b px-4 py-3 shadow-[var(--shadow-raised)] ${
                 dark ? "border-white/10 bg-night" : "border-line bg-paper"
               }`}
@@ -315,15 +319,16 @@ export async function AppShell({
 }
 
 /** Trainer-only reminder when the trial is ending, a payment is late or access is paused. */
-function BillingBanner({ actor }: { actor: Actor }) {
+async function BillingBanner({ actor }: { actor: Actor }) {
+  const t = await getT();
   const a = actor.membership?.access;
   if (!a) return null;
   const left = daysLeft(a.until);
   let text: string | null = null;
-  if (a.state === "blocked") text = "Acesso pausado: a assinatura está inativa. Seus alunos também estão sem acesso.";
-  else if (a.state === "grace") text = `Pagamento pendente. O acesso será pausado em ${left} ${left === 1 ? "dia" : "dias"}.`;
+  if (a.state === "blocked") text = t("Acesso pausado: a assinatura está inativa. Seus alunos também estão sem acesso.");
+  else if (a.state === "grace") text = t("Pagamento pendente. O acesso será pausado em {0} {1}.", { 0: left, 1: left === 1 ? t("dia") : t("dias") });
   else if (a.state === "trial" && left !== null && left <= 5)
-    text = `Seu teste grátis termina em ${left} ${left === 1 ? "dia" : "dias"}.`;
+    text = t("Seu teste grátis termina em {0} {1}.", { 0: left, 1: left === 1 ? t("dia") : t("dias") });
   if (!text) return null;
   return (
     <div
@@ -335,7 +340,7 @@ function BillingBanner({ actor }: { actor: Actor }) {
     >
       <span className="font-semibold">{text}</span>
       <Link href="/treinador/assinatura" className="font-semibold text-turf underline-offset-2 hover:underline">
-        Ver planos
+        {t("Ver planos")}
       </Link>
     </div>
   );

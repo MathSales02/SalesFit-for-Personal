@@ -20,6 +20,9 @@ import {
   updateExercise,
 } from "@/server/exercises/service";
 import type { DemoSource } from "@/server/exercises/exercisedb";
+import { en } from "@/i18n/catalog/en";
+import { es } from "@/i18n/catalog/es";
+import { equipmentText, translator } from "@/i18n/config";
 import { AppError } from "@/server/lib/errors";
 import { completeUpload, playbackUrls, requestUpload, type UploadTicket } from "@/server/media/service";
 import { headObject } from "@/server/storage/s3";
@@ -283,6 +286,20 @@ describe("animated demonstrations", () => {
     expect(new Set(urls).size).toBe(urls.length);
     const bench = platform.find((e) => e.name === "Supino reto com barra")!;
     expect(await demoOf(a, bench.id)).toEqual({ url: "https://static.exercisedb.dev/media/EIeI8Vf.gif", status: "matched", externalId: "EIeI8Vf" });
+  });
+
+  it("every exercise and piece of equipment of the platform library has an English and a Spanish name", async () => {
+    const a = await trainer();
+    const platform = (await listExercises(a, { q: "" })).filter((e) => !e.own);
+    for (const [lang, catalog] of [["en", en], ["es", es]] as const) {
+      const missing = platform.flatMap((e) => [e.name, e.equipment]).filter((text): text is string => !!text && !(text in catalog));
+      expect(missing, lang).toEqual([]);
+      const t = translator(lang, catalog);
+      // A name shared by an exercise and its equipment gets the right one in each place.
+      expect(t("Barra fixa")).toBe(lang === "en" ? "Pull-up" : "Dominadas");
+      expect(equipmentText(t, "Barra fixa")).toBe(lang === "en" ? "Pull-up bar" : "Barra de dominadas");
+      expect(equipmentText(t, "Halteres")).toBe(lang === "en" ? "Dumbbells" : "Mancuernas");
+    }
   });
 
   it("a trainer's exercise gets its demonstration by itself: same name, another usual name, or the copy's origin", async () => {

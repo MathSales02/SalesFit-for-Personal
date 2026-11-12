@@ -6,12 +6,17 @@ import { currentActor, requestMeta } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 import { previewInvitation } from "@/server/students/invitations";
 import { AcceptAsCurrentUserForm, NewAccountForm } from "./forms";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Convite" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Convite") };
+}
 
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
 export default async function InvitationPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
+  const t = await getT();
   const { token } = await searchParams;
   if (typeof token !== "string" || !TOKEN.test(token)) return <Invalid />;
 
@@ -20,14 +25,14 @@ export default async function InvitationPage({ searchParams }: { searchParams: P
     preview = await previewInvitation(token, await requestMeta());
   } catch (err) {
     if (err instanceof AppError && err.code === "RATE_LIMITED") {
-      return <Notice tone="error">Muitas tentativas. Aguarde alguns minutos e abra o link de novo.</Notice>;
+      return <Notice tone="error">{t("Muitas tentativas. Aguarde alguns minutos e abra o link de novo.")}</Notice>;
     }
     throw err;
   }
   if (!preview) return <Invalid />;
 
   const actor = await currentActor();
-  const heading = <AuthHeading title={preview.workspaceName}>convidou você para treinar no SalesFit.</AuthHeading>;
+  const heading = <AuthHeading title={preview.workspaceName}>{t("convidou você para treinar no SalesFit.")}</AuthHeading>;
 
   if (!preview.accountExists) {
     return (
@@ -35,7 +40,7 @@ export default async function InvitationPage({ searchParams }: { searchParams: P
         {heading}
         {actor && (
           <div className="mb-6">
-            <Notice tone="info">Você está conectado com outra conta. Ao continuar, criará uma nova conta para {preview.email}.</Notice>
+            <Notice tone="info">{t("Você está conectado com outra conta. Ao continuar, criará uma nova conta para")} {preview.email}.</Notice>
           </div>
         )}
         <NewAccountForm token={token} email={preview.email} />
@@ -47,7 +52,7 @@ export default async function InvitationPage({ searchParams }: { searchParams: P
     return (
       <>
         {heading}
-        <p className="mb-6 text-muted">Você vai entrar como aluno com a conta {preview.email}.</p>
+        <p className="mb-6 text-muted">{t("Você vai entrar como aluno com a conta")} {preview.email}.</p>
         <AcceptAsCurrentUserForm token={token} />
       </>
     );
@@ -57,21 +62,22 @@ export default async function InvitationPage({ searchParams }: { searchParams: P
     <>
       {heading}
       <Notice tone="info">
-        Já existe uma conta para {preview.email}.{" "}
+        {t("Já existe uma conta para")} {preview.email}.{" "}
         <Link href="/entrar" className="font-semibold underline">
-          Entre com ela
+          {t("Entre com ela")}
         </Link>{" "}
-        e depois abra este link de novo para aceitar o convite.
+        {t("e depois abra este link de novo para aceitar o convite.")}
       </Notice>
     </>
   );
 }
 
-function Invalid() {
+async function Invalid() {
+  const t = await getT();
   return (
     <>
-      <AuthHeading title="Convite indisponível">Este convite é inválido, expirou ou já foi usado.</AuthHeading>
-      <p className="text-muted">Peça ao seu treinador para enviar um novo convite.</p>
+      <AuthHeading title={t("Convite indisponível")}>{t("Este convite é inválido, expirou ou já foi usado.")}</AuthHeading>
+      <p className="text-muted">{t("Peça ao seu treinador para enviar um novo convite.")}</p>
     </>
   );
 }

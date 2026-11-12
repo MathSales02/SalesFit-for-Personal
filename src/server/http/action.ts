@@ -1,6 +1,7 @@
 import "server-only";
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
+import { getT } from "@/i18n/server";
 import { AppError, Errors } from "../lib/errors";
 import { errorFields, log } from "../lib/logger";
 
@@ -42,6 +43,10 @@ export function parseInput<S extends z.ZodType>(schema: S, value: unknown): z.in
 
 /** Runs an action body and maps errors to a safe ActionResult. */
 export async function runAction<T>(name: string, fn: () => Promise<ActionResult<T>>): Promise<ActionResult<T>> {
+  return localized(await run(name, fn));
+}
+
+async function run<T>(name: string, fn: () => Promise<ActionResult<T>>): Promise<ActionResult<T>> {
   try {
     return await fn();
   } catch (err) {
@@ -53,4 +58,18 @@ export async function runAction<T>(name: string, fn: () => Promise<ActionResult<
     log.error("action failed", { action: name, ...errorFields(err) });
     return { ok: false, code: "INTERNAL", message: "Algo deu errado. Tente novamente em instantes." };
   }
+}
+
+/**
+ * Puts a result's texts in the language of the request. Messages built with values inside
+ * (a count, a name) have no catalogue entry and stay in Portuguese for now.
+ */
+async function localized<T>(result: ActionResult<T>): Promise<ActionResult<T>> {
+  const t = await getT();
+  if (result.ok) return result.message ? { ...result, message: t(result.message) } : result;
+  return {
+    ...result,
+    message: t(result.message),
+    fieldErrors: result.fieldErrors ? Object.fromEntries(Object.entries(result.fieldErrors).map(([k, v]) => [k, v.map((m) => t(m))])) : result.fieldErrors,
+  };
 }

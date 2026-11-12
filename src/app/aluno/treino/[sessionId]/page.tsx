@@ -7,11 +7,17 @@ import { AppError } from "@/server/lib/errors";
 import { playbackUrls } from "@/server/media/service";
 import { getSessionView } from "@/server/workouts/service";
 import { WorkoutPlayer, type PlayerExercise } from "./player";
+import { getT } from "@/i18n/server";
+import { equipmentText } from "@/i18n/config";
 
-export const metadata: Metadata = { title: "Treino" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Treino") };
+}
 
 export default async function WorkoutPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const actor = await requirePageActor("training.log_own");
+  const t = await getT();
   const { sessionId } = await params;
   if (!z.uuid().safeParse(sessionId).success) notFound();
 
@@ -29,9 +35,9 @@ export default async function WorkoutPage({ params }: { params: Promise<{ sessio
   const exercises: PlayerExercise[] = view.day.exercises.map((e) => ({
     id: e.id,
     exerciseId: e.exerciseId,
-    exerciseName: e.exerciseName,
+    exerciseName: t(e.exerciseName),
     variationExerciseId: e.variationExerciseId,
-    variationName: e.variationName,
+    variationName: e.variationName ? t(e.variationName) : e.variationName,
     sets: e.sets,
     reps: e.reps,
     load: e.load,
@@ -42,8 +48,8 @@ export default async function WorkoutPage({ params }: { params: Promise<{ sessio
     videoUrl: e.videoAssetId ? (videos.get(e.videoAssetId) ?? null) : null,
     externalVideoUrl: e.videoUrl,
     demoUrl: e.demoUrl,
-    muscles: [e.muscleGroup, ...e.secondaryMuscles].map((g) => MUSCLE_GROUP_LABEL[g]),
-    equipment: e.equipment,
+    muscles: [e.muscleGroup, ...e.secondaryMuscles].map((g) => t(MUSCLE_GROUP_LABEL[g])),
+    equipment: e.equipment ? equipmentText(t, e.equipment) : null,
     previous: view.previous.get(e.exerciseId) ?? [],
     previousVariation: e.variationExerciseId ? (view.previous.get(e.variationExerciseId) ?? []) : [],
   }));

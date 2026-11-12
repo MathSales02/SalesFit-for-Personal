@@ -6,11 +6,13 @@ import { ActionForm } from "@/components/ui/action-form";
 import { Notice } from "@/components/ui/notice";
 import { PHOTO_POSES } from "@/lib/validation/progress";
 import { completePhotoUploadAction, deleteMeasurementAction, deletePhotoAction, requestPhotoUploadAction, setPhotoSharingAction } from "./actions";
+import { useT } from "@/i18n/client";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
 const MAX_MB = 10;
 
 export function PhotoUploader({ today }: { today: string }) {
+  const t = useT();
   const router = useRouter();
   const id = useId();
   const [takenOn, setTakenOn] = useState(today);
@@ -19,11 +21,11 @@ export function PhotoUploader({ today }: { today: string }) {
 
   async function onFile(file: File | undefined) {
     if (!file) return;
-    if (!ACCEPT.split(",").includes(file.type)) return setState({ kind: "error", message: "Envie uma foto JPG, PNG ou WebP." });
+    if (!ACCEPT.split(",").includes(file.type)) return setState({ kind: "error", message: t("Envie uma foto JPG, PNG ou WebP.") });
     if (file.size > MAX_MB * 1024 * 1024) return setState({ kind: "error", message: `A foto passa de ${MAX_MB} MB.` });
     setState({ kind: "busy" });
     const ticket = await requestPhotoUploadAction({ contentType: file.type, sizeBytes: file.size });
-    if (!ticket.ok || !ticket.data) return setState({ kind: "error", message: ticket.ok ? "Não foi possível enviar." : ticket.message });
+    if (!ticket.ok || !ticket.data) return setState({ kind: "error", message: ticket.ok ? t("Não foi possível enviar.") : ticket.message });
     const data = new FormData();
     for (const [k, v] of Object.entries(ticket.data.fields)) data.append(k, v);
     data.append("file", file);
@@ -40,7 +42,7 @@ export function PhotoUploader({ today }: { today: string }) {
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3 sm:max-w-md">
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Data da foto
+          {t("Data da foto")}
           <input
             type="date"
             value={takenOn}
@@ -50,7 +52,7 @@ export function PhotoUploader({ today }: { today: string }) {
           />
         </label>
         <label className="flex flex-col gap-1.5 text-sm font-semibold">
-          Ângulo
+          {t("Ângulo")}
           <select
             value={pose}
             onChange={(e) => setPose(e.target.value as typeof pose)}
@@ -68,7 +70,7 @@ export function PhotoUploader({ today }: { today: string }) {
         htmlFor={id}
         className={`inline-flex h-11 cursor-pointer items-center justify-center self-start rounded-[var(--radius-control)] bg-turf-solid px-4 font-semibold text-white hover:bg-turf-solid-hover ${busy ? "pointer-events-none opacity-60" : ""}`}
       >
-        {busy ? "Enviando…" : "Adicionar foto"}
+        {busy ? t("Enviando…") : t("Adicionar foto")}
       </label>
       <input
         id={id}
@@ -82,10 +84,10 @@ export function PhotoUploader({ today }: { today: string }) {
         }}
       />
       <p className="text-sm text-muted">
-        A foto fica privada. Removemos a localização e outros dados que o celular grava no arquivo.
+        {t("A foto fica privada. Removemos a localização e outros dados que o celular grava no arquivo.")}
       </p>
       <div aria-live="polite">
-        {state.kind === "done" && <Notice tone="success">Foto salva. Ela é privada até você compartilhar.</Notice>}
+        {state.kind === "done" && <Notice tone="success">{t("Foto salva. Ela é privada até você compartilhar.")}</Notice>}
         {state.kind === "error" && <Notice tone="error">{state.message}</Notice>}
       </div>
     </div>
@@ -93,6 +95,7 @@ export function PhotoUploader({ today }: { today: string }) {
 }
 
 export function ShareToggle({ photoId, shared }: { photoId: string; shared: boolean }) {
+  const t = useT();
   return (
     <ActionForm action={setPhotoSharingAction} className="flex" successNotice={false}>
       {() => (
@@ -102,10 +105,10 @@ export function ShareToggle({ photoId, shared }: { photoId: string; shared: bool
           <button
             type="submit"
             aria-pressed={shared}
-            aria-label={shared ? "Parar de compartilhar com o treinador" : "Compartilhar com o treinador"}
+            aria-label={shared ? t("Parar de compartilhar com o treinador") : t("Compartilhar com o treinador")}
             className={`h-11 px-3 text-sm font-semibold ${shared ? "text-ink-soft" : "text-turf"}`}
           >
-            {shared ? "Tornar privada" : "Compartilhar"}
+            {shared ? t("Tornar privada") : t("Compartilhar")}
           </button>
         </>
       )}
@@ -114,6 +117,7 @@ export function ShareToggle({ photoId, shared }: { photoId: string; shared: bool
 }
 
 export function DeletePhotoButton({ photoId }: { photoId: string }) {
+  const t = useT();
   return (
     <ActionForm action={deletePhotoAction} className="flex" successNotice={false}>
       {() => (
@@ -123,10 +127,10 @@ export function DeletePhotoButton({ photoId }: { photoId: string }) {
             type="submit"
             className="h-11 px-3 text-sm font-semibold text-danger"
             onClick={(e) => {
-              if (!window.confirm("Apagar esta foto definitivamente?")) e.preventDefault();
+              if (!window.confirm(t("Apagar esta foto definitivamente?"))) e.preventDefault();
             }}
           >
-            Apagar
+            {t("Apagar")}
           </button>
         </>
       )}
@@ -135,6 +139,7 @@ export function DeletePhotoButton({ photoId }: { photoId: string }) {
 }
 
 export function DeleteMeasurementButton({ measurementId }: { measurementId: string }) {
+  const t = useT();
   return (
     <ActionForm action={deleteMeasurementAction} className="flex justify-end" successNotice={false}>
       {() => (
@@ -143,12 +148,12 @@ export function DeleteMeasurementButton({ measurementId }: { measurementId: stri
           <button
             type="submit"
             className="px-2 py-1 text-sm font-semibold text-danger"
-            aria-label="Apagar medição"
+            aria-label={t("Apagar medição")}
             onClick={(e) => {
-              if (!window.confirm("Apagar esta medição?")) e.preventDefault();
+              if (!window.confirm(t("Apagar esta medição?"))) e.preventDefault();
             }}
           >
-            Apagar
+            {t("Apagar")}
           </button>
         </>
       )}

@@ -3,6 +3,7 @@
 import { startTransition, useSyncExternalStore } from "react";
 import { setThemeAction } from "@/app/_theme/actions";
 import { IconMoon, IconSun } from "@/components/shell/icons";
+import { useT } from "@/i18n/client";
 
 const media = () => window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -30,7 +31,8 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   // Unknown on the server: the button renders without a decided icon until it mounts.
   const current = useSyncExternalStore(subscribe, effective, () => null);
   const next = current === "dark" ? "light" : "dark";
-  const label = current === null ? "Alternar tema" : next === "dark" ? "Usar tema escuro" : "Usar tema claro";
+  const t = useT();
+  const label = current === null ? t("Alternar tema") : next === "dark" ? t("Usar tema escuro") : t("Usar tema claro");
 
   function toggle() {
     const root = document.documentElement;

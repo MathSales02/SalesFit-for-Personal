@@ -27,6 +27,8 @@ export async function mailLink(to: string, part: string, subject?: string): Prom
 export async function expectAccessible(page: Page, label: string) {
   // Local escape hatch while a visual redesign is in progress; never set in CI.
   if (process.env.E2E_SKIP_A11Y && !process.env.CI) return;
+  // The page title is translated per request and arrives with the content, a moment after the frame.
+  await page.waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 }).catch(() => {});
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   const summary = bad.map((v) => `${v.id} (${v.impact}): ${v.nodes.length} × ${v.nodes[0]?.target.join(" ")}`);

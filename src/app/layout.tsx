@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { PwaSetup } from "@/components/pwa";
+import { LocaleProvider } from "@/i18n/client";
+import { catalogFor, getLocale } from "@/i18n/server";
 import { parseTheme, THEME_COOKIE, themeClass } from "@/lib/theme";
 import "./globals.css";
 
@@ -36,10 +38,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   await headers();
   // Theme is applied on the server: no flash of the wrong theme and no inline script (CSP).
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value);
+  // The language too: the person's choice, or the browser's.
+  const locale = await getLocale();
   return (
-    <html lang="pt-BR" className={[manrope.variable, themeClass(theme)].filter(Boolean).join(" ")}>
+    <html lang={locale} className={[manrope.variable, themeClass(theme)].filter(Boolean).join(" ")}>
       <body className="min-h-dvh">
-        {children}
+        <LocaleProvider locale={locale} catalog={catalogFor(locale)}>
+          {children}
+        </LocaleProvider>
         <PwaSetup />
       </body>
     </html>

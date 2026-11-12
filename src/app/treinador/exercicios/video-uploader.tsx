@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { Notice } from "@/components/ui/notice";
 import { completeVideoUploadAction, requestVideoUploadAction } from "./actions";
+import { useT } from "@/i18n/client";
 
 const ACCEPT = "video/mp4,video/quicktime,video/webm";
 const MAX_MB = 200;
@@ -26,6 +27,7 @@ function postToStorage(url: string, fields: Record<string, string>, file: File, 
 }
 
 export function VideoUploader({ exerciseId, hasVideo }: { exerciseId: string; hasVideo: boolean }) {
+  const t = useT();
   const router = useRouter();
   const inputId = useId();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -33,16 +35,16 @@ export function VideoUploader({ exerciseId, hasVideo }: { exerciseId: string; ha
 
   async function onFile(file: File | undefined) {
     if (!file) return;
-    if (!ACCEPT.split(",").includes(file.type)) return setPhase({ kind: "error", message: "Envie um vídeo MP4, MOV ou WebM." });
-    if (file.size > MAX_MB * 1024 * 1024) return setPhase({ kind: "error", message: `O vídeo passa de ${MAX_MB} MB. Corte ou comprima antes de enviar.` });
+    if (!ACCEPT.split(",").includes(file.type)) return setPhase({ kind: "error", message: t("Envie um vídeo MP4, MOV ou WebM.") });
+    if (file.size > MAX_MB * 1024 * 1024) return setPhase({ kind: "error", message: t("O vídeo passa de {0} MB. Corte ou comprima antes de enviar.", { 0: MAX_MB }) });
 
     setPhase({ kind: "uploading", percent: 0 });
     const ticket = await requestVideoUploadAction({ contentType: file.type, sizeBytes: file.size });
-    if (!ticket.ok || !ticket.data) return setPhase({ kind: "error", message: ticket.ok ? "Não foi possível iniciar o envio." : ticket.message });
+    if (!ticket.ok || !ticket.data) return setPhase({ kind: "error", message: ticket.ok ? t("Não foi possível iniciar o envio.") : ticket.message });
     try {
       await postToStorage(ticket.data.url, ticket.data.fields, file, (percent) => setPhase({ kind: "uploading", percent }));
     } catch {
-      return setPhase({ kind: "error", message: "O envio foi interrompido. Verifique a conexão e tente de novo." });
+      return setPhase({ kind: "error", message: t("O envio foi interrompido. Verifique a conexão e tente de novo.") });
     }
     setPhase({ kind: "verifying" });
     const done = await completeVideoUploadAction({ exerciseId, assetId: ticket.data.assetId });
@@ -59,7 +61,7 @@ export function VideoUploader({ exerciseId, hasVideo }: { exerciseId: string; ha
           busy ? "pointer-events-none opacity-60" : ""
         }`}
       >
-        {hasVideo ? "Trocar vídeo" : "Enviar vídeo"}
+        {hasVideo ? t("Trocar vídeo") : t("Enviar vídeo")}
       </label>
       <input
         id={inputId}
@@ -72,21 +74,21 @@ export function VideoUploader({ exerciseId, hasVideo }: { exerciseId: string; ha
           e.target.value = "";
         }}
       />
-      <p className="text-sm text-muted">MP4, MOV ou WebM, até {MAX_MB} MB. O vídeo fica privado: só você e seus alunos assistem.</p>
+      <p className="text-sm text-muted">{t("MP4, MOV ou WebM, até")} {MAX_MB} {t("MB. O vídeo fica privado: só você e seus alunos assistem.")}</p>
       {phase.kind === "uploading" && (
         <div role="status" aria-live="polite" className="flex flex-col gap-1.5">
           <div className="h-1.5 overflow-hidden rounded-full bg-turf-tint">
             <div className="h-full rounded-full bg-turf transition-[width]" style={{ width: `${phase.percent}%` }} />
           </div>
-          <span className="text-sm text-muted">Enviando… {phase.percent}%</span>
+          <span className="text-sm text-muted">{t("Enviando…")} {phase.percent}%</span>
         </div>
       )}
       {phase.kind === "verifying" && (
         <p role="status" className="text-sm text-muted">
-          Conferindo o arquivo…
+          {t("Conferindo o arquivo…")}
         </p>
       )}
-      {phase.kind === "done" && <Notice tone="success">Vídeo enviado.</Notice>}
+      {phase.kind === "done" && <Notice tone="success">{t("Vídeo enviado.")}</Notice>}
       {phase.kind === "error" && <Notice tone="error">{phase.message}</Notice>}
     </div>
   );

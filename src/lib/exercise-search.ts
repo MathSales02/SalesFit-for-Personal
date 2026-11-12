@@ -10,22 +10,22 @@ export function normalize(text: string) {
     .trim();
 }
 
-/** Words people use for each group, besides its label (already normalized). */
+/** Words people use for each group, besides its label, in Portuguese, English and Spanish (already normalized). */
 const GROUP_TERMS: Record<MuscleGroup, string[]> = {
-  chest: ["peito", "peitoral", "peitorais"],
-  back: ["costas", "dorsal", "dorsais", "lats", "latissimo"],
-  shoulders: ["ombro", "ombros", "deltoide", "deltoides"],
-  biceps: ["biceps", "braco", "bracos"],
-  triceps: ["triceps", "braco", "bracos"],
-  forearms: ["antebraco", "antebracos", "punho", "pegada"],
-  core: ["abdomen", "abdominal", "abdominais", "abs", "core", "barriga", "obliquos"],
-  quadriceps: ["quadriceps", "coxa", "coxas", "perna", "pernas"],
-  hamstrings: ["posterior", "posteriores", "isquiotibiais", "coxa", "perna", "pernas"],
-  glutes: ["gluteo", "gluteos", "bumbum", "quadril"],
-  calves: ["panturrilha", "panturrilhas", "batata da perna", "perna", "pernas"],
-  full_body: ["full body", "corpo inteiro", "corpo todo", "funcional"],
-  cardio: ["cardio", "aerobico", "aerobio"],
-  mobility: ["mobilidade", "alongamento"],
+  chest: ["peito", "peitoral", "peitorais", "chest", "pecs", "pecho", "pectorales"],
+  back: ["costas", "dorsal", "dorsais", "lats", "latissimo", "back", "espalda", "dorsales"],
+  shoulders: ["ombro", "ombros", "deltoide", "deltoides", "shoulder", "shoulders", "delts", "hombro", "hombros"],
+  biceps: ["biceps", "braco", "bracos", "arm", "arms", "brazo", "brazos"],
+  triceps: ["triceps", "braco", "bracos", "arm", "arms", "brazo", "brazos"],
+  forearms: ["antebraco", "antebracos", "punho", "pegada", "forearm", "forearms", "grip", "wrist", "antebrazo", "antebrazos", "muneca", "agarre"],
+  core: ["abdomen", "abdominal", "abdominais", "abs", "core", "barriga", "obliquos", "abdominals", "belly", "obliques", "abdominales", "oblicuos"],
+  quadriceps: ["quadriceps", "coxa", "coxas", "perna", "pernas", "quads", "thigh", "thighs", "leg", "legs", "cuadriceps", "muslo", "muslos", "pierna", "piernas"],
+  hamstrings: ["posterior", "posteriores", "isquiotibiais", "coxa", "perna", "pernas", "hamstring", "hamstrings", "leg", "legs", "isquiotibiales", "femoral", "pierna", "piernas"],
+  glutes: ["gluteo", "gluteos", "bumbum", "quadril", "glute", "glutes", "butt", "hip", "hips", "cadera"],
+  calves: ["panturrilha", "panturrilhas", "batata da perna", "perna", "pernas", "calf", "calves", "leg", "legs", "pantorrilla", "pantorrillas", "gemelos", "pierna", "piernas"],
+  full_body: ["full body", "corpo inteiro", "corpo todo", "funcional", "whole body", "functional", "cuerpo completo"],
+  cardio: ["cardio", "aerobico", "aerobio", "aerobic"],
+  mobility: ["mobilidade", "alongamento", "mobility", "stretch", "stretching", "movilidad", "estiramiento"],
 };
 
 export type SearchableExercise = {

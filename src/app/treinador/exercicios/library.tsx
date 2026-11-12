@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ExerciseThumb } from "@/components/exercises/video";
 import { indexExercises, searchExercises } from "@/lib/exercise-search";
 import { DIFFICULTY_LABEL, MUSCLE_GROUP_LABEL, MUSCLE_GROUPS, type Difficulty, type MuscleGroup } from "@/lib/validation/exercises";
+import { useT } from "@/i18n/client";
 
 export type LibraryExercise = {
   id: string;
@@ -22,6 +23,7 @@ export type LibraryExercise = {
 
 /** Search as you type plus muscle group chips, over the whole library already in memory. */
 export function ExerciseLibrary({ exercises, initialQuery, initialGroup }: { exercises: LibraryExercise[]; initialQuery: string; initialGroup: MuscleGroup | null }) {
+  const t = useT();
   const [query, setQuery] = useState(initialQuery);
   const [group, setGroup] = useState<MuscleGroup | null>(initialGroup);
 
@@ -71,7 +73,7 @@ export function ExerciseLibrary({ exercises, initialQuery, initialGroup }: { exe
     <>
       <div role="search" className="relative mb-4">
         <label htmlFor="exercise-search" className="sr-only">
-          Buscar exercícios
+          {t("Buscar exercícios")}
         </label>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted">
           <circle cx="11" cy="11" r="7" />
@@ -86,11 +88,11 @@ export function ExerciseLibrary({ exercises, initialQuery, initialGroup }: { exe
           value={query}
           maxLength={60}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Busque por nome, músculo ou equipamento"
+          placeholder={t("Busque por nome, músculo ou equipamento")}
           className="h-13 w-full rounded-full border border-line-strong bg-paper pr-12 pl-12 text-base outline-none placeholder:text-muted focus:border-turf focus:ring-2 focus:ring-turf/20"
         />
         {query && (
-          <button type="button" onClick={() => setQuery("")} aria-label="Limpar busca" className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:bg-chalk">
+          <button type="button" onClick={() => setQuery("")} aria-label={t("Limpar busca")} className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:bg-chalk">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" className="size-5">
               <path d="M6 6l12 12M18 6 6 18" />
             </svg>
@@ -98,35 +100,35 @@ export function ExerciseLibrary({ exercises, initialQuery, initialGroup }: { exe
         )}
       </div>
 
-      <div role="group" aria-label="Filtrar por grupo muscular" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
-        <Chip label="Tudo" count={matched.length} active={group === null} onClick={() => setGroup(null)} />
+      <div role="group" aria-label={t("Filtrar por grupo muscular")} className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <Chip label={t("Tudo")} count={matched.length} active={group === null} onClick={() => setGroup(null)} />
         {groups.map(([g, label]) => (
-          <Chip key={g} label={label} count={counts.get(g) ?? 0} active={group === g} onClick={() => setGroup(group === g ? null : g)} />
+          <Chip key={g} label={t(label)} count={counts.get(g) ?? 0} active={group === g} onClick={() => setGroup(group === g ? null : g)} />
         ))}
       </div>
 
       <p role="status" className="sr-only">
-        {shown.length === 1 ? "1 exercício encontrado" : `${shown.length} exercícios encontrados`}
+        {shown.length === 1 ? t("1 exercício encontrado") : t("{0} exercícios encontrados", { 0: shown.length })}
       </p>
 
       {shown.length === 0 ? (
         <div className="rounded-[var(--radius-panel)] border border-dashed border-line-strong bg-paper px-6 py-12 text-center">
-          <p className="font-display text-xl font-bold">Nenhum exercício encontrado</p>
+          <p className="font-display text-xl font-bold">{t("Nenhum exercício encontrado")}</p>
           <p className="mx-auto mt-2 max-w-sm text-ink-soft">
-            {query.trim() ? `Não achamos nada para “${query.trim()}”${group ? ` em ${MUSCLE_GROUP_LABEL[group]}` : ""}.` : "Ainda não há exercícios neste grupo."} Tente outro termo ou crie o exercício na sua biblioteca.
+            {query.trim() ? t("Não achamos nada para “{0}”{1}.", { 0: query.trim(), 1: group ? ` em ${t(MUSCLE_GROUP_LABEL[group])}` : "" }) : t("Ainda não há exercícios neste grupo.")} {t("Tente outro termo ou crie o exercício na sua biblioteca.")}
           </p>
           {filtered && (
             <button type="button" onClick={clear} className="mt-5 inline-flex h-11 items-center rounded-full border border-line-strong bg-paper px-5 text-sm font-semibold hover:border-turf/60">
-              Limpar busca e filtros
+              {t("Limpar busca e filtros")}
             </button>
           )}
         </div>
       ) : (
         <>
           {(own.length > 0 || !filtered) && (
-            <Section title="Sua biblioteca" rows={own} copied={copied} empty="Você ainda não criou exercícios. Crie um ou copie da biblioteca SalesFit." />
+            <Section title={t("Sua biblioteca")} rows={own} copied={copied} empty={t("Você ainda não criou exercícios. Crie um ou copie da biblioteca SalesFit.")} />
           )}
-          {platform.length > 0 && <Section title="Biblioteca SalesFit" rows={platform} copied={copied} empty="" />}
+          {platform.length > 0 && <Section title={t("Biblioteca SalesFit")} rows={platform} copied={copied} empty="" />}
         </>
       )}
     </>
@@ -150,6 +152,7 @@ function Chip({ label, count, active, onClick }: { label: string; count: number;
 }
 
 function Section({ title, rows, copied, empty }: { title: string; rows: LibraryExercise[]; copied: Set<string | null>; empty: string }) {
+  const t = useT();
   return (
     <section className="mb-10">
       <h2 className="mb-3 flex items-baseline gap-2 text-lg font-semibold">
@@ -167,10 +170,10 @@ function Section({ title, rows, copied, empty }: { title: string; rows: LibraryE
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold text-ink">{e.name}</span>
                   <span className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className="rounded-full bg-turf-tint px-2 py-0.5 text-xs font-semibold text-turf">{MUSCLE_GROUP_LABEL[e.muscleGroup]}</span>
-                    {!e.own && copied.has(e.id) && <span className="rounded-full border border-line-strong px-2 py-0.5 text-xs font-semibold text-ink-soft">Na sua biblioteca</span>}
+                    <span className="rounded-full bg-turf-tint px-2 py-0.5 text-xs font-semibold text-turf">{t(MUSCLE_GROUP_LABEL[e.muscleGroup])}</span>
+                    {!e.own && copied.has(e.id) && <span className="rounded-full border border-line-strong px-2 py-0.5 text-xs font-semibold text-ink-soft">{t("Na sua biblioteca")}</span>}
                   </span>
-                  <span className="mt-1 block truncate text-sm text-ink-soft">{[e.equipment, e.difficulty && DIFFICULTY_LABEL[e.difficulty]].filter(Boolean).join(" · ") || "Sem equipamento informado"}</span>
+                  <span className="mt-1 block truncate text-sm text-ink-soft">{[e.equipment, e.difficulty && t(DIFFICULTY_LABEL[e.difficulty])].filter(Boolean).join(" · ") || t("Sem equipamento informado")}</span>
                 </span>
               </Link>
             </li>

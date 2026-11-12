@@ -15,8 +15,12 @@ import { getOwnWeightTrend } from "@/server/progress/service";
 import { getOpenSession } from "@/server/workouts/service";
 import { StartWorkoutButton } from "./start-button";
 import { AbandonButton } from "./treino/[sessionId]/abandon-button";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Início" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Início") };
+}
 
 const fmtDate = (iso: string, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long" }) =>
   new Intl.DateTimeFormat("pt-BR", { ...opts, timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
@@ -30,6 +34,7 @@ function addDays(iso: string, n: number) {
 }
 
 export default async function StudentHomePage() {
+  const t = await getT();
   const actor = await requirePageActor("training.read_own");
   const firstName = actor.displayName.split(" ")[0];
   const [program, open, g, weight] = await Promise.all([getMyProgram(actor), getOpenSession(actor), getMyGamification(actor), getOwnWeightTrend(actor)]);
@@ -60,8 +65,8 @@ export default async function StudentHomePage() {
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-[2.4rem] leading-none font-bold tracking-tight">Bora, {firstName}.</h1>
-          <p className="mt-1.5 text-sm text-muted">{actor.membership?.workspaceName} · seu resumo de hoje</p>
+          <h1 className="font-display text-[2.4rem] leading-none font-bold tracking-tight">{t("Bora,")} {firstName}.</h1>
+          <p className="mt-1.5 text-sm text-muted">{actor.membership?.workspaceName} {t("· seu resumo de hoje")}</p>
         </div>
         {ranking && (
           <span className="hidden sm:block">
@@ -69,7 +74,7 @@ export default async function StudentHomePage() {
               <span className="size-4">
                 <IconTrophy />
               </span>
-              Ranking
+              {t("Ranking")}
             </Link>
           </span>
         )}
@@ -80,16 +85,16 @@ export default async function StudentHomePage() {
         <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-on-accent shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
           <HeroDecoration />
           <div className="relative max-w-md">
-            <Pill tone="dark">{open ? "Em andamento" : "Seu treino"}</Pill>
+            <Pill tone="dark">{open ? t("Em andamento") : t("Seu treino")}</Pill>
             {open ? (
               <>
                 <h2 id="hero-h" className="mt-4 font-display text-4xl leading-[0.95] font-bold sm:text-5xl">
-                  {open.dayName} em andamento
+                  {open.dayName} {t("em andamento")}
                 </h2>
-                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">Continue de onde parou. Suas séries já estão salvas.</p>
+                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">{t("Continue de onde parou. Suas séries já estão salvas.")}</p>
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Link href={`/aluno/treino/${open.id}`} className={buttonClass("primary")}>
-                    Continuar treino →
+                    {t("Continuar treino →")}
                   </Link>
                   <AbandonButton sessionId={open.id} />
                 </div>
@@ -100,59 +105,59 @@ export default async function StudentHomePage() {
                   {program.name}
                 </h2>
                 <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">
-                  {program.content.days.length} {program.content.days.length === 1 ? "dia de treino" : "dias de treino"} · desde {fmtDate(program.startsOn)}
-                  {program.endsOn ? ` até ${fmtDate(program.endsOn)}` : ""}
+                  {program.content.days.length} {program.content.days.length === 1 ? t("dia de treino") : t("dias de treino")} {t("· desde")} {fmtDate(program.startsOn)}
+                  {program.endsOn ? t(" até {0}", { 0: fmtDate(program.endsOn) }) : ""}
                 </p>
                 <div className="mt-6">
                   <a href="#programa" className={buttonClass("primary")}>
-                    Escolher o treino de hoje →
+                    {t("Escolher o treino de hoje →")}
                   </a>
                 </div>
               </>
             ) : (
               <>
                 <h2 id="hero-h" className="mt-4 font-display text-4xl leading-[0.95] font-bold sm:text-5xl">
-                  Seu programa chega em breve
+                  {t("Seu programa chega em breve")}
                 </h2>
-                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">Quando seu treinador atribuir um programa, ele aparece aqui com vídeos, séries e orientações.</p>
+                <p className="mt-3 text-[0.95rem] font-medium text-on-accent/80">{t("Quando seu treinador atribuir um programa, ele aparece aqui com vídeos, séries e orientações.")}</p>
               </>
             )}
           </div>
         </section>
 
         {/* Week constancy (the reference's hydration card) */}
-        <Card title="Constância" labelledBy="week-h" action={goalReached ? <Pill>Meta batida</Pill> : undefined}>
-          <p className="-mt-2 mb-4 text-sm text-muted">Dias com check-in nesta semana</p>
-          <WeekColumns days={[...week]} />
+        <Card title={t("Constância")} labelledBy="week-h" action={goalReached ? <Pill>{t("Meta batida")}</Pill> : undefined}>
+          <p className="-mt-2 mb-4 text-sm text-muted">{t("Dias com check-in nesta semana")}</p>
+          <WeekColumns days={[...week]} words={{ workout: t("treino"), manual: t("check-in"), future: t("ainda não chegou"), missed: t("sem check-in") }} />
           <div className="mt-5 flex items-end justify-between gap-3">
             <BigNumber value={`${g.weekCheckins}/${g.weeklyTarget}`} unit="dias" />
             <p className="text-right text-xs leading-tight text-muted">
               {g.streakWeeks > 0 ? (
                 <>
                   <span className="block font-display text-2xl font-bold text-ink">{g.streakWeeks}</span>
-                  {g.streakWeeks === 1 ? "semana seguida" : "semanas seguidas"}
+                  {g.streakWeeks === 1 ? t("semana seguida") : t("semanas seguidas")}
                 </>
               ) : (
-                "Bata a meta para começar uma sequência"
+                t("Bata a meta para começar uma sequência")
               )}
             </p>
           </div>
           <div className="mt-5 border-t border-line pt-4">
             {g.checkedInToday ? (
               <p className="text-sm">
-                <span className="font-semibold text-turf">Check-in de hoje feito.</span>{" "}
-                <span className="text-muted">{g.checkedInToday === "workout" ? "Treino concluído." : "Concluir um treino hoje completa os pontos."}</span>
+                <span className="font-semibold text-turf">{t("Check-in de hoje feito.")}</span>{" "}
+                <span className="text-muted">{g.checkedInToday === "workout" ? t("Treino concluído.") : t("Concluir um treino hoje completa os pontos.")}</span>
               </p>
             ) : g.settings.manualCheckinsEnabled ? (
               <CheckinForm />
             ) : (
-              <p className="text-sm text-muted">Conclua um treino para fazer o check-in de hoje.</p>
+              <p className="text-sm text-muted">{t("Conclua um treino para fazer o check-in de hoje.")}</p>
             )}
           </div>
         </Card>
 
         {/* Ranking (the reference's sleep card) */}
-        <Card title="Ranking" icon={<IconTrophy />} labelledBy="rank-h">
+        <Card title={t("Ranking")} icon={<IconTrophy />} labelledBy="rank-h">
           {ranking ? (
             <>
               <div className="flex -space-x-2">
@@ -163,10 +168,10 @@ export default async function StudentHomePage() {
               <p className="mt-4 text-xl leading-snug font-semibold">
                 {g.weekPosition ? (
                   <>
-                    Você está em <span className="text-turf">#{g.weekPosition}</span> de {g.weekParticipants} nesta semana
+                    {t("Você está em")} <span className="text-turf">#{g.weekPosition}</span> {t("de")} {g.weekParticipants} {t("nesta semana")}
                   </>
                 ) : (
-                  "Faça um check-in para entrar no ranking da semana"
+                  t("Faça um check-in para entrar no ranking da semana")
                 )}
               </p>
               <ol className="mt-4 flex flex-col gap-2 text-sm">
@@ -176,60 +181,60 @@ export default async function StudentHomePage() {
                       <span className="mr-2 font-bold tabular-nums">{r.position}º</span>
                       {r.name}
                     </span>
-                    <span className="font-semibold tabular-nums">{r.points} pts</span>
+                    <span className="font-semibold tabular-nums">{r.points} {t("pts")}</span>
                   </li>
                 ))}
               </ol>
               <Link href="/aluno/ranking" className="mt-auto pt-4 text-sm font-semibold text-turf hover:underline">
-                Ver ranking e competições →
+                {t("Ver ranking e competições →")}
               </Link>
             </>
           ) : (
             <>
-              <p className="text-sm text-muted">Seu treinador deixou o ranking desligado.</p>
+              <p className="text-sm text-muted">{t("Seu treinador deixou o ranking desligado.")}</p>
               <Link href="/aluno/ranking" className="mt-auto pt-4 text-sm font-semibold text-turf hover:underline">
-                Ver competições →
+                {t("Ver competições →")}
               </Link>
             </>
           )}
         </Card>
 
         {/* Points (the reference's calories card) */}
-        <Card title="Pontos" icon={<IconActivity />} labelledBy="pts-h" action={<span className="text-sm font-semibold text-muted">esta semana</span>}>
-          <BigNumber value={g.weekPoints} unit="pts" label={`${active28} ${active28 === 1 ? "dia ativo" : "dias ativos"} nos últimos 28`} />
+        <Card title={t("Pontos")} icon={<IconActivity />} labelledBy="pts-h" action={<span className="text-sm font-semibold text-muted">{t("esta semana")}</span>}>
+          <BigNumber value={g.weekPoints} unit="pts" label={t("{0} {1} nos últimos 28", { 0: active28, 1: active28 === 1 ? t("dia ativo") : t("dias ativos") })} />
           <div className="mt-5">
-            <BarStrip values={bars} emphasize={27} label={`Últimos 28 dias: ${active28} com check-in. Barras cheias são treinos concluídos; meias, check-ins manuais.`} />
+            <BarStrip values={bars} emphasize={27} label={t("Últimos 28 dias: {0} com check-in. Barras cheias são treinos concluídos; meias, check-ins manuais.", { 0: active28 })} />
             <div className="mt-1.5 flex justify-between text-xs text-muted">
               <span>{fmtDate(last28[0]!, { day: "numeric", month: "short" })}</span>
-              <span>hoje</span>
+              <span>{t("hoje")}</span>
             </div>
           </div>
           <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-line pt-4 text-center">
             <div>
-              <dt className="text-xs text-muted">Mês</dt>
+              <dt className="text-xs text-muted">{t("Mês")}</dt>
               <dd className="font-display text-2xl font-bold tabular-nums">{g.monthPoints}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted">Total</dt>
+              <dt className="text-xs text-muted">{t("Total")}</dt>
               <dd className="font-display text-2xl font-bold tabular-nums">{g.totalPoints}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted">Sequência</dt>
+              <dt className="text-xs text-muted">{t("Sequência")}</dt>
               <dd className="font-display text-2xl font-bold tabular-nums">{g.streakWeeks}</dd>
             </div>
           </dl>
         </Card>
 
         {/* Weight (the reference's weight card) */}
-        <Card title="Peso" icon={<IconTrend />} labelledBy="kg-h">
+        <Card title={t("Peso")} icon={<IconTrend />} labelledBy="kg-h">
           {latest ? (
             <>
-              <p className="-mt-2 text-sm text-muted">Última medida em {fmtDate(latest.day, { day: "numeric", month: "short" })}</p>
+              <p className="-mt-2 text-sm text-muted">{t("Última medida em")} {fmtDate(latest.day, { day: "numeric", month: "short" })}</p>
               <div className="my-4">
                 {weight.length > 1 ? (
-                  <Sparkline points={weight.map((w) => w.kg)} label={`Peso nas últimas ${weight.length} medidas: de ${fmtKg(first!.kg)} para ${fmtKg(latest.kg)} kg`} />
+                  <Sparkline points={weight.map((w) => w.kg)} label={t("Peso nas últimas {0} medidas: de {1} para {2} kg", { 0: weight.length, 1: fmtKg(first!.kg), 2: fmtKg(latest.kg) })} />
                 ) : (
-                  <p className="py-6 text-sm text-muted">Registre mais medidas para ver a curva.</p>
+                  <p className="py-6 text-sm text-muted">{t("Registre mais medidas para ver a curva.")}</p>
                 )}
               </div>
               <div className="mt-auto flex items-end justify-between gap-3">
@@ -238,18 +243,18 @@ export default async function StudentHomePage() {
                   <p className="text-right text-xs text-muted">
                     <span className="block text-base font-semibold text-ink">
                       {delta > 0 ? "+" : delta < 0 ? "−" : ""}
-                      {fmtKg(Math.abs(delta))} kg
+                      {fmtKg(Math.abs(delta))} {t("kg")}
                     </span>
-                    desde {fmtDate(first!.day, { day: "numeric", month: "short" })}
+                    {t("desde")} {fmtDate(first!.day, { day: "numeric", month: "short" })}
                   </p>
                 )}
               </div>
             </>
           ) : (
             <>
-              <p className="text-sm text-muted">Registre peso e medidas para acompanhar sua evolução. Fica privado, a menos que você compartilhe com o treinador.</p>
+              <p className="text-sm text-muted">{t("Registre peso e medidas para acompanhar sua evolução. Fica privado, a menos que você compartilhe com o treinador.")}</p>
               <Link href="/aluno/progresso" className={`${buttonClass("secondary")} mt-auto self-start`}>
-                Registrar medida
+                {t("Registrar medida")}
               </Link>
             </>
           )}
@@ -260,31 +265,31 @@ export default async function StudentHomePage() {
         <div className="grid items-center gap-x-10 gap-y-2 md:grid-cols-[minmax(0,1fr)_auto]">
           <div>
             <h2 id="sheets-h" className="font-display text-2xl font-bold">
-              Ficha de treino
+              {t("Ficha de treino")}
             </h2>
             {program ? (
               <>
                 <p className="mt-2 text-lg font-semibold">{program.name}</p>
                 <p className="mt-1 max-w-md text-sm leading-relaxed text-ink-soft">
-                  {program.content.days.length === 1 ? "1 treino" : `${program.content.days.length} treinos`} na sua ficha, desde {fmtDate(program.startsOn)}
-                  {program.endsOn ? ` até ${fmtDate(program.endsOn)}` : ""}. Abra a pasta e toque em um treino para ver os exercícios, as demonstrações e as orientações.
+                  {program.content.days.length === 1 ? t("1 treino") : t("{0} treinos", { 0: program.content.days.length })} {t("na sua ficha, desde")} {fmtDate(program.startsOn)}
+                  {program.endsOn ? t(" até {0}", { 0: fmtDate(program.endsOn) }) : ""}{t(". Abra a pasta e toque em um treino para ver os exercícios, as demonstrações e as orientações.")}
                 </p>
               </>
             ) : (
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">Quando seu treinador montar a sua ficha, os treinos aparecem nesta pasta, com as demonstrações de cada exercício.</p>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">{t("Quando seu treinador montar a sua ficha, os treinos aparecem nesta pasta, com as demonstrações de cada exercício.")}</p>
             )}
           </div>
           <RecordFolder
-            label="Ficha de treino"
-            meta={program ? (program.content.days.length === 1 ? "1 treino" : `${program.content.days.length} treinos`) : "Vazia"}
+            label={t("Ficha de treino")}
+            meta={program ? (program.content.days.length === 1 ? t("1 treino") : t("{0} treinos", { 0: program.content.days.length })) : t("Vazia")}
             sheets={(program?.content.days ?? []).map((d) => ({
               name: d.name,
-              meta: d.exercises.length === 1 ? "1 exercício" : `${d.exercises.length} exercícios`,
+              meta: d.exercises.length === 1 ? t("1 exercício") : t("{0} exercícios", { 0: d.exercises.length }),
               href: `/aluno#dia-${d.id}`,
             }))}
             allHref={program ? "/aluno#programa" : "/aluno/historico"}
-            allLabel={program ? "Ver a ficha completa" : "Ver meu histórico"}
-            empty="Sua ficha ainda está vazia."
+            allLabel={program ? t("Ver a ficha completa") : t("Ver meu histórico")}
+            empty={t("Sua ficha ainda está vazia.")}
           />
         </div>
       </section>
@@ -292,7 +297,7 @@ export default async function StudentHomePage() {
       {program && (
         <section id="programa" aria-labelledby="program-h" className="mt-4 scroll-mt-20">
           <h2 id="program-h" className="mb-4 font-display text-2xl font-bold">
-            Seu programa
+            {t("Seu programa")}
           </h2>
           {program.description && <p className="mb-4 max-w-2xl text-sm leading-relaxed text-ink-soft">{program.description}</p>}
           <ProgramView content={program.content} videos={videos} showInstructions dayAction={open ? undefined : (dayId) => <StartWorkoutButton dayId={dayId} />} />

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/i18n/client";
+import type { Translate } from "@/i18n/config";
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
@@ -21,9 +23,12 @@ function Badge({ n }: { n?: number; tone?: "light" | "dark" }) {
   );
 }
 
-const withCount = (label: string, n?: number) => (n ? `${label} (${n} não lidas)` : label);
+const withCount = (t: Translate, label: string, n?: number) => (n ? t("{label} ({n} não lidas)", { label, n }) : label);
 /** Screen-reader-only count, so the link name keeps the visible label (WCAG 2.5.3). */
-const UnreadText = ({ n }: { n?: number }) => (n ? <span className="sr-only"> ({n} não lidas)</span> : null);
+const UnreadText = ({ n }: { n?: number }) => {
+  const t = useT();
+  return (n ? <span className="sr-only"> {t("({n} não lidas)", { n })}</span> : null);
+};
 
 export function SideNavLink({
   item,
@@ -34,6 +39,7 @@ export function SideNavLink({
   tone?: "light" | "dark";
   iconOnly?: boolean;
 }) {
+  const t = useT();
   const active = isActive(usePathname(), item.href);
   const base =
     "relative flex h-10 items-center gap-3 rounded-[var(--radius-control)] px-3 text-[0.92rem] font-medium transition-all duration-150";
@@ -49,7 +55,7 @@ export function SideNavLink({
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      aria-label={iconOnly ? withCount(item.label, item.badge) : undefined}
+      aria-label={iconOnly ? withCount(t, item.label, item.badge) : undefined}
       className={`${base} ${cls}`}
     >
       <span className={`size-5 shrink-0 ${tone === "dark" && active ? "text-signal" : ""}`}>{item.icon}</span>
@@ -132,6 +138,7 @@ export function RailLink({ item }: { item: NavItem }) {
  * Closes on navigation, Esc or a tap outside. `footer` holds extra controls (sign out).
  */
 export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.ReactNode }) {
+  const t = useT();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -187,7 +194,7 @@ export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.Re
           </svg>
           {unread ? <span aria-hidden="true" className="absolute -top-1 -right-1.5 size-2 rounded-full bg-turf-solid" /> : null}
         </span>
-        Mais
+        {t("Mais")}
         <UnreadText n={unread} />
       </button>
     </div>

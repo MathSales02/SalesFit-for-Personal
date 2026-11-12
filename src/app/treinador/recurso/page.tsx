@@ -4,8 +4,12 @@ import { FeatureLocked } from "@/components/shell/feature-locked";
 import { FEATURES, type Feature } from "@/lib/plan-features";
 import { actorHasFeature } from "@/server/authz/policy";
 import { requirePageActor } from "@/server/http/next";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Recurso do plano" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Recurso do plano") };
+}
 
 export default async function LockedFeaturePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const actor = await requirePageActor("students.read");

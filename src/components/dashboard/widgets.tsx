@@ -65,8 +65,15 @@ export function BarStrip({ values, label, emphasize }: { values: number[]; label
 }
 
 /** Week columns (Mon–Sun), like the reference's hydration glasses. */
-export function WeekColumns({ days }: { days: { label: string; state: "workout" | "manual" | "missed" | "future"; today: boolean }[] }) {
-  const text = days.map((d) => `${d.label}: ${d.state === "workout" ? "treino" : d.state === "manual" ? "check-in" : d.state === "future" ? "ainda não chegou" : "sem check-in"}`).join("; ");
+export function WeekColumns({
+  days,
+  words = { workout: "treino", manual: "check-in", future: "ainda não chegou", missed: "sem check-in" },
+}: {
+  days: { label: string; state: "workout" | "manual" | "missed" | "future"; today: boolean }[];
+  /** How each state is read aloud; pages pass these in the person's language. */
+  words?: Record<"workout" | "manual" | "missed" | "future", string>;
+}) {
+  const text = days.map((d) => `${d.label}: ${words[d.state]}`).join("; ");
   return (
     <div role="img" aria-label={text} className="grid grid-cols-7 gap-1.5 sm:gap-2">
       {days.map((d, i) => (

@@ -11,10 +11,15 @@ import { requirePageActor } from "@/server/http/next";
 import { getOwnProgress } from "@/server/progress/service";
 import { addMeasurementAction } from "./actions";
 import { DeleteMeasurementButton, DeletePhotoButton, PhotoUploader, ShareToggle } from "./forms";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Progresso" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Progresso") };
+}
 
 export default async function ProgressPage() {
+  const t = await getT();
   const actor = await requirePageActor("progress.manage_own");
   const { measurements, photos, consent } = await getOwnProgress(actor);
   const today = todayInBrazil();
@@ -22,26 +27,26 @@ export default async function ProgressPage() {
 
   return (
     <>
-      <h1 className="font-display text-[2.4rem] leading-none font-bold tracking-tight">Progresso</h1>
+      <h1 className="font-display text-[2.4rem] leading-none font-bold tracking-tight">{t("Progresso")}</h1>
       <p className="mt-2 text-sm text-muted">
-        Medidas e fotos são privadas.{" "}
-        {consent ? "Seu treinador vê suas medidas porque você autorizou em " : "Seu treinador só vê suas medidas se você autorizar em "}
+        {t("Medidas e fotos são privadas.")}{" "}
+        {consent ? t("Seu treinador vê suas medidas porque você autorizou em ") : t("Seu treinador só vê suas medidas se você autorizar em ")}
         <Link href="/aluno/saude" className="font-semibold text-turf underline-offset-4 hover:underline">
-          Saúde
+          {t("Saúde")}
         </Link>
-        . Fotos, só as que você compartilhar uma a uma.
+        {t(". Fotos, só as que você compartilhar uma a uma.")}
       </p>
 
       <section aria-labelledby="m-h" className="mt-8">
         <h2 id="m-h" className="text-lg font-semibold">
-          Medidas
+          {t("Medidas")}
         </h2>
         <div className="mt-4 rounded-[var(--radius-panel)] border border-line bg-paper p-4">
           <MeasurementChart rows={measurements} />
         </div>
         <details className="group mt-4 rounded-[var(--radius-panel)] border border-line bg-paper">
           <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5 font-semibold">
-            Registrar medidas
+            {t("Registrar medidas")}
             <span aria-hidden="true" className="text-xl text-muted transition-transform group-open:rotate-45">
               +
             </span>
@@ -59,7 +64,7 @@ export default async function ProgressPage() {
 
       <section aria-labelledby="p-h" className="mt-12">
         <h2 id="p-h" className="mb-4 text-lg font-semibold">
-          Fotos
+          {t("Fotos")}
         </h2>
         {/* New photos need the plan to include them; the ones already here stay, and can be removed. */}
         {actorHasFeature(actor, "evolution") ? <PhotoUploader today={today} /> : <FeatureNote feature="evolution" role="student" />}

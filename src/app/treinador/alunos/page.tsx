@@ -6,8 +6,12 @@ import { requirePageActor } from "@/server/http/next";
 import { listOpenInvitations } from "@/server/students/invitations";
 import { listStudents, STUDENTS_PAGE_SIZE } from "@/server/students/students";
 import { InviteForm, RevokeInvitationButton } from "./forms";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Alunos" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Alunos") };
+}
 
 const TABS = [
   { status: "active", label: "Ativos" },
@@ -18,6 +22,7 @@ const TABS = [
 const fmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" });
 
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const t = await getT();
   const actor = await requirePageActor("students.read");
   const query = studentListQuerySchema.parse(await searchParams);
   const [{ rows, total }, invites] = await Promise.all([listStudents(actor, query), listOpenInvitations(actor)]);
@@ -25,24 +30,24 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeading title="Alunos" description="Convide alunos por e-mail. Cada convite ocupa uma vaga do plano até ser aceito ou cancelado." />
+      <PageHeading title={t("Alunos")} description={t("Convide alunos por e-mail. Cada convite ocupa uma vaga do plano até ser aceito ou cancelado.")} />
 
       <section aria-labelledby="invite-h" className="rounded-[var(--radius-panel)] border border-line bg-paper p-5">
         <h2 id="invite-h" className="mb-4 text-lg font-semibold">
-          Convidar aluno
+          {t("Convidar aluno")}
         </h2>
-        {actor.emailVerified ? <InviteForm /> : <p className="text-sm text-muted">Confirme seu e-mail para convidar alunos.</p>}
+        {actor.emailVerified ? <InviteForm /> : <p className="text-sm text-muted">{t("Confirme seu e-mail para convidar alunos.")}</p>}
 
         {invites.length > 0 && (
           <div className="mt-6 border-t border-line pt-5">
-            <h3 className="text-sm font-semibold text-muted">Convites pendentes</h3>
+            <h3 className="text-sm font-semibold text-muted">{t("Convites pendentes")}</h3>
             <ul className="mt-2 divide-y divide-line">
               {invites.map((i) => {
                 return (
                   <li key={i.id} className="flex items-center justify-between gap-4 py-2.5">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{i.email}</p>
-                      <p className="text-sm text-muted">{i.expired ? "Expirado. Envie de novo para gerar um novo link." : `Enviado em ${fmt.format(i.createdAt)}`}</p>
+                      <p className="text-sm text-muted">{i.expired ? t("Expirado. Envie de novo para gerar um novo link.") : t("Enviado em {0}", { 0: fmt.format(i.createdAt) })}</p>
                     </div>
                     <RevokeInvitationButton invitationId={i.id} />
                   </li>
@@ -55,19 +60,19 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
 
       <section aria-labelledby="list-h" className="mt-10">
         <h2 id="list-h" className="sr-only">
-          Lista de alunos
+          {t("Lista de alunos")}
         </h2>
-        <nav aria-label="Filtrar por situação" className="flex gap-1 border-b border-line">
-          {TABS.map((t) => {
-            const active = t.status === query.status;
+        <nav aria-label={t("Filtrar por situação")} className="flex gap-1 border-b border-line">
+          {TABS.map((tab) => {
+            const active = tab.status === query.status;
             return (
               <Link
-                key={t.status}
-                href={`/treinador/alunos?status=${t.status}`}
+                key={tab.status}
+                href={`/treinador/alunos?status=${tab.status}`}
                 aria-current={active ? "page" : undefined}
                 className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-semibold ${active ? "border-turf text-turf" : "border-transparent text-muted hover:text-ink"}`}
               >
-                {t.label}
+                {t(tab.label)}
               </Link>
             );
           })}
@@ -75,7 +80,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
 
         {rows.length === 0 ? (
           <p className="py-10 text-sm text-muted">
-            {query.status === "active" ? "Nenhum aluno ativo ainda. Quando alguém aceitar um convite, aparece aqui." : "Nenhum aluno nesta situação."}
+            {query.status === "active" ? t("Nenhum aluno ativo ainda. Quando alguém aceitar um convite, aparece aqui.") : t("Nenhum aluno nesta situação.")}
           </p>
         ) : (
           <ul className="divide-y divide-line">
@@ -92,8 +97,8 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                     </div>
                   </div>
                   <div className="hidden shrink-0 text-right text-sm text-muted sm:block">
-                    <p>{r.fitnessLevel ? FITNESS_LEVEL_LABEL[r.fitnessLevel] : "Nível não definido"}</p>
-                    <p>{r.weeklyFrequency ? `${r.weeklyFrequency}x por semana` : ""}</p>
+                    <p>{r.fitnessLevel ? t(FITNESS_LEVEL_LABEL[r.fitnessLevel]) : t("Nível não definido")}</p>
+                    <p>{r.weeklyFrequency ? t("{0}x por semana", { 0: r.weeklyFrequency }) : ""}</p>
                   </div>
                 </Link>
               </li>
@@ -102,18 +107,18 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         )}
 
         {pages > 1 && (
-          <nav aria-label="Páginas" className="mt-6 flex items-center gap-4 text-sm">
+          <nav aria-label={t("Páginas")} className="mt-6 flex items-center gap-4 text-sm">
             {query.page > 1 && (
               <Link href={`/treinador/alunos?status=${query.status}&page=${query.page - 1}`} className="font-semibold text-turf">
-                Anterior
+                {t("Anterior")}
               </Link>
             )}
             <span className="text-muted">
-              Página {query.page} de {pages}
+              {t("Página")} {query.page} {t("de")} {pages}
             </span>
             {query.page < pages && (
               <Link href={`/treinador/alunos?status=${query.status}&page=${query.page + 1}`} className="font-semibold text-turf">
-                Próxima
+                {t("Próxima")}
               </Link>
             )}
           </nav>

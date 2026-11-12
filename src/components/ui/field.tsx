@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useT } from "@/i18n/client";
 
 type Common = {
   label: string;
@@ -105,6 +106,7 @@ export function SelectField({
   required = false,
   ...rest
 }: Common & { options: { value: string; label: string }[]; defaultValue?: string }) {
+  const t = useT();
   return (
     <FieldFrame {...rest}>
       {({ id, describedBy, invalid }) => (
@@ -119,7 +121,7 @@ export function SelectField({
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
-              {o.label}
+              {t(o.label)}
             </option>
           ))}
         </select>

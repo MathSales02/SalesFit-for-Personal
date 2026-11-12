@@ -4,16 +4,18 @@ import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, SelectField, TextAreaField } from "@/components/ui/field";
 import { inviteStudentAction, revokeInvitationAction, setStatusAction, updateHealthAction, updateProfileAction } from "./actions";
+import { useT } from "@/i18n/client";
 
 export function InviteForm() {
+  const t = useT();
   return (
     <ActionForm action={inviteStudentAction} className="flex flex-col gap-3" resetOnSuccess>
       {(s) => (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <Field label="E-mail do aluno" name="email" type="email" autoComplete="off" errors={fieldErrors(s, "email")} />
+            <Field label={t("E-mail do aluno")} name="email" type="email" autoComplete="off" errors={fieldErrors(s, "email")} />
           </div>
-          <SubmitButton pendingLabel="Enviando…">Enviar convite</SubmitButton>
+          <SubmitButton pendingLabel={t("Enviando…")}>{t("Enviar convite")}</SubmitButton>
         </div>
       )}
     </ActionForm>
@@ -21,13 +23,14 @@ export function InviteForm() {
 }
 
 export function RevokeInvitationButton({ invitationId }: { invitationId: string }) {
+  const t = useT();
   return (
     <ActionForm action={revokeInvitationAction} className="flex" successNotice={false}>
       {() => (
         <>
           <input type="hidden" name="invitationId" value={invitationId} />
-          <SubmitButton variant="ghost" pendingLabel="Cancelando…">
-            Cancelar
+          <SubmitButton variant="ghost" pendingLabel={t("Cancelando…")}>
+            {t("Cancelar")}
           </SubmitButton>
         </>
       )}
@@ -38,43 +41,44 @@ export function RevokeInvitationButton({ invitationId }: { invitationId: string 
 type Profile = { goal: string | null; fitnessLevel: string | null; weeklyFrequency: number | null; trainerNotes: string | null };
 
 export function ProfileForm({ memberId, profile }: { memberId: string; profile: Profile }) {
+  const t = useT();
   return (
     <ActionForm action={updateProfileAction}>
       {(s) => (
         <>
           <input type="hidden" name="memberId" value={memberId} />
-          <TextAreaField label="Objetivo" name="goal" maxLength={500} rows={2} defaultValue={profile.goal ?? ""} errors={fieldErrors(s, "goal")} />
+          <TextAreaField label={t("Objetivo")} name="goal" maxLength={500} rows={2} defaultValue={profile.goal ?? ""} errors={fieldErrors(s, "goal")} />
           <div className="grid gap-5 sm:grid-cols-2">
             <SelectField
-              label="Nível"
+              label={t("Nível")}
               name="fitnessLevel"
               defaultValue={profile.fitnessLevel ?? ""}
               errors={fieldErrors(s, "fitnessLevel")}
               options={[
-                { value: "", label: "Não definido" },
-                { value: "beginner", label: "Iniciante" },
-                { value: "intermediate", label: "Intermediário" },
-                { value: "advanced", label: "Avançado" },
+                { value: "", label: t("Não definido") },
+                { value: "beginner", label: t("Iniciante") },
+                { value: "intermediate", label: t("Intermediário") },
+                { value: "advanced", label: t("Avançado") },
               ]}
             />
             <SelectField
-              label="Treinos por semana"
+              label={t("Treinos por semana")}
               name="weeklyFrequency"
               defaultValue={profile.weeklyFrequency ? String(profile.weeklyFrequency) : ""}
               errors={fieldErrors(s, "weeklyFrequency")}
-              options={[{ value: "", label: "Não definido" }, ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: `${n}x` }))]}
+              options={[{ value: "", label: t("Não definido") }, ...[1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: `${n}x` }))]}
             />
           </div>
           <TextAreaField
-            label="Anotações do treinador"
+            label={t("Anotações do treinador")}
             name="trainerNotes"
             maxLength={2000}
-            hint="Só você vê estas anotações."
+            hint={t("Só você vê estas anotações.")}
             defaultValue={profile.trainerNotes ?? ""}
             errors={fieldErrors(s, "trainerNotes")}
           />
           <div>
-            <SubmitButton pendingLabel="Salvando…">Salvar ficha</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{t("Salvar ficha")}</SubmitButton>
           </div>
         </>
       )}
@@ -85,16 +89,17 @@ export function ProfileForm({ memberId, profile }: { memberId: string; profile: 
 type Health = { restrictions: string | null; injuries: string | null; medicalNotes: string | null };
 
 export function HealthForm({ memberId, health }: { memberId: string; health: Health | null }) {
+  const t = useT();
   return (
     <ActionForm action={updateHealthAction}>
       {(s) => (
         <>
           <input type="hidden" name="memberId" value={memberId} />
-          <TextAreaField label="Restrições de exercício" name="restrictions" maxLength={2000} defaultValue={health?.restrictions ?? ""} errors={fieldErrors(s, "restrictions")} />
-          <TextAreaField label="Lesões" name="injuries" maxLength={2000} defaultValue={health?.injuries ?? ""} errors={fieldErrors(s, "injuries")} />
-          <TextAreaField label="Observações médicas" name="medicalNotes" maxLength={2000} defaultValue={health?.medicalNotes ?? ""} errors={fieldErrors(s, "medicalNotes")} />
+          <TextAreaField label={t("Restrições de exercício")} name="restrictions" maxLength={2000} defaultValue={health?.restrictions ?? ""} errors={fieldErrors(s, "restrictions")} />
+          <TextAreaField label={t("Lesões")} name="injuries" maxLength={2000} defaultValue={health?.injuries ?? ""} errors={fieldErrors(s, "injuries")} />
+          <TextAreaField label={t("Observações médicas")} name="medicalNotes" maxLength={2000} defaultValue={health?.medicalNotes ?? ""} errors={fieldErrors(s, "medicalNotes")} />
           <div>
-            <SubmitButton pendingLabel="Salvando…">Salvar dados de saúde</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{t("Salvar dados de saúde")}</SubmitButton>
           </div>
         </>
       )}
@@ -115,6 +120,7 @@ const STATUS_ACTIONS: Record<string, { status: string; label: string; variant: "
 };
 
 export function StatusActions({ memberId, status }: { memberId: string; status: string }) {
+  const t = useT();
   return (
     <ActionForm action={setStatusAction} className="flex flex-col gap-3">
       {() => (
@@ -122,7 +128,7 @@ export function StatusActions({ memberId, status }: { memberId: string; status: 
           <input type="hidden" name="memberId" value={memberId} />
           {(STATUS_ACTIONS[status] ?? []).map((a) => (
             <SubmitButton key={a.status} name="status" value={a.status} variant={a.variant}>
-              {a.label}
+              {t(a.label)}
             </SubmitButton>
           ))}
         </div>

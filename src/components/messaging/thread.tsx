@@ -12,6 +12,7 @@ import {
 import { ReportForm } from "@/components/community/post-card";
 import { Notice } from "@/components/ui/notice";
 import type { MessageView } from "@/server/messaging/service";
+import { useT } from "@/i18n/client";
 
 const POLL_MS = 4000;
 const SAFETY_POLL_MS = 30_000;
@@ -37,6 +38,7 @@ export function Thread({
   initial: MessageView[];
   initialOlderCursor: Cursor;
 }) {
+  const t = useT();
   const [items, setItems] = useState<MessageView[]>(initial);
   const [older, setOlder] = useState<Cursor>(initialOlderCursor);
   const [body, setBody] = useState("");
@@ -102,20 +104,20 @@ export function Thread({
 
   async function pick(file: File | undefined) {
     if (!file) return;
-    if (!ACCEPT.split(",").includes(file.type) || file.size > 10 * 1024 * 1024) return setError("Envie uma foto JPG, PNG ou WebP de até 10 MB.");
+    if (!ACCEPT.split(",").includes(file.type) || file.size > 10 * 1024 * 1024) return setError(t("Envie uma foto JPG, PNG ou WebP de até 10 MB."));
     setError(null);
     setUploading(true);
     try {
-      const t = await requestMessageImageAction({ contentType: file.type, sizeBytes: file.size });
-      if (!t.ok || !t.data) return setError(t.ok ? "Não foi possível enviar." : t.message);
+      const ticket = await requestMessageImageAction({ contentType: file.type, sizeBytes: file.size });
+      if (!ticket.ok || !ticket.data) return setError(ticket.ok ? t("Não foi possível enviar.") : ticket.message);
       const fd = new FormData();
-      for (const [k, v] of Object.entries(t.data.fields)) fd.append(k, v);
+      for (const [k, v] of Object.entries(ticket.data.fields)) fd.append(k, v);
       fd.append("file", file);
-      const up = await fetch(t.data.url, { method: "POST", body: fd }).catch(() => null);
+      const up = await fetch(ticket.data.url, { method: "POST", body: fd }).catch(() => null);
       if (!up?.ok) return setError("O envio foi interrompido.");
-      const done = await completeMessageImageAction({ assetId: t.data.assetId });
+      const done = await completeMessageImageAction({ assetId: ticket.data.assetId });
       if (!done.ok) return setError(done.message);
-      setImage({ assetId: t.data.assetId, preview: URL.createObjectURL(file) });
+      setImage({ assetId: ticket.data.assetId, preview: URL.createObjectURL(file) });
     } finally {
       setUploading(false);
     }
@@ -125,7 +127,7 @@ export function Thread({
     if (!body.trim() && !image) return;
     startTransition(async () => {
       const res = await sendMessageAction({ conversationId, body, imageAssetId: image?.assetId ?? null });
-      if (!res.ok || !res.data) return setError(res.ok ? "Não foi possível enviar." : res.message);
+      if (!res.ok || !res.data) return setError(res.ok ? t("Não foi possível enviar.") : res.message);
       setError(null);
       setBody("");
       setImage(null);
@@ -135,7 +137,7 @@ export function Thread({
 
   return (
     <div className="flex min-h-[60dvh] flex-col">
-      <div role="log" aria-live="polite" aria-label={`Conversa com ${otherName}`} className="flex flex-1 flex-col gap-2 pb-4">
+      <div role="log" aria-live="polite" aria-label={t("Conversa com {0}", { 0: otherName })} className="flex flex-1 flex-col gap-2 pb-4">
         {older && (
           <button
             type="button"
@@ -150,23 +152,23 @@ export function Thread({
               })
             }
           >
-            Mensagens anteriores
+            {t("Mensagens anteriores")}
           </button>
         )}
-        {items.length === 0 && <p className="py-10 text-center text-sm text-muted">Nenhuma mensagem ainda. Diga oi!</p>}
+        {items.length === 0 && <p className="py-10 text-center text-sm text-muted">{t("Nenhuma mensagem ainda. Diga oi!")}</p>}
         {items.map((m) => (
           <div key={m.id} className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}>
             <div
               className={`max-w-[80%] rounded-[var(--radius-panel)] px-3.5 py-2 ${m.deleted ? "border border-dashed border-line-strong bg-transparent text-muted italic" : m.mine ? "bg-turf-solid text-white" : "border border-line bg-paper"}`}
             >
               {m.deleted ? (
-                "Mensagem apagada"
+                t("Mensagem apagada")
               ) : (
                 <>
                   {m.imageUrl && (
                     // Short-lived signed URL from private storage.
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.imageUrl} alt="Foto enviada na conversa" className="mb-1 max-h-72 rounded-[var(--radius-control)]" loading="lazy" />
+                    <img src={m.imageUrl} alt={t("Foto enviada na conversa")} className="mb-1 max-h-72 rounded-[var(--radius-control)]" loading="lazy" />
                   )}
                   {m.body && <p className="leading-relaxed break-words whitespace-pre-line">{m.body}</p>}
                 </>
@@ -179,19 +181,19 @@ export function Thread({
                   type="button"
                   className="font-semibold hover:text-danger"
                   onClick={() => {
-                    if (!window.confirm("Apagar esta mensagem para os dois?")) return;
+                    if (!window.confirm(t("Apagar esta mensagem para os dois?"))) return;
                     startTransition(async () => {
                       const res = await deleteMessageAction({ messageId: m.id });
                       if (res.ok) setItems((cur) => cur.map((x) => (x.id === m.id ? { ...x, deleted: true, body: null, imageUrl: null } : x)));
                     });
                   }}
                 >
-                  Apagar
+                  {t("Apagar")}
                 </button>
               )}
               {!m.deleted && !m.mine && (
                 <button type="button" className="font-semibold hover:text-ink" onClick={() => setReporting(m.id)}>
-                  Denunciar
+                  {t("Denunciar")}
                 </button>
               )}
             </div>
@@ -217,15 +219,15 @@ export function Thread({
           {image && (
             <div className="relative mb-2 inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.preview} alt="Prévia da foto" className="max-h-32 rounded-[var(--radius-control)]" />
-              <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-black/75 px-2 text-sm font-bold text-white" aria-label="Remover foto">
+              <img src={image.preview} alt={t("Prévia da foto")} className="max-h-32 rounded-[var(--radius-control)]" />
+              <button type="button" onClick={() => setImage(null)} className="absolute top-1 right-1 rounded-full bg-black/75 px-2 text-sm font-bold text-white" aria-label={t("Remover foto")}>
                 ×
               </button>
             </div>
           )}
           <div className="flex items-end gap-2">
             <label htmlFor={fileId} className={`grid size-11 shrink-0 cursor-pointer place-items-center rounded-[var(--radius-control)] border border-line-strong bg-paper ${uploading ? "opacity-50" : ""}`}>
-              <span className="sr-only">Anexar foto</span>
+              <span className="sr-only">{t("Anexar foto")}</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <circle cx="9" cy="10" r="2" />
@@ -254,12 +256,12 @@ export function Thread({
               }}
               maxLength={2000}
               rows={1}
-              placeholder={`Mensagem para ${otherName}`}
-              aria-label="Mensagem"
+              placeholder={t("Mensagem para {0}", { 0: otherName })}
+              aria-label={t("Mensagem")}
               className="min-h-11 min-w-0 flex-1 resize-none rounded-[var(--radius-control)] border border-line-strong bg-paper px-3 py-2.5 outline-none focus:border-turf"
             />
             <button type="button" onClick={send} disabled={pending || uploading || (!body.trim() && !image)} className="h-11 shrink-0 rounded-[var(--radius-control)] bg-turf-solid px-4 font-semibold text-white disabled:opacity-50">
-              Enviar
+              {t("Enviar")}
             </button>
           </div>
           {error && (
@@ -269,7 +271,7 @@ export function Thread({
           )}
         </div>
       ) : (
-        <Notice tone="info">Não é possível enviar mensagens nesta conversa (bloqueio ou configuração da consultoria).</Notice>
+        <Notice tone="info">{t("Não é possível enviar mensagens nesta conversa (bloqueio ou configuração da consultoria).")}</Notice>
       )}
     </div>
   );

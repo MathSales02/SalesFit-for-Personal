@@ -16,10 +16,15 @@ import { ProgressSection } from "./progress-section";
 import { getStudentProgress } from "@/server/progress/service";
 import { todayInBrazil } from "@/lib/validation/progress";
 import { HealthForm, ProfileForm, StatusActions } from "../forms";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Ficha do aluno" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Ficha do aluno") };
+}
 
 export default async function StudentPage({ params }: { params: Promise<{ memberId: string }> }) {
+  const t = await getT();
   const actor = await requirePageActor("students.read");
   const { memberId } = await params;
   if (!z.uuid().safeParse(memberId).success) notFound();
@@ -39,13 +44,13 @@ export default async function StudentPage({ params }: { params: Promise<{ member
   return (
     <>
       <Link href="/treinador/alunos" className="mb-4 inline-block text-sm font-semibold text-turf underline-offset-4 hover:underline">
-        Voltar para alunos
+        {t("Voltar para alunos")}
       </Link>
       <PageHeading
         title={s.displayName}
         description={
           <>
-            {s.email} · <span className="font-semibold text-ink">{MEMBER_STATUS_LABEL[s.status]}</span>
+            {s.email} · <span className="font-semibold text-ink">{t(MEMBER_STATUS_LABEL[s.status])}</span>
           </>
         }
       />
@@ -69,7 +74,7 @@ export default async function StudentPage({ params }: { params: Promise<{ member
       <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section aria-labelledby="profile-h">
           <h2 id="profile-h" className="mb-5 text-lg font-semibold">
-            Ficha de treino
+            {t("Ficha de treino")}
           </h2>
           <ProfileForm memberId={s.memberId} profile={s.profile} />
         </section>
@@ -77,17 +82,17 @@ export default async function StudentPage({ params }: { params: Promise<{ member
         <div className="flex flex-col gap-12">
           <section aria-labelledby="health-h">
             <h2 id="health-h" className="text-lg font-semibold">
-              Saúde
+              {t("Saúde")}
             </h2>
             {s.healthConsent ? (
               <>
-                <p className="mt-1 mb-5 text-sm text-muted">Dados sensíveis. Cada acesso fica registrado.</p>
+                <p className="mt-1 mb-5 text-sm text-muted">{t("Dados sensíveis. Cada acesso fica registrado.")}</p>
                 <HealthForm memberId={s.memberId} health={s.health} />
               </>
             ) : (
               <div className="mt-4">
                 <Notice tone="info">
-                  O aluno ainda não autorizou o compartilhamento de dados de saúde. Ele pode autorizar a qualquer momento na área dele, em Saúde.
+                  {t("O aluno ainda não autorizou o compartilhamento de dados de saúde. Ele pode autorizar a qualquer momento na área dele, em Saúde.")}
                 </Notice>
               </div>
             )}
@@ -95,10 +100,10 @@ export default async function StudentPage({ params }: { params: Promise<{ member
 
           <section aria-labelledby="status-h" className="border-t border-line pt-8">
             <h2 id="status-h" className="text-lg font-semibold">
-              Acesso
+              {t("Acesso")}
             </h2>
             <p className="mt-1 mb-4 text-sm text-muted">
-              Suspender bloqueia o acesso na hora e mantém a vaga. Arquivar libera a vaga e preserva o histórico.
+              {t("Suspender bloqueia o acesso na hora e mantém a vaga. Arquivar libera a vaga e preserva o histórico.")}
             </p>
             <StatusActions memberId={s.memberId} status={s.status} />
           </section>

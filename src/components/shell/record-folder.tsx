@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import GlassFolder, { type ArtRecipe } from "@/components/ui/glass-folder-cards";
+import { useT } from "@/i18n/client";
 
 /** The brand's charcoal and orange, folded like ink: the picture on the back of every folder. */
 const BRAND_ART: ArtRecipe = {
@@ -41,6 +42,7 @@ export function RecordFolder({
   /** Shown under an empty folder. */
   empty: string;
 }) {
+  const t = useT();
   const router = useRouter();
   // The folder draws its last file in front, so the first sheet goes last.
   const shown = sheets.slice(0, 4).reverse();
@@ -64,7 +66,7 @@ export function RecordFolder({
         }}
       />
       <p className="mt-3 max-w-[300px] text-center text-sm text-ink-soft">
-        {sheets.length === 0 ? `${empty} ` : "Toque na pasta para abrir. "}
+        {sheets.length === 0 ? `${empty} ` : t("Toque na pasta para abrir. ")}
         <Link href={allHref} className="font-semibold text-turf underline-offset-4 hover:underline">
           {allLabel}
         </Link>

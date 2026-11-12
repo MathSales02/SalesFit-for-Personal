@@ -7,8 +7,12 @@ import { listInvoices, needsTaxId } from "@/server/billing/provider";
 import { formatBRL, getBillingOverview } from "@/server/billing/service";
 import { requirePageActor } from "@/server/http/next";
 import { CancelForm, CheckoutForm } from "./forms";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Assinatura" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Assinatura") };
+}
 
 const fmtDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
 const fmtDay = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
@@ -26,6 +30,7 @@ const INVOICE_STATUS: Record<string, { label: string; tone: string }> = {
 const PAID = new Set(["CONFIRMED", "RECEIVED", "RECEIVED_IN_CASH"]);
 
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const t = await getT();
   const actor = await requirePageActor("subscription.read", { allowInactive: true });
   const sp = await searchParams;
   const online = asaasEnabled();
@@ -41,49 +46,49 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
 
   const headline =
     b.access.state === "trial"
-      ? `Teste grátis: ${left} ${left === 1 ? "dia restante" : "dias restantes"}`
+      ? t("Teste grátis: {0} {1}", { 0: left, 1: left === 1 ? t("dia restante") : t("dias restantes") })
       : b.access.state === "active"
         ? s?.status === "canceled"
-          ? "Assinatura cancelada"
-          : "Assinatura ativa"
+          ? t("Assinatura cancelada")
+          : t("Assinatura ativa")
         : b.access.state === "grace"
-          ? "Pagamento pendente"
-          : "Acesso pausado";
+          ? t("Pagamento pendente")
+          : t("Acesso pausado");
 
   return (
     <>
-      <PageHeading title="Assinatura" description="Plano da sua consultoria no SalesFit." />
+      <PageHeading title={t("Assinatura")} description={t("Plano da sua consultoria no SalesFit.")} />
 
       {sp.cobranca === "gerada" && (
         <div className="mb-6">
           <Notice tone="success">
-            Cobrança gerada. {openInvoice ? "Pague pelo link abaixo; o acesso é liberado assim que o pagamento for confirmado." : "Ela aparece aqui em instantes; atualize a página."}
+            {t("Cobrança gerada.")} {openInvoice ? t("Pague pelo link abaixo; o acesso é liberado assim que o pagamento for confirmado.") : t("Ela aparece aqui em instantes; atualize a página.")}
           </Notice>
         </div>
       )}
       {sp.cancelada === "1" && (
         <div className="mb-6">
-          <Notice tone="info">Assinatura cancelada. Nenhuma nova cobrança será feita.</Notice>
+          <Notice tone="info">{t("Assinatura cancelada. Nenhuma nova cobrança será feita.")}</Notice>
         </div>
       )}
 
-      <section aria-label="Situação" className="rounded-[var(--radius-panel)] bg-night p-6 text-white">
-        <p className="text-sm font-semibold text-signal">{s?.planName ?? "Sem plano"}</p>
+      <section aria-label={t("Situação")} className="rounded-[var(--radius-panel)] bg-night p-6 text-white">
+        <p className="text-sm font-semibold text-signal">{s?.planName ? t(s.planName) : t("Sem plano")}</p>
         <p className="mt-1 font-display text-3xl font-bold">{headline}</p>
         <p className="mt-2 text-sm text-white/70">
-          {b.studentsUsed} de {s?.maxStudents ?? 0} vagas de alunos em uso
-          {b.access.state === "active" && yearly ? " · plano anual" : ""}
-          {b.access.state === "active" && b.access.until ? ` · ${s?.status === "canceled" || fixedYear ? "acesso até" : "próxima renovação em"} ${fmtDate.format(b.access.until)}` : ""}
-          {b.access.state === "trial" && b.access.until ? ` · termina em ${fmtDate.format(b.access.until)}` : ""}
-          {b.access.state === "grace" && b.access.until ? ` · o acesso continua até ${fmtDate.format(b.access.until)}` : ""}
+          {b.studentsUsed} {t("de")} {s?.maxStudents ?? 0} {t("vagas de alunos em uso")}
+          {b.access.state === "active" && yearly ? t(" · plano anual") : ""}
+          {b.access.state === "active" && b.access.until ? ` · ${s?.status === "canceled" || fixedYear ? t("acesso até") : t("próxima renovação em")} ${fmtDate.format(b.access.until)}` : ""}
+          {b.access.state === "trial" && b.access.until ? t(" · termina em {0}", { 0: fmtDate.format(b.access.until) }) : ""}
+          {b.access.state === "grace" && b.access.until ? t(" · o acesso continua até {0}", { 0: fmtDate.format(b.access.until) }) : ""}
         </p>
         {b.access.state === "blocked" && (
-          <p className="mt-3 text-sm text-white/85">Você e seus alunos não conseguem usar o app até escolher um plano. Nenhum dado foi apagado.</p>
+          <p className="mt-3 text-sm text-white/85">{t("Você e seus alunos não conseguem usar o app até escolher um plano. Nenhum dado foi apagado.")}</p>
         )}
-        {fixedYear && paidActive && <p className="mt-3 text-sm text-white/85">Comprado parcelado: não renova sozinho. Perto do fim, escolha o plano de novo aqui.</p>}
+        {fixedYear && paidActive && <p className="mt-3 text-sm text-white/85">{t("Comprado parcelado: não renova sozinho. Perto do fim, escolha o plano de novo aqui.")}</p>}
         {pendingPlan && (
           <p className="mt-3 text-sm text-white/85">
-            {paidActive ? `Muda para o plano ${pendingPlan.name}${s?.pendingCycle === "yearly" ? " anual" : ""} no fim do período atual.` : `Plano ${pendingPlan.name}${s?.pendingCycle === "yearly" ? " anual" : ""} aguardando o pagamento.`}
+            {paidActive ? t("Muda para o plano {0}{1} no fim do período atual.", { 0: pendingPlan.name, 1: s?.pendingCycle === "yearly" ? t(" anual") : "" }) : t("Plano {0}{1} aguardando o pagamento.", { 0: pendingPlan.name, 1: s?.pendingCycle === "yearly" ? t(" anual") : "" })}
           </p>
         )}
         {openInvoice && (
@@ -93,14 +98,14 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             rel="noopener noreferrer"
             className="mt-5 inline-flex h-11 items-center rounded-[var(--radius-control)] bg-signal px-4 font-semibold text-on-accent"
           >
-            Pagar {formatBRL(openInvoice.valueCents)} (vence {fmtDay(openInvoice.dueDate)})
+            {t("Pagar")} {formatBRL(openInvoice.valueCents)} {t("(vence")} {fmtDay(openInvoice.dueDate)})
           </a>
         )}
       </section>
 
       <section aria-labelledby="plans-h" className="mt-10">
         <h2 id="plans-h" className="mb-4 font-display text-2xl font-bold">
-          {paidActive ? "Trocar de plano" : "Escolha seu plano"}
+          {paidActive ? t("Trocar de plano") : t("Escolha seu plano")}
         </h2>
         {online ? (
           <CheckoutForm
@@ -121,14 +126,14 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             }))}
           />
         ) : (
-          <p className="text-sm text-muted">O pagamento online ainda não está disponível. Fale com o suporte para contratar.</p>
+          <p className="text-sm text-muted">{t("O pagamento online ainda não está disponível. Fale com o suporte para contratar.")}</p>
         )}
       </section>
 
       {invoices.length > 0 && (
         <section aria-labelledby="inv-h" className="mt-10">
           <h2 id="inv-h" className="mb-3 font-display text-xl font-bold">
-            Cobranças
+            {t("Cobranças")}
           </h2>
           <ul className="divide-y divide-line rounded-[var(--radius-panel)] border border-line bg-paper">
             {invoices.map((i) => {
@@ -137,13 +142,13 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                 <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
                   <span>
                     <span className="font-semibold tabular-nums">{formatBRL(i.valueCents)}</span>
-                    <span className="text-muted"> · vencimento {fmtDay(i.dueDate)}</span>
+                    <span className="text-muted"> {t("· vencimento")} {fmtDay(i.dueDate)}</span>
                   </span>
                   <span className="flex items-center gap-3">
-                    <span className={`font-semibold ${st.tone}`}>{st.label}</span>
+                    <span className={`font-semibold ${st.tone}`}>{t(st.label)}</span>
                     {i.invoiceUrl && (
                       <a href={i.invoiceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-turf hover:underline">
-                        {PAID.has(i.status) ? "Comprovante" : "Pagar"}
+                        {PAID.has(i.status) ? t("Comprovante") : t("Pagar")}
                       </a>
                     )}
                   </span>
@@ -156,7 +161,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
 
       {online && s?.provider === "asaas" && (s.providerSubscriptionId || (s.providerInstallmentId && s.pendingPlanId)) && (
         <details className="mt-10 rounded-[var(--radius-panel)] border border-line bg-paper p-5">
-          <summary className="cursor-pointer font-semibold">Cancelar assinatura</summary>
+          <summary className="cursor-pointer font-semibold">{t("Cancelar assinatura")}</summary>
           <div className="mt-4">
             <CancelForm paid={paidActive || s.status === "past_due"} />
           </div>

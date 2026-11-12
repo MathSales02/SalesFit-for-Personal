@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { MEASUREMENT_FIELDS, type MeasurementKey } from "@/lib/validation/progress";
+import { useT } from "@/i18n/client";
 
 export type MeasurementRow = { id: string; measuredOn: string } & Record<MeasurementKey, number | null>;
 
@@ -30,6 +31,7 @@ function ticks(min: number, max: number, count = 4) {
  * rendered by the page is the non-visual equivalent.
  */
 export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
+  const t = useT();
   const available = MEASUREMENT_FIELDS.filter(([k]) => rows.filter((r) => r[k] != null).length >= 2);
   const [metric, setMetric] = useState<MeasurementKey>(available[0]?.[0] ?? "weightKg");
   const [active, setActive] = useState<number | null>(null);
@@ -55,7 +57,7 @@ export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
   );
 
   if (available.length === 0) {
-    return <p className="text-sm text-muted">Registre pelo menos duas medições para ver a evolução no gráfico.</p>;
+    return <p className="text-sm text-muted">{t("Registre pelo menos duas medições para ver a evolução no gráfico.")}</p>;
   }
 
   const values = points.map((p) => p.value);
@@ -84,7 +86,7 @@ export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
   return (
     <figure className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="radiogroup" aria-label="Medida" className="flex flex-wrap gap-1.5">
+        <div role="radiogroup" aria-label={t("Medida")} className="flex flex-wrap gap-1.5">
           {available.map(([k, label]) => (
             <button
               key={k}
@@ -111,7 +113,7 @@ export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
       </div>
 
       <figcaption id={titleId} className="sr-only">
-        {field[1]} ao longo do tempo, de {fmtDate(first.date)} a {fmtDate(last.date)}: de {fmtNum(first.value)} para {fmtNum(last.value)} {field[2]}.
+        {field[1]} {t("ao longo do tempo, de")} {fmtDate(first.date)} a {fmtDate(last.date)}{t(": de")} {fmtNum(first.value)} {t("para")} {fmtNum(last.value)} {field[2]}.
       </figcaption>
       <div className="relative" ref={box}>
         <svg

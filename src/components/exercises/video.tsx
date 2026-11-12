@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { youtubeEmbed, youtubeId, youtubeThumbnail } from "@/lib/exercise-video";
+import { useT } from "@/i18n/client";
 
 const PlayIcon = ({ className = "size-6" }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
@@ -14,10 +15,11 @@ const PlayIcon = ({ className = "size-6" }: { className?: string }) => (
  * itself, silently, and is only fetched when it gets close to the screen.
  */
 export function DemoAnimation({ url, title, className = "" }: { url: string; title: string; className?: string }) {
+  const t = useT();
   return (
     <span className={`block overflow-hidden rounded-[var(--radius-panel)] border border-line bg-white ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt={`Demonstração animada: ${title}`} loading="lazy" decoding="async" className="aspect-square size-full object-contain" />
+      <img src={url} alt={t("Demonstração animada: {0}", { 0: title })} loading="lazy" decoding="async" className="aspect-square size-full object-contain" />
     </span>
   );
 }
@@ -45,12 +47,13 @@ export function ExerciseVideo({
   preload?: "metadata" | "none";
   className?: string;
 }) {
+  const t = useT();
   const [playing, setPlaying] = useState(false);
   const frame = `aspect-video w-full overflow-hidden rounded-[var(--radius-panel)] ${className}`;
 
   if (src) {
     // Captions are not available for trainer uploads yet; the written instructions cover the same content.
-    return <video src={src} controls playsInline preload={preload} aria-label={`Vídeo: ${title}`} className={`${frame} bg-black`} />;
+    return <video src={src} controls playsInline preload={preload} aria-label={t("Vídeo: {0}", { 0: title })} className={`${frame} bg-black`} />;
   }
 
   const id = youtubeId(externalUrl);
@@ -59,7 +62,7 @@ export function ExerciseVideo({
       return (
         <iframe
           src={youtubeEmbed(id)}
-          title={`Vídeo: ${title}`}
+          title={t("Vídeo: {0}", { 0: title })}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
           referrerPolicy="strict-origin-when-cross-origin"
@@ -76,7 +79,7 @@ export function ExerciseVideo({
             <PlayIcon className="ml-0.5 size-7" />
           </span>
         </span>
-        <span className="sr-only">Reproduzir vídeo: {title}</span>
+        <span className="sr-only">{t("Reproduzir vídeo:")} {title}</span>
       </button>
     );
   }
@@ -90,8 +93,8 @@ export function ExerciseVideo({
         <span className="mx-auto grid size-12 place-items-center rounded-full bg-paper text-ink-soft">
           <PlayIcon className="ml-0.5 size-5" />
         </span>
-        <p className="mt-3 font-semibold text-ink">Demonstração em breve</p>
-        <p className="mt-1 text-sm text-ink-soft">A demonstração deste exercício ainda não está disponível. Siga o passo a passo abaixo.</p>
+        <p className="mt-3 font-semibold text-ink">{t("Demonstração em breve")}</p>
+        <p className="mt-1 text-sm text-ink-soft">{t("A demonstração deste exercício ainda não está disponível. Siga o passo a passo abaixo.")}</p>
       </div>
     </div>
   );

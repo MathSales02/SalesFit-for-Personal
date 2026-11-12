@@ -84,6 +84,15 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
+**Idiomas (12/11/2026, etapa 1 de várias):** o app passa a ter português, inglês e espanhol.
+- O código continua em português: cada texto passa por `t("texto em português")` e os outros idiomas são catálogos que mapeiam o texto português para a tradução (`src/i18n/catalog/en.ts` e `es.ts`). Texto sem tradução aparece em português.
+- Idioma da pessoa: cookie `cadencia_locale` (seletor em Conta e nas telas de login); sem escolha, segue o navegador. Servidor: `const t = await getT()`; componentes de cliente: `const t = useT()`.
+- `npx tsx scripts/i18n-keys.ts` lista o que falta traduzir; `tests/i18n.test.ts` falha se faltar algo nas telas já traduzidas.
+- Traduzido: login e cadastro, menus, início, treinos, exercícios (interface, nomes dos 138 exercícios e equipamentos), mensagens, notificações, progresso, saúde, assinatura, conta. Mensagens fixas do servidor são traduzidas na saída das ações.
+- Ainda em português: comunidade, ranking e competições, admin, página de vendas, termos e privacidade, e-mails, textos longos da biblioteca (descrição, passo a passo, dicas), mensagens do servidor com valores dentro, datas (formato e nomes de meses) e as letras dos dias da semana.
+- Vender fora do Brasil ainda depende de outro provedor de pagamento: o Asaas só cobra em reais e exige CPF/CNPJ.
+
+
 **11/11/2026: marca SalesFit e comunidade redesenhada como rede social (commits ef64942, ba0a98f, no ar).**
 - Marca: o produto agora se chama **SalesFit** (arquivos em `public/brand/SalesFit-marca`, fonte Manrope, laranja #F2690F). Identificadores técnicos (`cadencia_*`) não mudaram de propósito.
 - App instalável (PWA) e, para o treinador no celular, barra de navegação embaixo.

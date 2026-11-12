@@ -7,12 +7,14 @@ import { markNotificationsReadAction, notificationPrefsAction } from "@/app/_mes
 import { ActionForm } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Avatar } from "@/components/community/post-card";
+import { useT } from "@/i18n/client";
 
 export type NotificationItem = { id: string; read: boolean; text: string; href: string | null; actorName: string | null; createdAt: string };
 
 const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 export function NotificationList({ items }: { items: NotificationItem[] }) {
+  const t = useT();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const unread = items.filter((i) => !i.read).length;
@@ -26,11 +28,11 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
     <div className="flex flex-col gap-3">
       {unread > 0 && (
         <button type="button" onClick={markAll} disabled={pending} className="self-end text-sm font-semibold text-turf">
-          Marcar todas como lidas
+          {t("Marcar todas como lidas")}
         </button>
       )}
       {items.length === 0 ? (
-        <p className="py-10 text-center text-muted">Nenhuma notificação ainda.</p>
+        <p className="py-10 text-center text-muted">{t("Nenhuma notificação ainda.")}</p>
       ) : (
         <ul className="divide-y divide-line rounded-[var(--radius-panel)] border border-line bg-paper">
           {items.map((n) => {
@@ -41,7 +43,7 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
                   <p className={n.read ? "text-ink-soft" : "font-semibold text-ink"}>{n.text}</p>
                   <p className="text-xs text-muted">{fmt.format(new Date(n.createdAt))}</p>
                 </div>
-                {!n.read && <span className="mt-2 size-2.5 shrink-0 rounded-full bg-turf" aria-label="Não lida" />}
+                {!n.read && <span className="mt-2 size-2.5 shrink-0 rounded-full bg-turf" aria-label={t("Não lida")} />}
               </div>
             );
             return (
@@ -69,6 +71,7 @@ export function NotificationList({ items }: { items: NotificationItem[] }) {
 }
 
 export function PreferencesForm({ types, muted }: { types: readonly (readonly [string, string])[]; muted: string[] }) {
+  const t = useT();
   return (
     <ActionForm action={notificationPrefsAction} className="flex flex-col gap-3">
       {() => (
@@ -80,8 +83,8 @@ export function PreferencesForm({ types, muted }: { types: readonly (readonly [s
             </label>
           ))}
           <div>
-            <SubmitButton variant="secondary" pendingLabel="Salvando…">
-              Salvar preferências
+            <SubmitButton variant="secondary" pendingLabel={t("Salvando…")}>
+              {t("Salvar preferências")}
             </SubmitButton>
           </div>
         </>

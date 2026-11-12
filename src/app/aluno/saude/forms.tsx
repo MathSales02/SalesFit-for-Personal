@@ -4,14 +4,16 @@ import { ActionForm, fieldErrors } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Field, TextAreaField } from "@/components/ui/field";
 import { consentAction, deleteOwnHealthAction, saveOwnHealthAction } from "./actions";
+import { useT } from "@/i18n/client";
 
 export function ConsentForm({ granted }: { granted: boolean }) {
+  const t = useT();
   return (
     <ActionForm action={consentAction} className="flex flex-col gap-3">
       {() => (
         <div>
           <SubmitButton name="decision" value={granted ? "withdraw" : "grant"} variant={granted ? "secondary" : "primary"}>
-            {granted ? "Retirar autorização" : "Autorizar meu treinador"}
+            {granted ? t("Retirar autorização") : t("Autorizar meu treinador")}
           </SubmitButton>
         </div>
       )}
@@ -22,22 +24,23 @@ export function ConsentForm({ granted }: { granted: boolean }) {
 type Health = { restrictions: string | null; injuries: string | null; medicalNotes: string | null };
 
 export function OwnHealthForm({ health }: { health: Health | null }) {
+  const t = useT();
   return (
     <ActionForm action={saveOwnHealthAction}>
       {(s) => (
         <>
           <TextAreaField
-            label="Restrições de exercício"
+            label={t("Restrições de exercício")}
             name="restrictions"
             maxLength={2000}
-            hint="Movimentos que você não pode ou não deve fazer."
+            hint={t("Movimentos que você não pode ou não deve fazer.")}
             defaultValue={health?.restrictions ?? ""}
             errors={fieldErrors(s, "restrictions")}
           />
-          <TextAreaField label="Lesões" name="injuries" maxLength={2000} defaultValue={health?.injuries ?? ""} errors={fieldErrors(s, "injuries")} />
-          <TextAreaField label="Observações médicas" name="medicalNotes" maxLength={2000} defaultValue={health?.medicalNotes ?? ""} errors={fieldErrors(s, "medicalNotes")} />
+          <TextAreaField label={t("Lesões")} name="injuries" maxLength={2000} defaultValue={health?.injuries ?? ""} errors={fieldErrors(s, "injuries")} />
+          <TextAreaField label={t("Observações médicas")} name="medicalNotes" maxLength={2000} defaultValue={health?.medicalNotes ?? ""} errors={fieldErrors(s, "medicalNotes")} />
           <div>
-            <SubmitButton pendingLabel="Salvando…">Salvar</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{t("Salvar")}</SubmitButton>
           </div>
         </>
       )}
@@ -46,14 +49,15 @@ export function OwnHealthForm({ health }: { health: Health | null }) {
 }
 
 export function DeleteHealthForm() {
+  const t = useT();
   return (
     <ActionForm action={deleteOwnHealthAction} resetOnSuccess>
       {(s) => (
         <>
-          <Field label='Para apagar tudo, digite "apagar"' name="confirm" autoComplete="off" errors={fieldErrors(s, "confirm")} />
+          <Field label={t("Para apagar tudo, digite \"apagar\"")} name="confirm" autoComplete="off" errors={fieldErrors(s, "confirm")} />
           <div>
-            <SubmitButton variant="danger" pendingLabel="Apagando…">
-              Apagar meus dados de saúde
+            <SubmitButton variant="danger" pendingLabel={t("Apagando…")}>
+              {t("Apagar meus dados de saúde")}
             </SubmitButton>
           </div>
         </>
