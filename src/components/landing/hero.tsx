@@ -4,12 +4,14 @@ import heroPhoto from "./assets/hero-treino.jpg";
 import { Beats } from "./brand";
 import { HeroMotion, SectionLink } from "./hero-motion";
 import { MockCheckinToast, MockConstancia, MockTreinos } from "./mockups";
+import { getT } from "@/i18n/server";
 
 /**
  * Hero. The headline is plain server-rendered text (the LCP element) and never
  * waits for JavaScript. The photo is licensed by the owner.
  */
-export function Hero({ trialDays }: { trialDays: number }) {
+export async function Hero({ trialDays }: { trialDays: number }) {
+  const t = await getT();
   return (
     <HeroMotion>
       <section aria-labelledby="hero-h" className="lp-dark relative isolate flex min-h-[100svh] flex-col overflow-hidden">
@@ -17,7 +19,7 @@ export function Hero({ trialDays }: { trialDays: number }) {
         <div className="absolute inset-x-0 top-0 -z-10 h-[62%] sm:h-[70%] lg:inset-y-0 lg:left-[30%] lg:h-auto" data-depth="0.15">
           <Image
             src={heroPhoto}
-            alt="Aluna sorrindo durante o treino em uma academia"
+            alt={t("Aluna sorrindo durante o treino em uma academia")}
             fill
             priority
             sizes="(min-width: 1024px) 70vw, 100vw"
@@ -34,13 +36,13 @@ export function Hero({ trialDays }: { trialDays: number }) {
           <div className="max-w-[40rem]">
             <p data-hero-anim="" className="mb-6 inline-flex items-center gap-3 text-sm font-medium text-[var(--lp-text-2)]">
               <Beats className="h-4 w-14 text-[var(--lp-orange)]" />
-              Para personal trainers e seus alunos
+              {t("Para personal trainers e seus alunos")}
             </p>
             <h1 id="hero-h" className="lp-display text-[2.9rem] text-white sm:text-[4.2rem] lg:text-[5rem]">
-              Seus alunos no ritmo. Sua consultoria em ordem.
+              {t("Seus alunos no ritmo. Sua consultoria em ordem.")}
             </h1>
             <p className="mt-6 max-w-[34rem] text-lg leading-relaxed text-[var(--lp-text-2)]">
-              Treino no celular do aluno, evolução acompanhada de perto e um ranking que premia constância. Tudo no SalesFit.
+              {t("Treino no celular do aluno, evolução acompanhada de perto e um ranking que premia constância. Tudo no SalesFit.")}
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
@@ -48,13 +50,13 @@ export function Hero({ trialDays }: { trialDays: number }) {
                 data-magnetic=""
                 className="inline-flex h-13 items-center rounded-full bg-[var(--lp-orange)] px-7 text-base font-semibold text-[var(--lp-ink)] transition-colors hover:bg-white"
               >
-                Começar {trialDays} dias grátis
+                {t("Começar")} {trialDays} {t("dias grátis")}
               </Link>
               <SectionLink id="demonstracao" className="inline-flex h-13 items-center gap-2 rounded-full border border-white/25 px-6 text-base font-semibold text-white transition-colors hover:border-white hover:bg-white/10">
-                Ver o sistema funcionando
+                {t("Ver o sistema funcionando")}
               </SectionLink>
             </div>
-            <p className="mt-4 text-sm text-[var(--lp-text-2)]">Sem cartão de crédito para testar.</p>
+            <p className="mt-4 text-sm text-[var(--lp-text-2)]">{t("Sem cartão de crédito para testar.")}</p>
           </div>
         </div>
 
@@ -70,7 +72,7 @@ export function Hero({ trialDays }: { trialDays: number }) {
             <MockCheckinToast />
           </div>
         </div>
-        <p className="absolute right-5 bottom-4 hidden text-xs text-white/70 xl:block">Telas reais do SalesFit com dados de exemplo.</p>
+        <p className="absolute right-5 bottom-4 hidden text-xs text-white/70 xl:block">{t("Telas reais do SalesFit com dados de exemplo.")}</p>
       </section>
     </HeroMotion>
   );

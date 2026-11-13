@@ -117,7 +117,7 @@ export async function registerTrainer(input: RegisterTrainerInput, meta: Request
   const passwordHash = await hashPassword(input.password);
   const existing = await findUserByEmail(db(), input.email);
   if (existing) {
-    await sendQuietly(existingAccountEmail(existing.email));
+    await sendQuietly(await existingAccountEmail(existing.email));
     return;
   }
 
@@ -160,7 +160,7 @@ export async function registerTrainer(input: RegisterTrainerInput, meta: Request
     throw err;
   }
 
-  await sendQuietly(verificationEmail(input.email, input.displayName, verificationToken));
+  await sendQuietly(await verificationEmail(input.email, input.displayName, verificationToken));
 }
 
 // ---------------------------------------------------------------------------
@@ -325,7 +325,7 @@ export async function resendVerification(email: string, meta: RequestMeta): Prom
   const user = await findUserByEmail(db(), email);
   if (!user || user.emailVerifiedAt || user.status !== "active") return;
   const token = await issueToken(db(), user.id, "email_verification", EMAIL_VERIFICATION_TTL_MS);
-  await sendQuietly(verificationEmail(user.email, user.displayName, token));
+  await sendQuietly(await verificationEmail(user.email, user.displayName, token));
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +340,7 @@ export async function requestPasswordReset(email: string, meta: RequestMeta): Pr
   if (!user || user.status !== "active") return;
   const token = await issueToken(db(), user.id, "password_reset", PASSWORD_RESET_TTL_MS);
   await audit(db(), { action: "auth.password_reset_requested", actorUserId: user.id, targetType: "user", targetId: user.id, ipHash: meta.ipHash });
-  await sendQuietly(passwordResetEmail(user.email, token));
+  await sendQuietly(await passwordResetEmail(user.email, token));
 }
 
 /** Sets a new password from a reset link and signs the user out everywhere. */
@@ -363,7 +363,7 @@ export async function resetPassword(token: string, newPassword: string, meta: Re
   });
   if (!email) return false;
   await recordSecurityEvent({ type: "auth.password_reset", severity: "info", ipHash: meta.ipHash });
-  await sendQuietly(passwordChangedEmail(email));
+  await sendQuietly(await passwordChangedEmail(email));
   return true;
 }
 
@@ -384,7 +384,7 @@ export async function changePassword(
     await revokeUserSessions(tx, actor.userId, "password_changed", actor.sessionId);
     await audit(tx, { action: "auth.password_changed", actorUserId: actor.userId, targetType: "user", targetId: actor.userId, ipHash: meta.ipHash });
   });
-  await sendQuietly(passwordChangedEmail(user.email));
+  await sendQuietly(await passwordChangedEmail(user.email));
 }
 
 // ---------------------------------------------------------------------------

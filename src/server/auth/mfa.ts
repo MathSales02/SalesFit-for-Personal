@@ -97,7 +97,7 @@ export async function confirmMfaEnrollment(actor: Actor, code: string, meta: Req
     return list;
   });
   await recordSecurityEvent({ type: "auth.mfa_enabled", severity: "info", userId: actor.userId, ipHash: meta.ipHash });
-  await sendMail(mfaChangedEmail(actor.email, true)).catch((err: unknown) => log.error("mfa mail failed", errorFields(err)));
+  await sendMail(await mfaChangedEmail(actor.email, true)).catch((err: unknown) => log.error("mfa mail failed", errorFields(err)));
   return codes;
 }
 
@@ -114,7 +114,7 @@ export async function disableMfa(actor: Actor, input: { password: string; code: 
     await audit(tx, { action: "auth.mfa_disabled", actorUserId: actor.userId, targetType: "user", targetId: actor.userId, ipHash: meta.ipHash });
   });
   await recordSecurityEvent({ type: "auth.mfa_disabled", severity: "warning", userId: actor.userId, ipHash: meta.ipHash });
-  await sendMail(mfaChangedEmail(actor.email, false)).catch((err: unknown) => log.error("mfa mail failed", errorFields(err)));
+  await sendMail(await mfaChangedEmail(actor.email, false)).catch((err: unknown) => log.error("mfa mail failed", errorFields(err)));
 }
 
 export async function regenerateRecoveryCodes(actor: Actor, code: string, meta: RequestMeta): Promise<string[]> {

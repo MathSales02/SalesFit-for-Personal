@@ -6,6 +6,7 @@ import { useInstallApp } from "@/components/pwa";
 import { BrandLogo } from "./brand";
 import { BEAT, EASE_OUT, gsap, introAllowed, MQ, ScrollTrigger, useGSAP } from "./gsap";
 import { NAV } from "./landing-content";
+import { useT } from "@/i18n/client";
 
 /** Smooth scroll to a section, below the navbar. Instant when the visitor prefers reduced motion. */
 export function scrollToSection(id: string) {
@@ -21,6 +22,7 @@ export function scrollToSection(id: string) {
 }
 
 export function Navbar() {
+  const t = useT();
   const root = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLElement>(null);
   const indicator = useRef<HTMLSpanElement>(null);
@@ -180,11 +182,11 @@ export function Navbar() {
         data-hero-anim=""
         className="lp-glass pointer-events-auto relative mx-auto flex h-16 max-w-6xl items-center gap-3 rounded-full pr-2 pl-5 transition-[height] duration-300 data-[compact]:h-14"
       >
-        <Link href="/" aria-label="SalesFit, início" className="shrink-0">
+        <Link href="/" aria-label={t("SalesFit, início")} className="shrink-0">
           <BrandLogo />
         </Link>
 
-        <nav aria-label="Seções" className="relative ml-6 hidden flex-1 items-center gap-1 xl:flex">
+        <nav aria-label={t("Seções")} className="relative ml-6 hidden flex-1 items-center gap-1 xl:flex">
           <span ref={indicator} aria-hidden="true" className="absolute top-1/2 left-0 h-8 -translate-y-1/2 rounded-full bg-white/12 opacity-0" />
           {NAV.map((item, i) => (
             <a
@@ -197,7 +199,7 @@ export function Navbar() {
               aria-current={active === i ? "location" : undefined}
               className="group relative rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-white/85 transition-colors hover:text-white"
             >
-              <span className="relative inline-block transition-transform duration-300 group-hover:-translate-y-px">{item.label}</span>
+              <span className="relative inline-block transition-transform duration-300 group-hover:-translate-y-px">{t(item.label)}</span>
             </a>
           ))}
         </nav>
@@ -210,14 +212,14 @@ export function Navbar() {
         </span>
 
         <Link href="/entrar" className="ml-auto hidden rounded-full px-4 py-2 text-[0.9rem] font-medium text-white/85 hover:text-white sm:inline-flex md:ml-2">
-          Entrar
+          {t("Entrar")}
         </Link>
         <Link
           ref={cta}
           href="/cadastro"
           className="hidden h-11 items-center rounded-full bg-[var(--lp-orange)] px-5 text-[0.92rem] font-semibold whitespace-nowrap text-[var(--lp-ink)] transition-colors hover:bg-white sm:inline-flex"
         >
-          Começar grátis
+          {t("Começar grátis")}
         </Link>
 
         <button
@@ -225,7 +227,7 @@ export function Navbar() {
           type="button"
           aria-expanded={open}
           aria-controls="lp-menu"
-          aria-label={open ? "Fechar menu" : "Abrir menu"}
+          aria-label={open ? t("Fechar menu") : t("Abrir menu")}
           onClick={() => (open ? close() : setOpen(true))}
           className="ml-auto grid size-11 place-items-center rounded-full text-white sm:ml-1 xl:hidden"
         >
@@ -242,31 +244,31 @@ export function Navbar() {
           ref={panel}
           role="dialog"
           aria-modal="true"
-          aria-label="Menu"
+          aria-label={t("Menu")}
           className="lp-glass pointer-events-auto relative mx-auto mt-2 flex max-w-6xl flex-col gap-1 rounded-[28px] p-3 xl:hidden"
         >
           {NAV.map((item) => (
             <a key={item.id} data-menu-item="" href={`#${item.id}`} onClick={go(item.id)} className="rounded-2xl px-4 py-3.5 text-lg font-semibold text-white hover:bg-white/10">
-              {item.label}
+              {t(item.label)}
             </a>
           ))}
           {app.state === "prompt" && (
             <button type="button" data-menu-item="" onClick={() => void app.install()} className="rounded-2xl px-4 py-3.5 text-left text-lg font-semibold text-[var(--lp-orange)] hover:bg-white/10">
-              Instalar o app
+              {t("Instalar o app")}
             </button>
           )}
           {app.state === "ios" && (
             <p data-menu-item="" className="px-4 py-2 text-sm text-white/70">
-              Para instalar o app: toque em <strong className="text-white">Compartilhar</strong> e depois em{" "}
-              <strong className="text-white">Adicionar à Tela de Início</strong>.
+              {t("Para instalar o app: toque em")} <strong className="text-white">{t("Compartilhar")}</strong> {t("e depois em")}{" "}
+              <strong className="text-white">{t("Adicionar à Tela de Início")}</strong>.
             </p>
           )}
           <div data-menu-item="" className="mt-2 grid grid-cols-2 gap-2 border-t border-white/10 pt-3">
             <Link href="/entrar" className="grid h-12 place-items-center rounded-full border border-white/20 font-semibold text-white">
-              Entrar
+              {t("Entrar")}
             </Link>
             <Link href="/cadastro" className="grid h-12 place-items-center rounded-full bg-[var(--lp-orange)] font-semibold text-[var(--lp-ink)]">
-              Começar grátis
+              {t("Começar grátis")}
             </Link>
           </div>
         </div>

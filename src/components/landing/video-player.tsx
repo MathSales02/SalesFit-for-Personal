@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap, MQ } from "./gsap";
+import { useT } from "@/i18n/client";
 
 /**
  * Silent looping demo clip.
@@ -10,6 +11,7 @@ import { gsap, MQ } from "./gsap";
  *  - keyboard-accessible play/pause; space reserved by aspect-ratio (no layout shift)
  */
 export function VideoPlayer({ src, poster, width, height, label }: { src: string; poster: string; width: number; height: number; label: string }) {
+  const t = useT();
   const box = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const cursor = useRef<HTMLSpanElement>(null);
@@ -101,7 +103,7 @@ export function VideoPlayer({ src, poster, width, height, label }: { src: string
           e.stopPropagation();
           toggle();
         }}
-        aria-label={playing ? `Pausar vídeo: ${label}` : `Reproduzir vídeo: ${label}`}
+        aria-label={playing ? t("Pausar vídeo: {0}", { 0: label }) : t("Reproduzir vídeo: {0}", { 0: label })}
         aria-pressed={playing}
         className="absolute right-3 bottom-3 grid size-11 cursor-pointer place-items-center rounded-full bg-black/75 text-white ring-1 ring-white/20 backdrop-blur hover:bg-[var(--lp-ink)]"
       >
@@ -121,7 +123,7 @@ export function VideoPlayer({ src, poster, width, height, label }: { src: string
         aria-hidden="true"
         className="pointer-events-none absolute top-0 left-0 -mt-9 -ml-9 grid size-18 place-items-center rounded-full bg-[var(--lp-orange)] text-xs font-semibold text-[var(--lp-ink)] opacity-0"
       >
-        {playing ? "Pausar" : "Assistir"}
+        {playing ? t("Pausar") : t("Assistir")}
       </span>
     </div>
   );

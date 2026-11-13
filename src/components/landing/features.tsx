@@ -13,6 +13,7 @@ import {
   MockRanking,
   PhoneFrame,
 } from "./mockups";
+import { useT } from "@/i18n/client";
 
 function Screen({ id }: { id: FeatureId }) {
   switch (id) {
@@ -45,6 +46,7 @@ function Screen({ id }: { id: FeatureId }) {
  * selected item). Mobile / reduced motion: plain tabs. Same tab semantics in both.
  */
 export function Features() {
+  const t = useT();
   const scope = useRef<HTMLElement>(null);
   const pinBox = useRef<HTMLDivElement>(null);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -151,13 +153,13 @@ export function Features() {
           data-reveal=""
           className="lp-display max-w-3xl text-[2.6rem] sm:text-[4rem]"
         >
-          Do primeiro convite ao recorde do aluno.
+          {t("Do primeiro convite ao recorde do aluno.")}
         </h2>
         <p
           data-reveal=""
           className="mt-5 max-w-xl text-lg text-[var(--lp-dark-2)]"
         >
-          Seis peças que já funcionam hoje, todas incluídas em qualquer plano.
+          {t("Seis peças que já funcionam hoje, todas incluídas em qualquer plano.")}
         </p>
 
         <div
@@ -166,7 +168,7 @@ export function Features() {
         >
           <div
             role="tablist"
-            aria-label="Funcionalidades"
+            aria-label={t("Funcionalidades")}
             aria-orientation="vertical"
             className="flex flex-col gap-2"
           >
@@ -196,17 +198,17 @@ export function Features() {
                   >
                     0{i + 1}
                   </span>
-                  <span className="text-lg font-semibold">{f.name}</span>
+                  <span className="text-lg font-semibold">{t(f.name)}</span>
                 </span>
                 <span
                   className={`grid transition-[grid-template-rows] duration-500 ${i === active ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
                 >
                   <span className="overflow-hidden">
                     <span className="mt-2 block text-[0.95rem] leading-relaxed text-[var(--lp-dark-2)]">
-                      {f.pitch}
+                      {t(f.pitch)}
                     </span>
                     <span className="mt-2 block text-[0.95rem] font-semibold text-[var(--lp-dark)]">
-                      {f.gain}
+                      {t(f.gain)}
                     </span>
                   </span>
                 </span>
@@ -233,7 +235,7 @@ export function Features() {
               ))}
             </div>
             <p className="mt-3 text-right text-xs text-[var(--lp-dark-2)]">
-              Tela do sistema com dados de exemplo
+              {t("Tela do sistema com dados de exemplo")}
             </p>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { en } from "./catalog/en";
 import { es } from "./catalog/es";
 import { libraryEn } from "./catalog/library-en";
 import { libraryEs } from "./catalog/library-es";
-import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, matchLocale, translator, type Catalog, type Locale, type Translate } from "./config";
+import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE, LOCALE_HEADER, matchLocale, translator, type Catalog, type Locale, type Translate } from "./config";
 
 const CATALOGS: Record<Locale, Catalog | null> = { "pt-BR": null, en, es };
 
@@ -23,6 +23,8 @@ export const getLocale = cache(async (): Promise<Locale> => {
 
 async function readLocale(): Promise<Locale> {
   try {
+    const fixed = (await headers()).get(LOCALE_HEADER);
+    if (isLocale(fixed)) return fixed;
     const chosen = (await cookies()).get(LOCALE_COOKIE)?.value;
     if (isLocale(chosen)) return chosen;
     return matchLocale((await headers()).get("accept-language"));

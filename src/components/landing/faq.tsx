@@ -2,16 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BEAT, EASE_OUT, gsap, MQ } from "./gsap";
+import { useT } from "@/i18n/client";
 
 export type FaqItem = { q: string; a: React.ReactNode };
 
 /** Accessible accordion: real buttons, aria-expanded/aria-controls, animated height. */
 export function Faq({ items }: { items: FaqItem[] }) {
+  const t = useT();
   return (
     <section id="faq" aria-labelledby="faq-h" className="lp-dark py-24 sm:py-32">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <h2 id="faq-h" className="lp-display text-[2.6rem] sm:text-[4rem]">
-          Dúvidas antes de começar
+          {t("Dúvidas antes de começar")}
         </h2>
         <div className="border-t border-white/10">
           {items.map((item, i) => (

@@ -48,7 +48,7 @@ export async function openSupportAccess(actor: Actor, workspaceId: string, input
     return ws;
   });
   await recordSecurityEvent({ type: "admin.support_access_opened", severity: "warning", userId: actor.userId, workspaceId, ipHash: meta.ipHash, metadata: { minutes: input.minutes } });
-  await sendMail(supportAccessEmail(owner.ownerEmail, owner.name, input.reason, input.minutes)).catch((err: unknown) => log.error("support access email failed", errorFields(err)));
+  await sendMail(await supportAccessEmail(owner.ownerEmail, owner.name, input.reason, input.minutes)).catch((err: unknown) => log.error("support access email failed", errorFields(err)));
 }
 
 export async function closeSupportAccess(actor: Actor, workspaceId: string, meta: RequestMeta) {

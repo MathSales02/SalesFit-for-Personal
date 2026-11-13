@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectAccessible, expectNoHorizontalScroll, mobilePage, signUpTrainer } from "./helpers";
+import { expectAccessible, expectNoHorizontalScroll, mailLink, mobilePage, PASSWORD, signUpTrainer, stamp } from "./helpers";
 
 // Set E2E_SHOTS=1 to keep screenshots in test-results/i18n.
 const shot = async (page: Page, name: string) => {
@@ -132,4 +132,59 @@ test("on a phone in English the tab bar and the home fit the screen", async ({ b
   await expectNoHorizontalScroll(page);
   await shot(page, "trainer-home-en-mobile");
   await page.context().close();
+});
+
+test("signing up in Spanish sends the confirmation email in Spanish", async ({ browser }) => {
+  const ctx = await browser.newContext({ locale: "es-AR" });
+  const page = await ctx.newPage();
+  const email = `coach-es-${stamp()}@example.com`;
+  await page.goto("/cadastro");
+  await page.getByLabel("Tu nombre").fill("Lucía Gómez");
+  await page.getByLabel("Nombre de la consultoría").fill("Lucía Entrena");
+  await page.getByLabel("Correo electrónico").fill(email);
+  await page.getByLabel("Contraseña").fill(PASSWORD);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Crear cuenta gratis" }).click();
+  await page.waitForURL("**/cadastro/confirme");
+  // Found only when the subject is the Spanish one.
+  const link = await mailLink(email, "verificar-email", "Confirma tu correo");
+  expect(link).toContain("/verificar-email?token=");
+  await ctx.close();
+});
+test("the landing has an address per language, linked for search engines, and the footer switches between them", async ({ browser }) => {
+  // A Portuguese browser on /en still gets English: the address decides.
+  const ctx = await browser.newContext({ locale: "pt-BR" });
+  const page = await ctx.newPage();
+  await page.goto("/en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page).toHaveTitle("SalesFit: workouts, progress and consistency for personal trainers");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start free" }).first()).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/en$/);
+  const root = /^https?:\/\/[^/]+\/?$/;
+  for (const [lang, path] of [["pt-BR", root], ["en", /\/en$/], ["es", /\/es$/], ["x-default", root]] as const) {
+    await expect(page.locator(`link[rel="alternate"][hreflang="${lang}"]`)).toHaveAttribute("href", path);
+  }
+  await expectAccessible(page, "/en (landing)");
+  await shot(page, "landing-en");
+
+  // Arriving through /en is remembered: the sign-in screen opens in English.
+  await page.goto("/login");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+
+  // The footer offers each language under its own name.
+  await page.goto("/en");
+  const languages = page.getByRole("navigation", { name: "Language" });
+  await expect(languages.getByRole("link", { name: "English" })).toHaveAttribute("aria-current", "true");
+  await languages.getByRole("link", { name: "Español" }).click();
+  await page.waitForURL("**/es");
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
+  await expect(page.getByRole("link", { name: "Empezar gratis" }).first()).toBeVisible();
+
+  // Back to Portuguese through "/?lang=pt-BR": the choice is remembered, the parameter disappears.
+  await page.getByRole("navigation", { name: "Idioma" }).getByRole("link", { name: "Português" }).click();
+  await page.waitForURL((url) => url.pathname === "/" && !url.search);
+  await expect(page.locator("html")).toHaveAttribute("lang", "pt-BR");
+  await expect(page.getByRole("link", { name: "Começar grátis" }).first()).toBeVisible();
+  await ctx.close();
 });

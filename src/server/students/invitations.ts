@@ -121,7 +121,7 @@ export async function inviteStudent(actor: Actor, email: string, meta: RequestMe
   });
 
   try {
-    await sendMail(invitationEmail(email, actor.displayName, workspaceName, token));
+    await sendMail(await invitationEmail(email, actor.displayName, workspaceName, token));
   } catch (err) {
     log.error("invitation mail not sent", errorFields(err));
     throw new AppError("INTERNAL", "Não foi possível enviar o e-mail do convite. Tente reenviar em instantes.");

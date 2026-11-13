@@ -10,6 +10,11 @@ export const LOCALES = ["pt-BR", "en", "es"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "pt-BR";
 export const LOCALE_COOKIE = "cadencia_locale";
+/** Set by the proxy on addresses that fix a language (/en, /es); never trusted from the browser. */
+export const LOCALE_HEADER = "x-salesfit-locale";
+
+/** Addresses whose language is fixed. */
+export const LOCALE_PATHS: Record<string, Locale> = { "/en": "en", "/es": "es" };
 
 /** Each language named in itself, as a language menu should. */
 export const LOCALE_LABEL: Record<Locale, string> = { "pt-BR": "Português", en: "English", es: "Español" };

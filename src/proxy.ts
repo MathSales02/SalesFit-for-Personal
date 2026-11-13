@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isLocale, LOCALE_COOKIE, LOCALE_HEADER, LOCALE_PATHS, type Locale } from "./i18n/config";
 import { hmacPii } from "./server/lib/crypto";
 import { errorFields, log } from "./server/lib/logger";
 import { clientIp } from "./server/http/request-meta";
@@ -29,6 +30,16 @@ export async function proxy(request: NextRequest) {
     log.error("global rate limit unavailable", errorFields(err));
   }
 
+  // ?lang=en on any address: remember the choice and come back without the parameter.
+  const asked = request.nextUrl.searchParams.get("lang");
+  if (asked !== null) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete("lang");
+    const res = NextResponse.redirect(clean, 303);
+    if (isLocale(asked)) rememberLocale(res, asked);
+    return res;
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const dev = process.env.NODE_ENV !== "production";
   // Private media storage: the browser uploads to it with signed forms and plays signed URLs from it.
@@ -57,9 +68,25 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
+  // Only the proxy decides a fixed language: whatever the browser sent under this name is dropped.
+  requestHeaders.delete(LOCALE_HEADER);
+  const fixed = LOCALE_PATHS[request.nextUrl.pathname.replace(/\/$/, "")];
+  if (fixed) requestHeaders.set(LOCALE_HEADER, fixed);
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
+  // Arriving through /en or /es is a choice of language: signing up afterwards stays in it.
+  if (fixed && request.cookies.get(LOCALE_COOKIE)?.value !== fixed) rememberLocale(response, fixed);
   return response;
+}
+
+function rememberLocale(res: NextResponse, locale: Locale) {
+  res.cookies.set(LOCALE_COOKIE, locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  });
 }
 
 function storageOrigin(): string {
