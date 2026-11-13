@@ -84,12 +84,13 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
-**Idiomas (12/11/2026, etapa 1 de várias):** o app passa a ter português, inglês e espanhol.
+**Idiomas (12–13/11/2026, etapas 1 a 3):** o app passa a ter português, inglês e espanhol.
 - O código continua em português: cada texto passa por `t("texto em português")` e os outros idiomas são catálogos que mapeiam o texto português para a tradução (`src/i18n/catalog/en.ts` e `es.ts`). Texto sem tradução aparece em português.
 - Idioma da pessoa: cookie `cadencia_locale` (seletor em Conta e nas telas de login); sem escolha, segue o navegador. Servidor: `const t = await getT()`; componentes de cliente: `const t = useT()`.
 - `npx tsx scripts/i18n-keys.ts` lista o que falta traduzir; `tests/i18n.test.ts` falha se faltar algo nas telas já traduzidas.
-- Traduzido: login e cadastro, menus, início, treinos, exercícios (interface, nomes dos 138 exercícios e equipamentos), mensagens, notificações, progresso, saúde, assinatura, conta. Mensagens fixas do servidor são traduzidas na saída das ações.
-- Ainda em português: comunidade, ranking e competições, admin, página de vendas, termos e privacidade, e-mails, textos longos da biblioteca (descrição, passo a passo, dicas), mensagens do servidor com valores dentro, datas (formato e nomes de meses) e as letras dos dias da semana.
+- Traduzido: login e cadastro, menus, início, treinos, exercícios (interface, nomes, equipamentos e os textos longos da biblioteca em `src/i18n/catalog/library-*.ts`), mensagens, notificações, progresso, saúde, assinatura, conta, comunidade, ranking e competições. Datas, dias da semana e números seguem o idioma.
+- Ainda em português: painel admin, página de vendas (e endereços por idioma para o Google), termos e privacidade, e-mails, mensagens do servidor com valores dentro. Exercícios escritos pelo treinador ficam como ele escreveu.
+- Armadilha: um arquivo sem "use client" que usa `getT` não pode ser importado por componente de cliente (derruba as páginas). `tests/i18n.test.ts` falha quando isso acontece.
 - Vender fora do Brasil ainda depende de outro provedor de pagamento: o Asaas só cobra em reais e exige CPF/CNPJ.
 
 
