@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n/client";
+import { usePresence } from "@/components/motion/presence";
 import type { Translate } from "@/i18n/config";
 
 export type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
@@ -142,6 +143,7 @@ export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.Re
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const { mounted: sheetMounted, state: sheetState, attach: attachSheet } = usePresence(open);
   const active = items.some((i) => isActive(pathname, i.href));
   const unread = items.reduce((n, i) => n + (i.badge ?? 0), 0);
 
@@ -168,8 +170,12 @@ export function MoreTab({ items, footer }: { items: NavItem[]; footer?: React.Re
 
   return (
     <div ref={root} className="z-10 flex min-w-0 flex-1">
-      {open && (
-        <div id="more-menu" className="absolute inset-x-0 bottom-full mb-3 flex flex-col gap-1 rounded-[var(--radius-panel)] border border-line bg-paper p-2 shadow-[var(--shadow-card)]">
+      {sheetMounted && (
+        <div
+          ref={attachSheet}
+          data-state={sheetState}
+          id="more-menu"
+          className="motion-pop origin-bottom [--motion-pop-y:6px] absolute inset-x-0 bottom-full mb-3 flex flex-col gap-1 rounded-[var(--radius-panel)] border border-line bg-paper p-2 shadow-[var(--shadow-card)]">
           {items.map((i) => (
             <SideNavLink key={i.href} item={i} />
           ))}

@@ -52,12 +52,12 @@ export function Pill({ children, tone = "accent" }: { children: React.ReactNode;
 /** Thin vertical bars (one per day). `values` are 0..1 heights; `label` describes the chart for screen readers. */
 export function BarStrip({ values, label, emphasize }: { values: number[]; label: string; emphasize?: number }) {
   return (
-    <div role="img" aria-label={label} className="flex h-20 items-end justify-between gap-[2px]">
+    <div role="img" aria-label={label} className="motion-bars flex h-20 items-end justify-between gap-[2px]">
       {values.map((v, i) => (
         <span
           key={i}
           className={`w-[7px] shrink-0 rounded-full ${v > 0 ? (i === emphasize ? "bg-ink" : "bg-signal") : "bg-line"}`}
-          style={{ height: `${Math.max(v, 0.1) * 100}%` }}
+          style={{ height: `${Math.max(v, 0.1) * 100}%`, "--i": i } as React.CSSProperties}
         />
       ))}
     </div>
@@ -79,7 +79,8 @@ export function WeekColumns({
       {days.map((d, i) => (
         <div key={i} className="flex flex-col items-center gap-1.5">
           <span
-            className={`h-16 w-full rounded-2xl sm:h-20 ${
+            style={{ "--i": i } as React.CSSProperties}
+            className={`motion-bar h-16 w-full rounded-2xl sm:h-20 ${
               d.state === "workout" ? "bg-signal" : d.state === "manual" ? "bg-signal/45" : d.state === "future" ? "border-2 border-dashed border-line" : "bg-chalk"
             } ${d.today ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : ""}`}
           />
@@ -106,7 +107,7 @@ export function Sparkline({ points, label }: { points: number[]; label: string }
     return `${d} C${cx},${py} ${cx},${y} ${x},${y}`;
   }, "");
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} className="h-24 w-full overflow-visible" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label={label} className="motion-draw h-24 w-full overflow-visible" preserveAspectRatio="none">
       <path d={`${line} L${w},${h} L0,${h} Z`} fill="var(--color-signal)" opacity="0.12" />
       <path d={line} fill="none" stroke="var(--color-signal)" strokeWidth="4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       <circle cx={xy[xy.length - 1]![0]} cy={xy[xy.length - 1]![1]} r="5" fill="var(--color-ink)" vectorEffect="non-scaling-stroke" />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LanguagePicker } from "@/components/locale/language-picker";
 import { Logo } from "@/components/ui/logo";
+import { PageTransition } from "@/components/motion/page-transition";
 import { getT } from "@/i18n/server";
 
 const WEEK = ["S", "T", "Q", "Q", "S", "S", "D"];
@@ -36,7 +37,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <Link href="/" className="mb-10 lg:hidden" aria-label={t("SalesFit, página inicial")}>
           <Logo />
         </Link>
-        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center">{children}</div>
+        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center">
+          <PageTransition className="flex flex-col">{children}</PageTransition>
+        </div>
         <div className="mx-auto mt-8 w-full max-w-[26rem]">
           <LanguagePicker compact />
         </div>

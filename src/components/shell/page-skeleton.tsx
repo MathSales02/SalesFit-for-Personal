@@ -1,4 +1,5 @@
 import { getT } from "@/i18n/server";
+import { SkeletonTransition } from "@/components/motion/page-transition";
 /**
  * Generic placeholder shown the moment a screen is requested, while its data loads.
  * It lets navigation (tabs and swipes) answer immediately instead of waiting for the server.
@@ -6,12 +7,14 @@ import { getT } from "@/i18n/server";
 export async function PageSkeleton() {
   const t = await getT();
   return (
-    <div role="status" aria-label={t("Carregando")} className="flex w-full flex-col gap-5">
-      <span className="cm-skeleton h-9 w-48 rounded-full" />
-      <span className="cm-skeleton h-4 w-full max-w-md rounded-full" />
-      <span className="cm-skeleton h-28 rounded-[var(--radius-panel)]" />
-      <span className="cm-skeleton h-44 rounded-[var(--radius-panel)]" />
-      <span className="cm-skeleton h-44 rounded-[var(--radius-panel)]" />
-    </div>
+    <SkeletonTransition>
+      <div role="status" aria-label={t("Carregando")} className="flex w-full flex-col gap-5">
+        <span className="cm-skeleton h-9 w-48 rounded-full" />
+        <span className="cm-skeleton h-4 w-full max-w-md rounded-full" />
+        <span className="cm-skeleton h-28 rounded-[var(--radius-panel)]" />
+        <span className="cm-skeleton h-44 rounded-[var(--radius-panel)]" />
+        <span className="cm-skeleton h-44 rounded-[var(--radius-panel)]" />
+      </div>
+    </SkeletonTransition>
   );
 }

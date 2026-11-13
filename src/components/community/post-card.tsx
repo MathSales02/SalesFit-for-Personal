@@ -12,6 +12,7 @@ import { BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, PinIcon, ShareIcon } fr
 import { ReportForm } from "./report-form";
 import { TimeAgo } from "./time-ago";
 import { useLocale, useT } from "@/i18n/client";
+import { usePresence } from "@/components/motion/presence";
 
 // Other areas (messages, notifications) import these from here.
 export { Avatar } from "./avatar";
@@ -119,6 +120,7 @@ export function PostCard({
   const [notice, setNotice] = useState<{ text: string; error?: boolean } | null>(null);
   const [pending, startTransition] = useTransition();
   const menuRef = useDismiss(menu, () => setMenu(false));
+  const { mounted: menuPopMounted, state: menuPopState, attach: attachMenuPop } = usePresence(menu);
   const lastTap = useRef(0);
 
   if (hidden) return null;
@@ -261,8 +263,8 @@ export function PostCard({
           >
             <MoreIcon />
           </button>
-          {menu && (
-            <div role="menu" className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 text-[0.92rem] shadow-[var(--shadow-card)]">
+          {menuPopMounted && (
+            <div ref={attachMenuPop} data-state={menuPopState} role="menu" className="motion-pop origin-top-right absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 text-[0.92rem] shadow-[var(--shadow-card)]">
               <button type="button" role="menuitem" className="block w-full px-4 py-2.5 text-left hover:bg-chalk" onClick={copyLink}>
                 {t("Copiar link")}
               </button>

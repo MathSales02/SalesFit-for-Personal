@@ -27,6 +27,7 @@ import {
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 import { SwipeNavigation } from "./swipe-navigation";
+import { PageTransition } from "@/components/motion/page-transition";
 import { HeaderIconLink, RailLink, SideNavLink, type NavItem } from "./nav-link";
 import { getT } from "@/i18n/server";
 import type { Translate } from "@/i18n/config";
@@ -141,7 +142,7 @@ export async function AppShell({
   if (variant === "student") {
     return (
       <div className="min-h-dvh bg-chalk pb-28 [--tabbar-h:5rem] xl:pb-0 xl:[--tabbar-h:0px]">
-        <header className="sticky top-0 z-10 border-b border-line bg-paper/95">
+        <header className="vt-header sticky top-0 z-10 border-b border-line bg-paper/95">
           <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
             <Link href="/aluno" aria-label={t("SalesFit, início")}>
               <Logo />
@@ -162,7 +163,9 @@ export async function AppShell({
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+        <main className="mx-auto max-w-5xl px-4 py-6">
+          <PageTransition>{children}</PageTransition>
+        </main>
         <TubelightNavBar items={main} className="xl:hidden" />
         <SwipeNavigation hrefs={main.map((i) => i.href)} mobileQuery="(max-width: 79.99rem)" />
       </div>
@@ -218,7 +221,7 @@ export async function AppShell({
           </div>
         </aside>
 
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b border-line bg-paper/95 px-4 lg:hidden">
+        <header className="vt-header sticky top-0 z-10 flex h-14 items-center justify-between gap-2 border-b border-line bg-paper/95 px-4 lg:hidden">
           <Link href="/treinador" aria-label={t("SalesFit, início")}>
             <Logo />
           </Link>
@@ -232,7 +235,7 @@ export async function AppShell({
 
         <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 lg:py-8">
           <BillingBanner actor={actor} />
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
 
         <TubelightNavBar items={tabs} more={more} moreFooter={<LogoutButton tone="light" />} className="lg:hidden" />
@@ -298,7 +301,7 @@ export async function AppShell({
             </summary>
             <nav
               aria-label={t("Principal")}
-              className={`absolute inset-x-0 top-14 z-20 flex flex-col gap-1 border-b px-4 py-3 shadow-[var(--shadow-raised)] ${
+              className={`motion-pop origin-top absolute inset-x-0 top-14 z-20 flex flex-col gap-1 border-b px-4 py-3 shadow-[var(--shadow-raised)] ${
                 dark ? "border-white/10 bg-night" : "border-line bg-paper"
               }`}
             >
@@ -312,7 +315,7 @@ export async function AppShell({
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 lg:py-10">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
     </div>
   );

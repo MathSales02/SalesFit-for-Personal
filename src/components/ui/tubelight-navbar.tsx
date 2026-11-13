@@ -51,7 +51,7 @@ export function TubelightNavBar({
   return (
     <nav
       aria-label={t("Principal")}
-      className={`pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-chalk via-chalk/85 to-transparent px-3 pt-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${className}`}
+      className={`vt-tabbar pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center bg-gradient-to-t from-chalk via-chalk/85 to-transparent px-3 pt-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${className}`}
     >
       <div ref={pill} className="pointer-events-auto relative flex w-full max-w-md items-stretch rounded-full border border-line bg-paper/95 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-lg">
         {lamp && (

@@ -152,18 +152,21 @@ export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
             {fmtDate(last.date)}
           </text>
           {cur && <line x1={x(cur.t)} x2={x(cur.t)} y1={PAD.top} y2={H - PAD.bottom} stroke="var(--color-line-strong)" strokeWidth={1} />}
-          <path d={path} fill="none" stroke="var(--color-turf)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-          {points.map((p, i) => (
-            <circle
-              key={p.date + i}
-              cx={x(p.t)}
-              cy={y(p.value)}
-              r={i === active ? 6 : 4}
-              fill="var(--color-turf)"
-              stroke="var(--color-paper)"
-              strokeWidth={2}
-            />
-          ))}
+          {/* Drawn from left to right the first time the chart shows (motion.css). */}
+          <g className="motion-draw">
+            <path d={path} fill="none" stroke="var(--color-turf)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+            {points.map((p, i) => (
+              <circle
+                key={p.date + i}
+                cx={x(p.t)}
+                cy={y(p.value)}
+                r={i === active ? 6 : 4}
+                fill="var(--color-turf)"
+                stroke="var(--color-paper)"
+                strokeWidth={2}
+              />
+            ))}
+          </g>
         </svg>
         {cur && (
           <div

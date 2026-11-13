@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./motion.css";
 
 /*
  * SalesFit design system. Two themes: light (default) and dark. The theme follows the
@@ -246,7 +247,7 @@
   animation: cm-shimmer 1.4s linear infinite;
 }
 
-/* Bottom sheet on phones, centred dialog on larger screens. */
+/* Bottom sheet on phones, centred dialog on larger screens. Motion values: motion.css. */
 dialog.cm-sheet {
   width: 100%;
   max-width: 100%;
@@ -258,15 +259,12 @@ dialog.cm-sheet {
   color: var(--color-ink);
   box-shadow: 0 -12px 48px -12px rgba(0, 0, 0, 0.35);
 }
-dialog.cm-sheet[open] {
-  animation: cm-sheet-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
 dialog.cm-sheet::backdrop {
   background: rgba(14, 15, 17, 0.55);
 }
-@keyframes cm-sheet-in {
-  from { transform: translateY(100%); }
-  to { transform: none; }
+/* While it plays its closing animation the dialog is already closed: taps go to the page. */
+dialog.cm-sheet:not([open]) {
+  pointer-events: none;
 }
 @media (min-width: 640px) {
   dialog.cm-sheet {
@@ -274,9 +272,55 @@ dialog.cm-sheet::backdrop {
     margin: auto;
     border-radius: 28px;
   }
-  @keyframes cm-sheet-in {
-    from { transform: translateY(16px) scale(0.98); }
-    to { transform: none; }
+}
+/*
+ * Opening and closing. Closed values are where it leaves to; @starting-style is where it comes from.
+ * `display` and `overlay` keep it on screen, above the page, until the closing animation ends.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  dialog.cm-sheet,
+  dialog.cm-sheet::backdrop {
+    transition:
+      opacity var(--motion-fast) var(--motion-ease-in),
+      transform var(--motion-fast) var(--motion-ease-in),
+      overlay var(--motion-fast) allow-discrete,
+      display var(--motion-fast) allow-discrete;
+  }
+  dialog.cm-sheet[open],
+  dialog.cm-sheet[open]::backdrop {
+    transition-duration: var(--motion-base);
+    transition-timing-function: var(--motion-ease-out);
+  }
+  dialog.cm-sheet,
+  dialog.cm-sheet::backdrop {
+    opacity: 0;
+  }
+  dialog.cm-sheet {
+    transform: translateY(100%);
+  }
+  dialog.cm-sheet[open],
+  dialog.cm-sheet[open]::backdrop {
+    opacity: 1;
+    transform: none;
+  }
+  @starting-style {
+    dialog.cm-sheet[open],
+    dialog.cm-sheet[open]::backdrop {
+      opacity: 0;
+    }
+    dialog.cm-sheet[open] {
+      transform: translateY(100%);
+    }
+  }
+  @media (min-width: 640px) {
+    dialog.cm-sheet {
+      transform: scale(0.98);
+    }
+    @starting-style {
+      dialog.cm-sheet[open] {
+        transform: translateY(8px) scale(0.96);
+      }
+    }
   }
 }
 

@@ -85,7 +85,7 @@ export default async function StudentHomePage() {
       </header>
       {pushKey && <PushPrompt publicKey={pushKey} />}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="motion-stagger grid gap-5 lg:grid-cols-3">
         {/* Hero: today's training */}
         <section aria-labelledby="hero-h" className="relative overflow-hidden rounded-[var(--radius-panel)] bg-signal p-6 text-on-accent shadow-[var(--shadow-card)] sm:p-8 lg:col-span-2">
           <HeroDecoration />

@@ -19,11 +19,8 @@ const MIN_RATIO = 1.5;
 const MAX_DURATION_MS = 600;
 /** Touches starting this close to a side edge belong to the system back gesture. */
 const EDGE_PX = 24;
-/** Entrance of the new screen. */
-const TRANSITION_MS = 220;
-const SLIDE_PX = 32;
-/** Exit of the current screen, started the moment the finger lifts. */
-const EXIT_MS = 120;
+/** After landing, the page transition (motion.css) plays out before the next swipe is accepted. */
+const SETTLE_MS = 320;
 /** The on-screen keyboard is taken as open when it covers at least this much. */
 const KEYBOARD_MIN_PX = 120;
 /** Releases the lock if a navigation never lands (offline, redirect to the same page). */
@@ -37,8 +34,7 @@ const TEXT_FIELDS = "textarea, select, input:not([type=button], [type=submit], [
 
 // Module state, so it survives the shell remounting between layouts (e.g. into /conta).
 let busy = false;
-let leaving: Animation | null = null;
-let arriving: { direction: 1 | -1; from: string; timer: number } | null = null;
+let arriving: { from: string; timer: number } | null = null;
 
 function startsInExcludedArea(target: EventTarget | null) {
   if (!(target instanceof Element)) return true;
@@ -80,31 +76,16 @@ export function useSwipeNavigation(hrefs: readonly string[], mobileQuery: string
   const previous = index > 0 ? hrefs[index - 1] : undefined;
   const next = index >= 0 && index < hrefs.length - 1 ? hrefs[index + 1] : undefined;
 
-  // The new screen slides in from the side the finger pulled it from.
+  // Landed: the next swipe waits for the slide to finish (no wait with reduced motion).
   useEffect(() => {
     const a = arriving;
     if (!a || a.from === pathname) return;
     window.clearTimeout(a.timer);
     arriving = null;
-    leaving?.cancel();
-    leaving = null;
-    const main = document.querySelector("main");
-    if (!main || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const settle = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : SETTLE_MS;
+    window.setTimeout(() => {
       busy = false;
-      return;
-    }
-    const animation = main.animate(
-      [
-        { transform: `translateX(${a.direction * SLIDE_PX}px)`, opacity: 0 },
-        { transform: "translateX(0)", opacity: 1 },
-      ],
-      { duration: TRANSITION_MS, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" },
-    );
-    const release = () => {
-      busy = false;
-    };
-    animation.addEventListener("finish", release);
-    animation.addEventListener("cancel", release);
+    }, settle);
   }, [pathname]);
 
   useEffect(() => {
@@ -166,30 +147,16 @@ export function useSwipeNavigation(hrefs: readonly string[], mobileQuery: string
         // Finger moving left brings the next screen; moving right, the previous one.
         const target = dx < 0 ? next : previous;
         if (!target) return;
-        const direction = dx < 0 ? 1 : -1;
         busy = true;
         arriving = {
-          direction,
           from: window.location.pathname,
           timer: window.setTimeout(() => {
             busy = false;
             arriving = null;
-            leaving?.cancel();
-            leaving = null;
           }, NAVIGATION_TIMEOUT_MS),
         };
-        // The current screen answers the finger at once, before the next one is ready.
-        const main = document.querySelector("main");
-        if (main && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          leaving = main.animate(
-            [
-              { transform: "translateX(0)", opacity: 1 },
-              { transform: `translateX(${-direction * SLIDE_PX}px)`, opacity: 0 },
-            ],
-            { duration: EXIT_MS, easing: "ease-in", fill: "forwards" },
-          );
-        }
-        router.push(target);
+        // The page transition (PageTransition) slides the screens the way the finger moved.
+        router.push(target, { transitionTypes: [dx < 0 ? "swipe-next" : "swipe-prev"] });
       };
 
       const onCancel = () => {

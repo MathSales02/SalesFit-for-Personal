@@ -1,0 +1,258 @@
+/*
+ * SalesFit motion. Every duration, easing and distance used by the app's animations lives here,
+ * and every animation is written here, so the whole app moves the same way.
+ *
+ * Rules:
+ *  - Only opacity, transform and clip-path move: the browser does them without re-laying out the page.
+ *  - Everything that moves sits inside `prefers-reduced-motion: no-preference`. With reduced motion
+ *    nothing moves and nothing waits: content is simply there.
+ *  - Entrances use `backwards` fill: before and after the animation the element is exactly as styled,
+ *    so nothing can stay invisible if an animation does not run.
+ *  - An element animates once. A block that rises does not also have rising children, except the
+ *    page title and a `.motion-stagger` group, which take the place of their block.
+ *
+ * Pieces (see src/components/motion/):
+ *  - PageTransition: page change, with the browser's View Transitions through React's <ViewTransition>
+ *    (the leaving page fades out) and .motion-page (the arriving page settles in).
+ *  - .motion-page: the page's title, subtitle and blocks arriving one after the other.
+ *  - .motion-stagger: a group of cards arriving one after the other.
+ *  - .motion-pop + usePresence: menus that open and close.
+ *  - dialog.cm-sheet (globals.css): dialogs.
+ *  - .motion-bars / .motion-draw: charts.
+ */
+
+:root {
+  /* Arrivals: a quick start and a long, soft landing. */
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Departures of small things (menus, dialogs): start slowly, leave quickly. Pages leave with
+     ease-out instead, so the outgoing page is mostly gone before the next one shows. */
+  --motion-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  /* Things that travel (a line being drawn). */
+  --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --motion-fast: 160ms;  /* leaving: old page, closing menus and dialogs */
+  --motion-base: 240ms;  /* opening menus and dialogs */
+  --motion-slow: 380ms;  /* text and blocks settling in */
+  --motion-draw: 700ms;  /* a chart line being drawn */
+  --motion-stagger: 45ms;
+  --motion-rise: 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page transitions (React <ViewTransition>, PageTransition)          */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Only the page that leaves is a picture (a View Transition "old" image). The page that arrives is
+ * the real page from the first frame: in place, tappable, arriving with the .motion-page entrance
+ * below. The header and the bottom tab bar never take part: they stay the real fixed elements, so
+ * nothing can move them, in any browser.
+ *
+ * The leaving picture is drawn above everything, so it is cut to the band between the header and
+ * the tab bar: PageTransition measures that band, at the moment the transition starts, into --vt-clip.
+ * (Cutting the whole animation layer instead makes Chrome draw nothing.)
+ */
+:root {
+  view-transition-name: none;
+}
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(*) {
+  clip-path: var(--vt-clip, none);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The leaving page fades early and rises a little, while the new one settles in under it. */
+  ::view-transition-old(.page) {
+    animation: var(--motion-fast) var(--motion-ease-out) both motion-page-out;
+  }
+
+  /* Swipes between tabs: the leaving screen goes the way the finger moved. */
+  ::view-transition-old(.page-swipe-next) {
+    --motion-slide: -28px;
+    animation: var(--motion-fast) var(--motion-ease-out) both motion-slide-out;
+  }
+  ::view-transition-old(.page-swipe-prev) {
+    --motion-slide: 28px;
+    animation: var(--motion-fast) var(--motion-ease-out) both motion-slide-out;
+  }
+
+  /* The loading placeholder fades away as the real content arrives under it. */
+  ::view-transition-old(.skeleton-exit) {
+    animation: var(--motion-fast) var(--motion-ease-in) both motion-fade-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@keyframes motion-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--motion-rise) * -0.75));
+  }
+}
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes motion-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes motion-slide-out {
+  to {
+    opacity: 0;
+    transform: translateX(var(--motion-slide));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Text and blocks arriving (.motion-page, .motion-stagger)            */
+/* ------------------------------------------------------------------ */
+
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-rise));
+  }
+}
+
+/* Position in the sequence. Capped, so long pages never wait for their lower blocks. */
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(1) { --motion-step: 0; }
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(2) { --motion-step: 1; }
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(3) { --motion-step: 2; }
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(4) { --motion-step: 3; }
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(5) { --motion-step: 4; }
+:is(.motion-page, .motion-page > :only-child, .motion-stagger) > :nth-child(n + 6) { --motion-step: 5; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /*
+   * Blocks: the page's direct children, or the children of its single wrapper. A block holding the
+   * page title or a card group does not move as a whole: the title and the cards move instead.
+   */
+  :is(.motion-page > :not(:only-child), .motion-page > :only-child > *):not(:has(h1, .motion-stagger), .motion-stagger),
+  .motion-stagger > * {
+    animation: motion-rise var(--motion-slow) var(--motion-ease-out) backwards;
+    animation-delay: calc(var(--motion-step, 0) * var(--motion-stagger));
+  }
+  /* Cards start right after the blocks before them. */
+  .motion-stagger > * {
+    animation-delay: calc((var(--motion-step, 0) + 1) * var(--motion-stagger));
+  }
+
+  /* Title from below, subtitle a moment later. */
+  .motion-page h1 {
+    animation: motion-rise var(--motion-slow) var(--motion-ease-out) backwards;
+  }
+  .motion-page h1 + p {
+    animation: motion-rise var(--motion-slow) var(--motion-ease-out) 70ms backwards;
+  }
+
+  /* A loading placeholder shows at once: it is there to say "on its way". */
+  .motion-page > [role="status"]:only-child > *,
+  .motion-page > [role="status"]:only-child h1 {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Menus (.motion-pop with usePresence; also a <details> dropdown)     */
+/* ------------------------------------------------------------------ */
+
+.motion-pop[data-state="closed"] {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-pop[data-state="open"],
+  details[open] > .motion-pop {
+    animation: motion-pop-in var(--motion-base) var(--motion-ease-out) backwards;
+  }
+  .motion-pop[data-state="closed"] {
+    animation: motion-pop-out var(--motion-fast) var(--motion-ease-in) both;
+  }
+}
+
+/* Menus grow from where they are anchored (Tailwind's origin-* sets the point); `--motion-pop-y`
+   is the side they come from: negative below a button, positive above one. */
+@keyframes motion-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-pop-y, -4px)) scale(0.97);
+  }
+}
+@keyframes motion-pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--motion-pop-y, -4px)) scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Dialogs drawn without <dialog> (.motion-backdrop, .motion-dialog)   */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-backdrop {
+    animation: motion-fade-in var(--motion-base) var(--motion-ease-out) backwards;
+  }
+  .motion-dialog {
+    animation: motion-sheet-in var(--motion-base) var(--motion-ease-out) backwards;
+  }
+}
+/* Phones: a sheet rising from the bottom edge. Larger screens: fade and scale, centred. */
+@keyframes motion-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (min-width: 640px) {
+  @keyframes motion-sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Charts                                                              */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Bars grow from the baseline, left to right. `--i` is the bar's position. */
+  .motion-bars > *,
+  .motion-bar {
+    transform-origin: bottom;
+    animation: motion-grow var(--motion-slow) var(--motion-ease-out) backwards;
+    animation-delay: calc(120ms + var(--i, 0) * 12ms);
+  }
+  /* Lines are drawn from left to right. */
+  .motion-draw {
+    animation: motion-draw var(--motion-draw) var(--motion-ease-in-out) 120ms backwards;
+  }
+}
+@keyframes motion-grow {
+  from {
+    opacity: 0;
+    transform: scaleY(0.15);
+  }
+}
+/* The 12px margin keeps round line caps and end dots whole while the line is drawn. */
+@keyframes motion-draw {
+  from {
+    clip-path: inset(-12px 100% -12px -12px);
+  }
+  to {
+    clip-path: inset(-12px -12px -12px -12px);
+  }
+}

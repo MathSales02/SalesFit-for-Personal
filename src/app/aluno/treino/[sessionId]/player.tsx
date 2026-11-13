@@ -369,8 +369,8 @@ function FinishPanel({ sessionId, done, planned, onCancel, busy }: { sessionId: 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="finish-h" className="fixed inset-0 z-30 flex items-end bg-black/60 sm:items-center sm:justify-center">
-      <div className="w-full max-w-lg rounded-t-[var(--radius-panel)] bg-paper p-5 sm:rounded-[var(--radius-panel)]">
+    <div role="dialog" aria-modal="true" aria-labelledby="finish-h" className="motion-backdrop fixed inset-0 z-30 flex items-end bg-black/60 sm:items-center sm:justify-center">
+      <div className="motion-dialog w-full max-w-lg rounded-t-[var(--radius-panel)] bg-paper p-5 sm:rounded-[var(--radius-panel)]">
         <h2 id="finish-h" className="font-display text-2xl font-bold">
           {t("Concluir treino")}
         </h2>

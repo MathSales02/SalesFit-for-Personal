@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectAccessible, expectNoHorizontalScroll, inviteStudent, setPlan, signUpTrainer } from "./helpers";
+import { expectAccessible, expectNoHorizontalScroll, inviteStudent, setPlan, settled, signUpTrainer } from "./helpers";
 
 // Set E2E_SHOTS=1 to keep screenshots in test-results/plans.
 const shot = async (page: Page, name: string) => {
@@ -41,6 +41,7 @@ test("plans limit what a consultancy can use: trial shows everything, Start the 
   await expect(numbers.nth(1)).toHaveText("R$ 49,90");
   await expect(proCard.getByText("/mês", { exact: true })).toBeVisible();
   const layout = async () => ({ card: await proCard.boundingBox(), form: await form.boundingBox() });
+  await settled(page);
   const before = await layout();
   await page.getByText("Anual, 15% de desconto").click();
   await expect(numbers.nth(0)).toHaveText("R$ 508,98");

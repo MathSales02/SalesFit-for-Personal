@@ -24,11 +24,23 @@ export async function mailLink(to: string, part: string, subject?: string): Prom
 }
 
 /** Fails on serious or critical accessibility violations (WCAG 2.2 A/AA rules). */
+/**
+ * Waits for the entrance animations (motion.css) to finish, before measuring positions or colours.
+ * Endless ones (the loading shimmer) do not count.
+ */
+export async function settled(page: Page) {
+  await page
+    .waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running" || a.effect?.getComputedTiming().endTime === Infinity), undefined, { timeout: 5_000 })
+    .catch(() => {});
+}
+
 export async function expectAccessible(page: Page, label: string) {
   // Local escape hatch while a visual redesign is in progress; never set in CI.
   if (process.env.E2E_SKIP_A11Y && !process.env.CI) return;
   // The page title is translated per request and arrives with the content, a moment after the frame.
   await page.waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 }).catch(() => {});
+  // Entrances fade in (motion.css) and axe reads opacity.
+  await settled(page);
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   const summary = bad.map((v) => `${v.id} (${v.impact}): ${v.nodes.length} × ${v.nodes[0]?.target.join(" ")}`);

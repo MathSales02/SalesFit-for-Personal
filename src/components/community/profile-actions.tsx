@@ -12,12 +12,14 @@ import { FollowButton } from "./follow-button";
 import { CameraIcon, CloseIcon, MoreIcon } from "./icons";
 import { ReportForm } from "./report-form";
 import { useT } from "@/i18n/client";
+import { usePresence } from "@/components/motion/presence";
 
 /** Follow, message, and the quieter options (block, report) behind a menu. */
 export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMessage }: { memberId: string; name: string; isFollowing: boolean; blockedByMe: boolean; canMessage: boolean }) {
   const t = useT();
   const router = useRouter();
   const [menu, setMenu] = useState(false);
+  const { mounted: menuPopMounted, state: menuPopState, attach: attachMenuPop } = usePresence(menu);
   const reportDialog = useRef<HTMLDialogElement>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -60,8 +62,8 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
           <button type="button" aria-haspopup="menu" aria-expanded={menu} aria-label={t("Mais opções sobre {0}", { 0: name })} onClick={() => setMenu((m) => !m)} className="grid size-10 place-items-center rounded-full border border-line-strong bg-paper text-ink-soft hover:border-turf/60">
             <MoreIcon />
           </button>
-          {menu && (
-            <div role="menu" className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 text-[0.92rem] shadow-[var(--shadow-card)]">
+          {menuPopMounted && (
+            <div ref={attachMenuPop} data-state={menuPopState} role="menu" className="motion-pop origin-top-right absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 text-[0.92rem] shadow-[var(--shadow-card)]">
               {!blockedByMe && (
                 <button type="button" role="menuitem" className="block w-full px-4 py-2.5 text-left hover:bg-chalk" onClick={block}>
                   {t("Bloquear")}
