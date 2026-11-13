@@ -33,6 +33,8 @@ export type Actor = {
   isPlatformAdmin: boolean;
   /** Two-step verification is on (required for platform admins to use admin permissions). */
   mfaEnabled?: boolean;
+  /** When the account was created (ISO): news from before it is not announced to this person. */
+  joinedAt?: string;
   /** Active membership in the session's workspace, or null (e.g. a platform admin with no workspace). */
   membership: Membership | null;
 };

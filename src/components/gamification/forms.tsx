@@ -15,10 +15,10 @@ import { Field, SelectField, TextAreaField } from "@/components/ui/field";
 import type { GamificationSettings } from "@/server/gamification/service";
 import { useT } from "@/i18n/client";
 
-export function CheckinForm() {
+export function CheckinForm({ successNotice = true, onSuccess }: { successNotice?: boolean; onSuccess?: () => void } = {}) {
   const t = useT();
   return (
-    <ActionForm action={checkinAction} className="flex flex-col gap-2" resetOnSuccess>
+    <ActionForm action={checkinAction} className="flex flex-col gap-2" resetOnSuccess successNotice={successNotice} onSuccess={onSuccess}>
       {(s) => (
         <div className="flex flex-col gap-2">
           <label className="flex flex-col gap-1 text-sm font-semibold text-ink-soft">

@@ -1,8 +1,8 @@
 import { actorHasFeature } from "@/server/authz/policy";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill, Sparkline, WeekColumns } from "@/components/dashboard/widgets";
-import { CheckinForm } from "@/components/gamification/forms";
+import { Avatar, BarStrip, BigNumber, Card, HeroDecoration, Pill, Sparkline } from "@/components/dashboard/widgets";
+import { WeekStreak } from "@/components/gamification/week-streak";
 import { ProgramView } from "@/components/program-view";
 import { IconActivity, IconTrend, IconTrophy } from "@/components/shell/icons";
 import { RecordFolder } from "@/components/shell/record-folder";
@@ -27,8 +27,13 @@ export async function generateMetadata(): Promise<Metadata> {
 const fmtDate = (iso: string, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long" }) =>
   new Intl.DateTimeFormat(currentLocale(), { ...opts, timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 const fmtKg = (n: number) => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(n);
-/** Monday to Sunday, one letter each, in the request's language (2024-01-01 was a Monday). */
-const weekdays = () => Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(currentLocale(), { weekday: "narrow", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + i))).toUpperCase());
+/** Monday to Sunday in the request's language, short ("Seg") and full ("segunda-feira"); 2024-01-01 was a Monday. */
+const weekdays = () =>
+  Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(Date.UTC(2024, 0, 1 + i));
+    const short = new Intl.DateTimeFormat(currentLocale(), { weekday: "short", timeZone: "UTC" }).format(date).replace(".", "");
+    return { label: short.charAt(0).toUpperCase() + short.slice(1), name: new Intl.DateTimeFormat(currentLocale(), { weekday: "long", timeZone: "UTC" }).format(date) };
+  });
 
 function addDays(iso: string, n: number) {
   const d = new Date(`${iso}T12:00:00Z`);
@@ -49,17 +54,16 @@ export default async function StudentHomePage() {
       )
     : undefined;
 
-  // Check-ins by day for the week columns and the 28-day bars.
+  // Check-ins by day for the week strip and the 28-day bars.
   const byDay = new Map(g.recentCheckins.map((c) => [c.day, c.source]));
-  const week = weekdays().map((label, i) => {
+  const week = weekdays().map(({ label, name }, i) => {
     const day = addDays(g.weekStart, i);
     const src = byDay.get(day);
-    return { label, today: day === g.today, state: src ? (src === "workout" ? "workout" : "manual") : day > g.today ? "future" : "missed" } as const;
+    return { label, name, today: day === g.today, state: src ? (src === "workout" ? "workout" : "manual") : day > g.today ? "future" : "missed" } as const;
   });
   const last28 = Array.from({ length: 28 }, (_, i) => addDays(g.today, i - 27));
   const bars = last28.map((d) => (byDay.get(d) === "workout" ? 1 : byDay.has(d) ? 0.55 : 0));
   const active28 = bars.filter((b) => b > 0).length;
-  const goalReached = g.weekCheckins >= g.weeklyTarget;
   const latest = weight[weight.length - 1];
   const first = weight[0];
   const delta = latest && first && weight.length > 1 ? latest.kg - first.kg : null;
@@ -67,6 +71,13 @@ export default async function StudentHomePage() {
   const pushKey = pushPublicKey();
   return (
     <div className="flex flex-col gap-5">
+      <WeekStreak
+        streakWeeks={g.streakWeeks}
+        days={[...week]}
+        today={g.today}
+        checkedInToday={g.checkedInToday === "workout" ? "workout" : g.checkedInToday ? "manual" : null}
+        canCheckIn={g.settings.manualCheckinsEnabled}
+      />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-[2.4rem] leading-none font-bold tracking-tight">{t("Bora,")} {firstName}.</h1>
@@ -130,37 +141,6 @@ export default async function StudentHomePage() {
           </div>
         </section>
 
-        {/* Week constancy (the reference's hydration card) */}
-        <Card title={t("Constância")} labelledBy="week-h" action={goalReached ? <Pill>{t("Meta batida")}</Pill> : undefined}>
-          <p className="-mt-2 mb-4 text-sm text-muted">{t("Dias com check-in nesta semana")}</p>
-          <WeekColumns days={[...week]} words={{ workout: t("treino"), manual: t("check-in"), future: t("ainda não chegou"), missed: t("sem check-in") }} />
-          <div className="mt-5 flex items-end justify-between gap-3">
-            <BigNumber value={`${g.weekCheckins}/${g.weeklyTarget}`} unit="dias" />
-            <p className="text-right text-xs leading-tight text-muted">
-              {g.streakWeeks > 0 ? (
-                <>
-                  <span className="block font-display text-2xl font-bold text-ink">{g.streakWeeks}</span>
-                  {g.streakWeeks === 1 ? t("semana seguida") : t("semanas seguidas")}
-                </>
-              ) : (
-                t("Bata a meta para começar uma sequência")
-              )}
-            </p>
-          </div>
-          <div className="mt-5 border-t border-line pt-4">
-            {g.checkedInToday ? (
-              <p className="text-sm">
-                <span className="font-semibold text-turf">{t("Check-in de hoje feito.")}</span>{" "}
-                <span className="text-muted">{g.checkedInToday === "workout" ? t("Treino concluído.") : t("Concluir um treino hoje completa os pontos.")}</span>
-              </p>
-            ) : g.settings.manualCheckinsEnabled ? (
-              <CheckinForm />
-            ) : (
-              <p className="text-sm text-muted">{t("Conclua um treino para fazer o check-in de hoje.")}</p>
-            )}
-          </div>
-        </Card>
-
         {/* Ranking (the reference's sleep card) */}
         <Card title={t("Ranking")} icon={<IconTrophy />} labelledBy="rank-h">
           {ranking ? (
@@ -205,7 +185,7 @@ export default async function StudentHomePage() {
         </Card>
 
         {/* Points (the reference's calories card) */}
-        <Card title={t("Pontos")} icon={<IconActivity />} labelledBy="pts-h" action={<span className="text-sm font-semibold text-muted">{t("esta semana")}</span>}>
+        <Card title={t("Pontos")} icon={<IconActivity />} labelledBy="pts-h" className="lg:col-span-2" action={<span className="text-sm font-semibold text-muted">{t("esta semana")}</span>}>
           <BigNumber value={g.weekPoints} unit="pts" label={t("{0} {1} nos últimos 28", { 0: active28, 1: active28 === 1 ? t("dia ativo") : t("dias ativos") })} />
           <div className="mt-5">
             <BarStrip values={bars} emphasize={27} label={t("Últimos 28 dias: {0} com check-in. Barras cheias são treinos concluídos; meias, check-ins manuais.", { 0: active28 })} />

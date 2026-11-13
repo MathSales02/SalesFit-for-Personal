@@ -9,9 +9,10 @@ test("an invited student joins on a phone, checks in and sees the ranking", asyn
   await expectNoHorizontalScroll(s);
   await expectAccessible(s, "/aluno");
 
+  await s.getByRole("button", { name: /hoje: sem check-in\. Fazer check-in/ }).click();
   await s.getByLabel(/Treinou por fora/).fill("Corrida");
-  await s.getByRole("button", { name: "Fazer check-in" }).click();
-  await expect(s.getByText("Check-in de hoje feito")).toBeVisible();
+  await s.getByRole("button", { name: "Fazer check-in", exact: true }).click();
+  await expect(s.getByRole("img", { name: /hoje: check-in$/ })).toBeVisible();
 
   await s.getByRole("link", { name: "Ranking" }).last().click();
   await expect(s.getByRole("region", { name: "Classificação" })).toContainText("Alice Prado");

@@ -31,9 +31,10 @@ test("dark theme (following the device): every main screen keeps WCAG 2.2 AA con
 
   const { page: s } = await inviteStudent(page, browser, "Alice Prado");
   await s.emulateMedia({ colorScheme: "dark" });
+  await s.getByRole("button", { name: /hoje: sem check-in\. Fazer check-in/ }).click();
   await s.getByLabel(/Treinou por fora/).fill("Corrida");
-  await s.getByRole("button", { name: "Fazer check-in" }).click();
-  await expect(s.getByText("Check-in de hoje feito")).toBeVisible();
+  await s.getByRole("button", { name: "Fazer check-in", exact: true }).click();
+  await expect(s.getByRole("img", { name: /hoje: check-in$/ })).toBeVisible();
   for (const path of STUDENT_PAGES) {
     await s.goto(path);
     await expectNoHorizontalScroll(s);

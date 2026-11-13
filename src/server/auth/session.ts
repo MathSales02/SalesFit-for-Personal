@@ -36,7 +36,7 @@ export async function createSession(exec: Executor, userId: string, meta: Reques
 
 export type ValidSession = {
   session: { id: string; activeWorkspaceId: string | null; expiresAt: Date };
-  user: { id: string; email: string; displayName: string; isPlatformAdmin: boolean; emailVerified: boolean; mfaEnabled: boolean };
+  user: { id: string; email: string; displayName: string; isPlatformAdmin: boolean; emailVerified: boolean; mfaEnabled: boolean; createdAt: Date };
 };
 
 /**
@@ -58,6 +58,7 @@ export async function validateSessionToken(token: string | undefined): Promise<V
       isPlatformAdmin: users.isPlatformAdmin,
       emailVerifiedAt: users.emailVerifiedAt,
       mfaEnabled: users.mfaEnabled,
+      userCreatedAt: users.createdAt,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
@@ -90,6 +91,7 @@ export async function validateSessionToken(token: string | undefined): Promise<V
       isPlatformAdmin: row.isPlatformAdmin,
       emailVerified: row.emailVerifiedAt !== null,
       mfaEnabled: row.mfaEnabled,
+      createdAt: row.userCreatedAt,
     },
   };
 }

@@ -28,6 +28,8 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { TubelightNavBar } from "@/components/ui/tubelight-navbar";
 import { SwipeNavigation } from "./swipe-navigation";
 import { PageTransition } from "@/components/motion/page-transition";
+import { WhatsNew } from "./whats-new";
+import { newsFor } from "@/lib/whats-new";
 import { HeaderIconLink, RailLink, SideNavLink, type NavItem } from "./nav-link";
 import { getT } from "@/i18n/server";
 import type { Translate } from "@/i18n/config";
@@ -138,6 +140,11 @@ export async function AppShell({
   // Students are not offered what the consultancy's plan leaves out (trainers keep the entry: it leads to the plans).
   const hidden = variant === "student" ? [!actorHasFeature(actor, "community") && "/aluno/comunidade", !actorHasFeature(actor, "ranking") && "/aluno/ranking"] : [];
   const main = nav.main.filter((i) => !hidden.includes(i.href));
+  // What launched since this person joined, in their language (the pop-up keeps track of what was shown).
+  const news =
+    variant === "admin"
+      ? []
+      : newsFor(variant, actor.joinedAt).map((n) => ({ id: n.id, title: t(n.title), body: t(n.body), cta: n.cta && { href: n.cta.href, label: t(n.cta.label) } }));
 
   if (variant === "student") {
     return (
@@ -167,6 +174,7 @@ export async function AppShell({
           <PageTransition>{children}</PageTransition>
         </main>
         <TubelightNavBar items={main} className="xl:hidden" />
+        <WhatsNew items={news} />
         <SwipeNavigation hrefs={main.map((i) => i.href)} mobileQuery="(max-width: 79.99rem)" />
       </div>
     );
@@ -240,6 +248,7 @@ export async function AppShell({
 
         <TubelightNavBar items={tabs} more={more} moreFooter={<LogoutButton tone="light" />} className="lg:hidden" />
         {/* Swipes follow what the phone shows: the tabs, then the "Mais" list. */}
+        <WhatsNew items={news} />
         <SwipeNavigation hrefs={[...tabs, ...more].map((i) => i.href)} mobileQuery="(max-width: 63.99rem)" />
       </div>
     );
