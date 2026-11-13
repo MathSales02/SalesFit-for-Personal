@@ -8,6 +8,8 @@ import { buttonClass } from "@/components/ui/button-styles";
 import { listSupportAccessForTrainer } from "@/server/admin/support";
 import { getRanking } from "@/server/gamification/service";
 import { requirePageActor } from "@/server/http/next";
+import { pushPublicKey } from "@/server/notifications/push";
+import { PushPrompt } from "@/components/notifications/push-setup";
 import { unreadConversationCount } from "@/server/messaging/service";
 import { unreadNotificationCount } from "@/server/notifications/service";
 import { assignableStudents, listPrograms } from "@/server/programs/service";
@@ -54,6 +56,7 @@ export default async function TrainerOverviewPage() {
   const peak = Math.max(1, ...activity.daily.map((d) => d.workouts));
   const top = (ranking?.rows ?? []).filter((r) => r.points > 0).slice(0, 3);
 
+  const pushKey = pushPublicKey();
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -70,6 +73,7 @@ export default async function TrainerOverviewPage() {
           </Link>
         </div>
       </header>
+      {pushKey && <PushPrompt publicKey={pushKey} />}
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Hero: the consultancy at a glance */}

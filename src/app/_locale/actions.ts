@@ -6,6 +6,8 @@ import { z } from "zod";
 import { LOCALE_COOKIE, LOCALES } from "@/i18n/config";
 import type { ActionResult } from "@/lib/action-result";
 import { parseForm, runAction } from "@/server/http/action";
+import { currentActor } from "@/server/http/next";
+import { setPushLocale } from "@/server/notifications/push";
 
 /** Saves the language choice. Works signed in or out; it lives in a cookie of this browser. */
 export async function setLocaleAction(_prev: ActionResult, form: FormData): Promise<ActionResult> {
@@ -18,6 +20,9 @@ export async function setLocaleAction(_prev: ActionResult, form: FormData): Prom
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
+    // Phone notifications of a signed-in person follow the new language too.
+    const actor = await currentActor();
+    if (actor) await setPushLocale(actor.userId, locale);
     revalidatePath("/", "layout");
     return { ok: true };
   });

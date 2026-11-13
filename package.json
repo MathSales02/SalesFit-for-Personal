@@ -21,6 +21,7 @@
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "jobs:retention": "node --conditions=react-server --import tsx scripts/retention.ts",
+    "jobs:inactivity": "node --conditions=react-server --import tsx scripts/inactivity.ts",
     "test:e2e": "playwright test",
     "landing:media": "node --import tsx scripts/landing-media.ts"
   },
@@ -43,6 +44,7 @@
     "react-dom": "^19.3.1",
     "server-only": "^0.0.1",
     "sharp": "^0.35.5",
+    "web-push": "3.6.7",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -55,6 +57,7 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/web-push": "3.6.4",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.5",

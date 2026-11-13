@@ -32,6 +32,15 @@ const schema = z
       .transform((v) => (v.startsWith("\\$") ? v.slice(1) : v))
       .optional(),
     ASAAS_WEBHOOK_TOKEN: z.string().min(32).optional(),
+    /**
+     * Web Push (notifications on phones). Generate once with `npx web-push generate-vapid-keys`
+     * and never change them: devices subscribed with the old public key stop receiving.
+     * Without them, push is off and notifications stay inside the app.
+     */
+    VAPID_PUBLIC_KEY: z.string().regex(/^[A-Za-z0-9_-]{80,100}$/).optional(),
+    VAPID_PRIVATE_KEY: z.string().regex(/^[A-Za-z0-9_-]{40,50}$/).optional(),
+    /** Contact the push services can use about this sender: "mailto:..." or an https address. Defaults to APP_URL. */
+    VAPID_SUBJECT: z.string().regex(/^(mailto:|https:\/\/)/).optional(),
   })
   .superRefine((env, ctx) => {
     if (!env.SMTP_URL && !env.BREVO_API_KEY) {
@@ -39,6 +48,9 @@ const schema = z
     }
     if (env.ASAAS_API_KEY && !env.ASAAS_WEBHOOK_TOKEN) {
       ctx.addIssue({ code: "custom", path: ["ASAAS_WEBHOOK_TOKEN"], message: "required when ASAAS_API_KEY is set" });
+    }
+    if (!!env.VAPID_PUBLIC_KEY !== !!env.VAPID_PRIVATE_KEY) {
+      ctx.addIssue({ code: "custom", path: ["VAPID_PRIVATE_KEY"], message: "set both VAPID keys or neither" });
     }
     if (env.NODE_ENV !== "production") return;
     if (env.ASAAS_API_KEY?.startsWith("$aact_hmlg") && !env.ASAAS_API_URL.includes("sandbox")) {

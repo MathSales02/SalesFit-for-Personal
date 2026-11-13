@@ -81,6 +81,8 @@ describe("server-only translator", () => {
   };
   walk(join(process.cwd(), "src"));
   const isClient = (src: string) => /^\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*["']use client["']/.test(src);
+  // Server functions: the browser only gets a reference that calls the server, never their imports.
+  const isServerFunctions = (src: string) => /^\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*["']use server["']/.test(src);
   const resolveImport = (from: string, spec: string) => {
     const base = spec.startsWith("@/") ? join("src", spec.slice(2)) : spec.startsWith(".") ? join(dirname(from), spec) : null;
     if (!base) return null;
@@ -98,7 +100,7 @@ describe("server-only translator", () => {
         const target = resolveImport(file, m[1]!);
         if (!target) continue;
         const code = files.get(target)!;
-        if (!isClient(code) && code.includes('from "@/i18n/server"')) bad.push(`${file} -> ${target}`);
+        if (!isClient(code) && !isServerFunctions(code) && code.includes('from "@/i18n/server"')) bad.push(`${file} -> ${target}`);
       }
     }
     expect(bad).toEqual([]);

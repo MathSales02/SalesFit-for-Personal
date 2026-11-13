@@ -77,10 +77,10 @@ export function PreferencesForm({ types, muted }: { types: readonly (readonly [s
     <ActionForm action={notificationPrefsAction} className="flex flex-col gap-3">
       {() => (
         <>
-          {types.map(([t, label]) => (
-            <label key={t} className="flex items-center gap-3 text-sm">
-              <input type="checkbox" name="wanted" value={t} defaultChecked={!muted.includes(t)} className="size-4 accent-turf" />
-              {label}
+          {types.map(([type, label]) => (
+            <label key={type} className="flex items-center gap-3 text-sm">
+              <input type="checkbox" name="wanted" value={type} defaultChecked={!muted.includes(type)} className="size-4 accent-turf" />
+              {t(label)}
             </label>
           ))}
           <div>

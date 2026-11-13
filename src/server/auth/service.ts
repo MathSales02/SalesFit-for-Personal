@@ -27,6 +27,7 @@ import type { RequestMeta } from "../http/request-meta";
 import { audit, recordSecurityEvent } from "../security/audit";
 import { enforceRateLimit, resetRateLimit } from "../security/rate-limit";
 import { burnPasswordCheck, hashPassword, needsRehash, verifyPassword } from "./password";
+import { removeSessionPushSubscriptions } from "../notifications/push";
 import { createSession, revokeSession, revokeUserSessions } from "./session";
 
 export { TRIAL_DAYS } from "@/lib/plan-features";
@@ -301,6 +302,8 @@ export async function logout(sessionId: string, userId: string, meta: RequestMet
     await revokeSession(tx, sessionId, "logout");
     await audit(tx, { action: "auth.logout", actorUserId: userId, targetType: "session", targetId: sessionId, ipHash: meta.ipHash });
   });
+  // The device where this session turned on phone notifications stops getting them.
+  await removeSessionPushSubscriptions(userId, sessionId);
 }
 
 // ---------------------------------------------------------------------------

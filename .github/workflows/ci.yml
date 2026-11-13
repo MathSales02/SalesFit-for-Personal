@@ -96,6 +96,9 @@ jobs:
       S3_SECRET_KEY: ci-secret-key-0000
       S3_BUCKET: cadencia-media
       RATE_LIMIT_OVERRIDES: '{"register_ip":{"limit":500,"windowSec":3600},"token_redeem_ip":{"limit":500,"windowSec":900},"login_ip":{"limit":500,"windowSec":900}}'
+      # CI-only Web Push keys (never used in production), so the phone notification screens render.
+      VAPID_PUBLIC_KEY: BOQrJpkC55uAYaJq29QFuO6d2gGEpa9MxZbntvoofEu7rXDUdnBBjrKVcg-0UelSoKD4mYlaiDo3Oo3mtT261a8
+      VAPID_PRIVATE_KEY: gltkQfKiHArrMHBcH4Xkj3e4r_gqX3cA0v8l_KtxTl4
       E2E_BASE_URL: http://localhost:3000
       E2E_MAILPIT_URL: http://127.0.0.1:8025
       NEXT_TELEMETRY_DISABLED: "1"

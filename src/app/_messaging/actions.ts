@@ -11,6 +11,8 @@ import { completeUpload, requestUpload, type UploadTicket } from "@/server/media
 import { deleteMessage, getConversation, openConversation, pollConversation, sendMessage, type MessageView } from "@/server/messaging/service";
 import { markNotificationsRead, NOTIFICATION_TYPES, setMutedTypes } from "@/server/notifications/service";
 import type { Actor } from "@/server/authz/policy";
+import { isPushDeviceActive, removePushSubscription, savePushSubscription, sendTestPush } from "@/server/notifications/push";
+import { getLocale } from "@/i18n/server";
 
 const cursor = z.strictObject({ createdAt: z.iso.datetime({ offset: true }), id: z.uuid() });
 const base = (actor: Actor) => (actor.membership?.role === "trainer" ? "/treinador" : "/aluno");
@@ -103,5 +105,43 @@ export async function notificationPrefsAction(_prev: ActionResult, form: FormDat
       NOTIFICATION_TYPES.map(([t]) => t).filter((t) => !wanted.has(t)),
     );
     return { ok: true, message: "Preferências salvas." };
+  });
+}
+
+// --- Notifications on this phone or computer (Web Push) -------------------------------------------
+
+const endpointSchema = z.strictObject({ endpoint: z.url().max(2048) });
+
+/** Whether this device shows the signed-in person's notifications (it may belong to someone who signed out). */
+export async function pushStatusAction(input: unknown): Promise<ActionResult<{ active: boolean }>> {
+  return runAction("push_status", async () => {
+    const actor = await requireActionActor("community.read");
+    const { endpoint } = parseInput(endpointSchema, input);
+    return { ok: true, data: { active: await isPushDeviceActive(actor, endpoint) } };
+  });
+}
+
+export async function savePushAction(input: unknown): Promise<ActionResult> {
+  return runAction("push_save", async () => {
+    const actor = await requireActionActor("community.read");
+    const { subscription } = parseInput(z.strictObject({ subscription: z.unknown() }), input);
+    await savePushSubscription(actor, subscription, await getLocale());
+    return { ok: true };
+  });
+}
+
+export async function removePushAction(input: unknown): Promise<ActionResult> {
+  return runAction("push_remove", async () => {
+    const actor = await requireActionActor("community.read");
+    const { endpoint } = parseInput(endpointSchema, input);
+    await removePushSubscription(actor, endpoint);
+    return { ok: true };
+  });
+}
+
+export async function testPushAction(): Promise<ActionResult<{ devices: number }>> {
+  return runAction("push_test", async () => {
+    const actor = await requireActionActor("community.read");
+    return { ok: true, data: { devices: await sendTestPush(actor) } };
   });
 }

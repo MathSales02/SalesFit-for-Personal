@@ -1,10 +1,11 @@
 import "server-only";
 import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import { withTenant, setTenantContext, type DbContext } from "../db/context";
+import { onCommit, withTenant, setTenantContext, type DbContext } from "../db/context";
 import type { Tx } from "../db/client";
 import { notificationPreferences, notifications, users, workspaceMembers } from "../db/schema";
 import { assertCan, requireMembership, type Actor } from "../authz/policy";
 import { Errors } from "../lib/errors";
+import { queuePush } from "./push";
 
 export const NOTIFICATION_TYPES = [
   ["post_liked", "Curtidas nas suas publicações"],
@@ -17,7 +18,18 @@ export const NOTIFICATION_TYPES = [
   ["post_approved", "Publicação aprovada"],
   ["post_removed", "Publicação removida"],
   ["announcement", "Avisos do treinador"],
+  ["student_inactive", "Aluno há muito tempo sem treinar"],
+  ["workout_reminder", "Lembrete para voltar a treinar"],
 ] as const;
+
+/** Types that only make sense for one side. */
+const TRAINER_ONLY = new Set<string>(["student_inactive"]);
+const STUDENT_ONLY = new Set<string>(["program_assigned", "program_updated", "announcement", "workout_reminder"]);
+
+/** The notification types a trainer or a student can receive (for the preferences form). */
+export function notificationTypesFor(role: "trainer" | "student" | undefined) {
+  return NOTIFICATION_TYPES.filter(([t]) => (role === "trainer" ? !STUDENT_ONLY.has(t) : !TRAINER_ONLY.has(t)));
+}
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number][0];
 
@@ -35,12 +47,14 @@ export type NotifyItem = {
  * Creates notifications inside the caller's transaction, from the trusted
  * system context (recipients other than the actor cannot be written otherwise).
  * Skips: self-notifications, muted types, and pairs with a block between them.
- * Future channels (email/push) hook in here, reading delivered_channels.
+ * Once the transaction commits, each notification also goes to the recipient's phones (push).
+ * once: an existing notification with the same key is left alone (no bump, no new push).
  */
-export async function notify(tx: Tx, ctx: DbContext, items: NotifyItem[]) {
+export async function notify(tx: Tx, ctx: DbContext, items: NotifyItem[], opts: { once?: boolean } = {}): Promise<{ id: string; type: NotificationType }[]> {
   const wanted = items.filter((i) => i.recipientMemberId !== i.actorMemberId);
-  if (wanted.length === 0 || !ctx.workspaceId) return;
+  if (wanted.length === 0 || !ctx.workspaceId) return [];
   await setTenantContext(tx, { ...ctx, isSystem: true });
+  const created: { id: string; type: NotificationType }[] = [];
   try {
     const recipients = [...new Set(wanted.map((i) => i.recipientMemberId))];
     const prefs = await tx
@@ -54,25 +68,33 @@ export async function notify(tx: Tx, ctx: DbContext, items: NotifyItem[]) {
         const [b] = await tx.execute<{ blocked: boolean }>(sql`select app_block_between(${i.actorMemberId}::uuid, ${i.recipientMemberId}::uuid) as blocked`).then((r) => r.rows);
         if (b?.blocked) continue;
       }
-      await tx
-        .insert(notifications)
-        .values({
-          workspaceId: ctx.workspaceId,
-          recipientMemberId: i.recipientMemberId,
-          type: i.type,
-          actorMemberId: i.actorMemberId ?? null,
-          targetId: i.targetId ?? null,
-          data: i.data ?? {},
-          dedupeKey: i.dedupeKey,
-        })
-        .onConflictDoUpdate({
-          target: [notifications.recipientMemberId, notifications.dedupeKey],
-          set: { createdAt: new Date(), readAt: null, actorMemberId: i.actorMemberId ?? null, data: i.data ?? {} },
-        });
+      const insert = tx.insert(notifications).values({
+        workspaceId: ctx.workspaceId,
+        recipientMemberId: i.recipientMemberId,
+        type: i.type,
+        actorMemberId: i.actorMemberId ?? null,
+        targetId: i.targetId ?? null,
+        data: i.data ?? {},
+        dedupeKey: i.dedupeKey,
+      });
+      const rows = await (opts.once
+        ? insert.onConflictDoNothing({ target: [notifications.recipientMemberId, notifications.dedupeKey] })
+        : insert.onConflictDoUpdate({
+            target: [notifications.recipientMemberId, notifications.dedupeKey],
+            set: { createdAt: new Date(), readAt: null, actorMemberId: i.actorMemberId ?? null, data: i.data ?? {} },
+          })
+      ).returning({ id: notifications.id, type: notifications.type });
+      created.push(...rows);
     }
   } finally {
     await setTenantContext(tx, ctx);
   }
+  const workspaceId = ctx.workspaceId;
+  if (created.length > 0) {
+    const ids = created.map((c) => c.id);
+    onCommit(tx, () => queuePush(workspaceId, ids));
+  }
+  return created;
 }
 
 function scope(actor: Actor) {

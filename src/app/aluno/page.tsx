@@ -9,6 +9,8 @@ import { RecordFolder } from "@/components/shell/record-folder";
 import { buttonClass } from "@/components/ui/button-styles";
 import { getMyGamification, getRanking } from "@/server/gamification/service";
 import { requirePageActor } from "@/server/http/next";
+import { pushPublicKey } from "@/server/notifications/push";
+import { PushPrompt } from "@/components/notifications/push-setup";
 import { playbackUrls } from "@/server/media/service";
 import { getMyProgram } from "@/server/programs/service";
 import { getOwnWeightTrend } from "@/server/progress/service";
@@ -62,6 +64,7 @@ export default async function StudentHomePage() {
   const first = weight[0];
   const delta = latest && first && weight.length > 1 ? latest.kg - first.kg : null;
 
+  const pushKey = pushPublicKey();
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -80,6 +83,7 @@ export default async function StudentHomePage() {
           </span>
         )}
       </header>
+      {pushKey && <PushPrompt publicKey={pushKey} />}
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Hero: today's training */}

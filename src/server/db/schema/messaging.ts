@@ -54,6 +54,8 @@ export const notificationType = pgEnum("notification_type", [
   "post_approved",
   "post_removed",
   "announcement",
+  "student_inactive",
+  "workout_reminder",
 ]);
 
 /**
@@ -94,4 +96,27 @@ export const notificationPreferences = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.memberId] })],
+);
+
+/**
+ * Phones and browsers that accepted push notifications (Web Push). Belongs to a user, not a
+ * workspace: the device shows that person's notifications. Rows are written only through
+ * app_save_push_subscription (drizzle/0042), which also moves a device to whoever subscribed last.
+ */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    /** Language the notifications are written in (the app's language when the device subscribed). */
+    locale: text("locale").notNull().default("pt-BR"),
+    /** Session that subscribed: signing out there stops the notifications on that device. */
+    sessionId: uuid("session_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("push_subscriptions_endpoint_uq").on(t.endpoint), index("push_subscriptions_user_idx").on(t.userId)],
 );

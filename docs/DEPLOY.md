@@ -63,6 +63,9 @@ Guarde-as no cofre de segredos da hospedagem, nunca no repositório. O app valid
 | `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` | Obrigatória com mais de uma instância. Chave AES de 32 bytes em base64, a mesma em todas as instâncias. |
 | `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | Do armazenamento. A chave de acesso deve valer só para esse bucket. |
 | `ASAAS_API_URL`, `ASAAS_API_KEY`, `ASAAS_WEBHOOK_TOKEN` | Produção do Asaas: `https://api.asaas.com/v3`. Use uma chave nova, nunca a do sandbox. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Notificações no celular. Gere uma vez com `npx web-push generate-vapid-keys`. **Não troque depois**: os aparelhos já inscritos parariam de receber. Sem elas, as notificações ficam só dentro do app. |
+| `VAPID_SUBJECT` | Opcional: contato para os serviços de push (`mailto:…` ou `https://…`). Sem ela, usa `APP_URL`. |
+| `JOBS_IN_PROCESS` | Opcional: `off` desliga as rotinas diárias dentro do servidor web (veja a seção 5). |
 
 Para gerar segredos: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
 
@@ -84,6 +87,12 @@ Não defina `RATE_LIMIT_OVERRIDES` em produção; ela existe só para testes.
 | Limpeza de dados (LGPD) | 1x por dia, de madrugada | `npm run jobs:retention` (precisa de `DATABASE_MIGRATION_URL` e das variáveis do S3) |
 
 Use o agendador da hospedagem (cron, Scheduled Jobs, EventBridge…). A rotina imprime uma linha JSON com quantos registros removeu; fique de olho nela nos logs.
+
+Rodam dentro do próprio servidor web, sem agendador:
+
+| Rotina | Quando | O que faz |
+|---|---|---|
+| Alunos sem treinar | 1x por dia, a partir das 10h (Brasília) | Avisa os treinadores sobre alunos ativos há 7 dias ou mais sem concluir um treino, e manda um lembrete ao aluno que tem treino atribuído. Cada ausência gera um aviso só. Com várias instâncias, uma chave no Redis faz só uma rodar. Para rodar na hora: `npm run jobs:inactivity`. |
 
 ## 6. Primeiro acesso de administrador
 

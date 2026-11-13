@@ -84,6 +84,13 @@ e6fd006 PROJECT_CONTEXT: record Phase 3, Phase 4 decisions and where work stoppe
 
 ### Onde paramos (atualizado a cada etapa)
 
+**Notificações no celular (13/11/2026):** Web Push, o serviço de push do próprio navegador (sem conta em terceiros e sem custo).
+- Chegam no celular: mensagem nova, treino atribuído e treino atualizado (aluno), e aluno há 7 dias ou mais sem treinar (treinador). O aluno com treino atribuído também recebe um lembrete para voltar. Cada ausência gera um aviso só; o próximo vem depois que o aluno treinar e parar de novo.
+- Quem quer recebe: botão "Ativar neste aparelho" em Notificações e um convite na tela inicial (com "Agora não"). As preferências de Notificações valem também para o celular. O texto é o mesmo da tela de notificações, no idioma da pessoa; o conteúdo das mensagens nunca vai junto.
+- iPhone: só funciona com o app instalado na Tela de Início (iOS 16.4 ou mais novo). Sair da conta desliga o aparelho; tocar na notificação abre a tela certa.
+- Código: `src/server/notifications/push.ts` (aparelhos e envio), `src/server/jobs/inactivity.ts` (varredura), `src/server/jobs/scheduler.ts` + `src/instrumentation.ts` (roda 1x por dia no servidor), `public/sw.js` (recebe e abre), migrações 0041/0042. O envio só acontece depois que a transação é confirmada (`onCommit` em `src/server/db/context.ts`).
+- **Produção precisa de `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY`** no serviço web (docs/DEPLOY.md). Sem elas, tudo funciona, mas só dentro do app.
+
 **Idiomas (12–13/11/2026, etapas 1 a 4):** o app passa a ter português, inglês e espanhol.
 - O código continua em português: cada texto passa por `t("texto em português")` e os outros idiomas são catálogos que mapeiam o texto português para a tradução (`src/i18n/catalog/en.ts` e `es.ts`). Texto sem tradução aparece em português.
 - Idioma da pessoa: cookie `cadencia_locale` (seletor em Conta e nas telas de login); sem escolha, segue o navegador. Servidor: `const t = await getT()`; componentes de cliente: `const t = useT()`.

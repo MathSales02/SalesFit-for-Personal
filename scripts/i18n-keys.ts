@@ -13,7 +13,7 @@ import { join, relative, sep } from "node:path";
 import ts from "typescript";
 
 /** Label tables and messages translated at the place they are displayed. */
-export const SOURCES = ["src/components/landing/landing-content.ts", "src/components/landing/faq-content.tsx", "src/lib/plan-features.ts", "src/lib/theme.ts", "src/lib/validation", "src/server/lib/errors.ts"];
+export const SOURCES = ["src/components/landing/landing-content.ts", "src/server/notifications/describe.ts", "src/server/notifications/service.ts", "src/components/landing/faq-content.tsx", "src/lib/plan-features.ts", "src/lib/theme.ts", "src/lib/validation", "src/server/lib/errors.ts"];
 /** Never part of the catalogues: third-party code and files of a later translation stage. */
 const EXCLUDE = ["src/i18n/catalog", "src/components/ui/glass-folder-cards.tsx", "src/components/ui/liquid-glass-navbar"];
 
