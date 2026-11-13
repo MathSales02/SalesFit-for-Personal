@@ -2,15 +2,15 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { MEASUREMENT_FIELDS, type MeasurementKey } from "@/lib/validation/progress";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
 
 export type MeasurementRow = { id: string; measuredOn: string } & Record<MeasurementKey, number | null>;
 
 // Drawn at the real container width so text keeps its size on phones (no viewBox scaling).
 const H = 200;
 const PAD = { top: 16, right: 16, bottom: 28, left: 44 };
-const fmtDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
-const fmtNum = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+const fmtDateIn = (locale: string, iso: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtNumIn = (locale: string, n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 });
 
 /** "Nice" tick values covering [min, max]. */
 function ticks(min: number, max: number, count = 4) {
@@ -32,6 +32,9 @@ function ticks(min: number, max: number, count = 4) {
  */
 export function MeasurementChart({ rows }: { rows: MeasurementRow[] }) {
   const t = useT();
+  const locale = useLocale();
+  const fmtDate = (iso: string) => fmtDateIn(locale, iso);
+  const fmtNum = (n: number) => fmtNumIn(locale, n);
   const available = MEASUREMENT_FIELDS.filter(([k]) => rows.filter((r) => r[k] != null).length >= 2);
   const [metric, setMetric] = useState<MeasurementKey>(available[0]?.[0] ?? "weightKg");
   const [active, setActive] = useState<number | null>(null);

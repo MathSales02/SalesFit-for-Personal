@@ -12,7 +12,7 @@ import { LanguagePicker } from "@/components/locale/language-picker";
 import { ThemePicker } from "@/components/theme/theme-picker";
 import { parseTheme, THEME_COOKIE } from "@/lib/theme";
 import { ChangePasswordForm, DeleteAccountForm, RevokeOthersButton, RevokeSessionButton } from "./forms";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 import type { Translate } from "@/i18n/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("Conta e segurança") };
 }
 
-const fmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+const fmt = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "medium", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(d) };
 
 /** Rough, privacy-friendly device label from the stored user agent. */
 function deviceLabel(ua: string | null, t: Translate) {

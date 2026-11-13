@@ -1,9 +1,9 @@
 import { MEASUREMENT_FIELDS } from "@/lib/validation/progress";
 import type { MeasurementRow } from "./measurement-chart";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
-const fmtDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
-const fmtNum = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+const fmtDate = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtNum = (n: number) => n.toLocaleString(currentLocale(), { maximumFractionDigits: 1 });
 
 /** All measurements as a table: the accessible, exact counterpart of the chart. */
 export async function MeasurementTable({ rows, onDelete }: { rows: MeasurementRow[]; onDelete?: (id: string) => React.ReactNode }) {

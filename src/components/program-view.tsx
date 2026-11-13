@@ -1,6 +1,6 @@
 import { ExerciseVideo } from "@/components/exercises/video";
 import type { ProgramContent } from "@/server/programs/service";
-import { getT } from "@/i18n/server";
+import { getLibraryText, getT } from "@/i18n/server";
 
 const restLabel = (s: number | null) => (s == null ? null : s >= 60 ? `${Math.floor(s / 60)}min${s % 60 ? ` ${s % 60}s` : ""}` : `${s}s`);
 
@@ -21,6 +21,7 @@ export async function ProgramView({
   dayAction?: (dayId: string) => React.ReactNode;
 }) {
   const t = await getT();
+  const lt = await getLibraryText();
   return (
     <div className="flex flex-col gap-8">
       {content.days.map((d) => (
@@ -52,7 +53,7 @@ export async function ProgramView({
                         <details className="mt-2">
                           <summary className="cursor-pointer text-sm font-semibold text-turf">{t("Como executar")}</summary>
                           <ExerciseVideo src={video} externalUrl={e.videoUrl} demoUrl={e.demoUrl} title={t(e.exerciseName)} preload="none" className="mt-2 max-w-md" />
-                          {e.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{e.instructions}</p>}
+                          {e.instructions && <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-ink-soft">{lt(e.instructions)}</p>}
                         </details>
                       )}
                     </div>

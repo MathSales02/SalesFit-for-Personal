@@ -81,6 +81,17 @@ test("a trainer switches the app to English and to Spanish: menus, screens and s
   await expectAccessible(page, "/treinador/exercicios (English)");
   await shot(page, "exercises-en");
 
+  // A library exercise: name, equipment and the whole guidance in English.
+  await page.getByLabel("Search exercises").fill("barbell bench press");
+  await page.getByRole("link", { name: /^Barbell bench press/ }).click();
+  // The first visit compiles this page on the test server.
+  await expect(page.getByRole("heading", { name: "Barbell bench press" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Step by step" })).toBeVisible();
+  await expect(page.getByText("Lie on the bench with your eyes under the bar, feet firm on the floor and shoulder blades together.")).toBeVisible();
+  await expect(page.getByText("Bouncing the bar off your chest.")).toBeVisible();
+  await expect(page.getByText("Barbell and bench")).toBeVisible();
+  await expectAccessible(page, "exercício da biblioteca (English)");
+
   // Spanish.
   await page.goto("/conta");
   await page.getByRole("button", { name: "Español" }).click();

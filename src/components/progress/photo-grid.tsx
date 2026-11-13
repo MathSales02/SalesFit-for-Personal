@@ -1,9 +1,9 @@
 import { POSE_LABEL } from "@/lib/validation/progress";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export type GridPhoto = { id: string; url: string | null; takenOn: string; pose: string; sharedWithTrainer: boolean };
 
-const fmtDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtDate = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 
 /** Photo grid; controls (share, delete) are passed in so the trainer view can be read-only. */
 export async function PhotoGrid({ photos, controls }: { photos: GridPhoto[]; controls?: (p: GridPhoto) => React.ReactNode }) {

@@ -13,7 +13,7 @@ import { AppError } from "@/server/lib/errors";
 import { playbackUrls } from "@/server/media/service";
 import { ArchiveExerciseButton, CopyExerciseButton, ExerciseForm, RemoveVideoButton } from "../forms";
 import { VideoUploader } from "../video-uploader";
-import { getT } from "@/i18n/server";
+import { getLibraryText, getT } from "@/i18n/server";
 import { equipmentText } from "@/i18n/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,9 +39,10 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
   const videoUrl = e.videoAssetId ? (await playbackUrls(actor, [e.videoAssetId])).get(e.videoAssetId) : undefined;
   // The platform library is translated; what the trainer wrote stays as written.
   const shownName = e.own ? e.name : t(e.name);
-  const steps = lines(e.instructions);
-  const tips = lines(e.tips);
-  const mistakes = lines(e.commonMistakes);
+  const lt = await getLibraryText();
+  const steps = lines(lt(e.instructions));
+  const tips = lines(lt(e.tips));
+  const mistakes = lines(lt(e.commonMistakes));
 
   return (
     <>
@@ -66,7 +67,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ exerc
               <h2 id="about-h" className="mb-2 text-lg font-semibold">
                 {t("Sobre o movimento")}
               </h2>
-              <p className="leading-relaxed whitespace-pre-line text-ink-soft">{e.description}</p>
+              <p className="leading-relaxed whitespace-pre-line text-ink-soft">{lt(e.description)}</p>
             </section>
           )}
 

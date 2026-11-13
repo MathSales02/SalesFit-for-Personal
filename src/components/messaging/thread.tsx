@@ -12,12 +12,12 @@ import {
 import { ReportForm } from "@/components/community/post-card";
 import { Notice } from "@/components/ui/notice";
 import type { MessageView } from "@/server/messaging/service";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
 
 const POLL_MS = 4000;
 const SAFETY_POLL_MS = 30_000;
 const ACCEPT = "image/jpeg,image/png,image/webp";
-const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+const fmtIn = (locale: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 type Cursor = { createdAt: string; id: string } | null;
 
@@ -39,6 +39,7 @@ export function Thread({
   initialOlderCursor: Cursor;
 }) {
   const t = useT();
+  const fmt = fmtIn(useLocale());
   const [items, setItems] = useState<MessageView[]>(initial);
   const [older, setOlder] = useState<Cursor>(initialOlderCursor);
   const [body, setBody] = useState("");

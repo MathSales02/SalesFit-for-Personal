@@ -7,14 +7,15 @@ import { markNotificationsReadAction, notificationPrefsAction } from "@/app/_mes
 import { ActionForm } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import { Avatar } from "@/components/community/post-card";
-import { useT } from "@/i18n/client";
+import { useLocale, useT } from "@/i18n/client";
 
 export type NotificationItem = { id: string; read: boolean; text: string; href: string | null; actorName: string | null; createdAt: string };
 
-const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+const fmtIn = (locale: string) => new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 export function NotificationList({ items }: { items: NotificationItem[] }) {
   const t = useT();
+  const fmt = fmtIn(useLocale());
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const unread = items.filter((i) => !i.read).length;

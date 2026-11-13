@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 import { resolveActor } from "@/server/auth/actor";
 import type { Actor } from "@/server/authz/policy";
@@ -21,6 +21,8 @@ import {
 } from "@/server/exercises/service";
 import type { DemoSource } from "@/server/exercises/exercisedb";
 import { en } from "@/i18n/catalog/en";
+import { libraryEn } from "@/i18n/catalog/library-en";
+import { libraryEs } from "@/i18n/catalog/library-es";
 import { es } from "@/i18n/catalog/es";
 import { equipmentText, translator } from "@/i18n/config";
 import { AppError } from "@/server/lib/errors";
@@ -31,6 +33,8 @@ import { testOutbox } from "@/server/mail/mailer";
 import { createTrainer, loginAs, meta, PASSWORD, uniqueEmail } from "./support/factories";
 
 afterAll(closeDb);
+
+const SYS_USER = "00000000-0000-0000-0000-000000000000";
 
 const MP4_HEAD = new Uint8Array([0, 0, 0, 0x18, ...new TextEncoder().encode("ftypisom"), 0, 0, 2, 0, ...new TextEncoder().encode("isomiso2")]);
 const fakeMp4 = (size = 2048) => {
@@ -300,6 +304,19 @@ describe("animated demonstrations", () => {
       expect(equipmentText(t, "Barra fixa")).toBe(lang === "en" ? "Pull-up bar" : "Barra de dominadas");
       expect(equipmentText(t, "Halteres")).toBe(lang === "en" ? "Dumbbells" : "Mancuernas");
     }
+  });
+
+  it("every sentence of the library's descriptions, steps, tips and mistakes has an English and a Spanish version", async () => {
+    const rows = await withTenant({ userId: SYS_USER, isPlatformAdmin: true }, (tx) =>
+      tx
+        .select({ description: exercises.description, instructions: exercises.instructions, tips: exercises.tips, commonMistakes: exercises.commonMistakes })
+        .from(exercises)
+        .where(and(isNull(exercises.workspaceId), isNull(exercises.archivedAt))),
+    );
+    const sentences = new Set(rows.flatMap((r) => [r.description, r.instructions, r.tips, r.commonMistakes]).flatMap((text) => (text ?? "").split("\n").map((l) => l.trim()).filter(Boolean)));
+    expect(sentences.size).toBeGreaterThan(700);
+    expect([...sentences].filter((l) => !(l in libraryEn))).toEqual([]);
+    expect([...sentences].filter((l) => !(l in libraryEs))).toEqual([]);
   });
 
   it("a trainer's exercise gets its demonstration by itself: same name, another usual name, or the copy's origin", async () => {

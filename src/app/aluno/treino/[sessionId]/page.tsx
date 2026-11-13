@@ -7,7 +7,7 @@ import { AppError } from "@/server/lib/errors";
 import { playbackUrls } from "@/server/media/service";
 import { getSessionView } from "@/server/workouts/service";
 import { WorkoutPlayer, type PlayerExercise } from "./player";
-import { getT } from "@/i18n/server";
+import { getLibraryText, getT } from "@/i18n/server";
 import { equipmentText } from "@/i18n/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function WorkoutPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const actor = await requirePageActor("training.log_own");
   const t = await getT();
+  const lt = await getLibraryText();
   const { sessionId } = await params;
   if (!z.uuid().safeParse(sessionId).success) notFound();
 
@@ -44,7 +45,7 @@ export default async function WorkoutPage({ params }: { params: Promise<{ sessio
     restSeconds: e.restSeconds,
     tempo: e.tempo,
     notes: e.notes,
-    instructions: e.instructions,
+    instructions: lt(e.instructions),
     videoUrl: e.videoAssetId ? (videos.get(e.videoAssetId) ?? null) : null,
     externalVideoUrl: e.videoUrl,
     demoUrl: e.demoUrl,

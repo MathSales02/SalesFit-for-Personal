@@ -19,14 +19,14 @@ import {
   ProgramInfoForm,
   StartDraftButton,
 } from "../forms";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("Programa") };
 }
 
-const fmtDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+const fmtDate = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
 
 export default async function ProgramPage({ params }: { params: Promise<{ programId: string }> }) {
   const t = await getT();

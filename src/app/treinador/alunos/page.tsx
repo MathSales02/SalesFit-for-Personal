@@ -6,7 +6,7 @@ import { requirePageActor } from "@/server/http/next";
 import { listOpenInvitations } from "@/server/students/invitations";
 import { listStudents, STUDENTS_PAGE_SIZE } from "@/server/students/students";
 import { InviteForm, RevokeInvitationButton } from "./forms";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -19,7 +19,7 @@ const TABS = [
   { status: "archived", label: "Arquivados" },
 ] as const;
 
-const fmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" });
+const fmt = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short", timeZone: "America/Sao_Paulo" }).format(d) };
 
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const t = await getT();

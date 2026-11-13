@@ -1,10 +1,10 @@
 import { EFFORT_LABEL } from "@/lib/validation/workouts";
 import type { TrainingOverview } from "@/server/workouts/service";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
-const fmtDay = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: "America/Sao_Paulo" });
-const fmtWeek = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
-const kg = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+const fmtDay = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "short", timeZone: "America/Sao_Paulo" }).format(d) };
+const fmtWeek = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const kg = (n: number) => n.toLocaleString(currentLocale(), { maximumFractionDigits: 1 });
 
 /** Trainer's view of a student's consistency, recent workouts and records. */
 export async function TrainingSection({ data, weeklyTarget }: { data: TrainingOverview; weeklyTarget: number | null }) {

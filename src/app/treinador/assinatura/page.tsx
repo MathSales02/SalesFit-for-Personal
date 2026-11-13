@@ -7,15 +7,15 @@ import { listInvoices, needsTaxId } from "@/server/billing/provider";
 import { formatBRL, getBillingOverview } from "@/server/billing/service";
 import { requirePageActor } from "@/server/http/next";
 import { CancelForm, CheckoutForm } from "./forms";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("Assinatura") };
 }
 
-const fmtDate = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
-const fmtDay = (iso: string) => new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtDate = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "long", timeZone: "America/Sao_Paulo" }).format(d) };
+const fmtDay = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 
 const INVOICE_STATUS: Record<string, { label: string; tone: string }> = {
   PENDING: { label: "Aguardando pagamento", tone: "text-ink" },

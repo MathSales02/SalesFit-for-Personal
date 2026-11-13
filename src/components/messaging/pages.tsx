@@ -8,9 +8,9 @@ import { AppError } from "@/server/lib/errors";
 import { getConversation, listContacts, listConversations } from "@/server/messaging/service";
 import { Thread } from "./thread";
 import { StartConversationButton } from "./start-button";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
-const fmt = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+const fmt = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(d) };
 
 export async function MessagesPage({ actor, basePath }: { actor: Actor; basePath: string }) {
   const t = await getT();

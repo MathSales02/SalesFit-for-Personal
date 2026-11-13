@@ -15,7 +15,7 @@ import { getOwnWeightTrend } from "@/server/progress/service";
 import { getOpenSession } from "@/server/workouts/service";
 import { StartWorkoutButton } from "./start-button";
 import { AbandonButton } from "./treino/[sessionId]/abandon-button";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -23,9 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const fmtDate = (iso: string, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long" }) =>
-  new Intl.DateTimeFormat("pt-BR", { ...opts, timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
-const fmtKg = (n: number) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(n);
-const WEEKDAYS = ["S", "T", "Q", "Q", "S", "S", "D"];
+  new Intl.DateTimeFormat(currentLocale(), { ...opts, timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtKg = (n: number) => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(n);
+/** Monday to Sunday, one letter each, in the request's language (2024-01-01 was a Monday). */
+const weekdays = () => Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(currentLocale(), { weekday: "narrow", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + i))).toUpperCase());
 
 function addDays(iso: string, n: number) {
   const d = new Date(`${iso}T12:00:00Z`);
@@ -48,7 +49,7 @@ export default async function StudentHomePage() {
 
   // Check-ins by day for the week columns and the 28-day bars.
   const byDay = new Map(g.recentCheckins.map((c) => [c.day, c.source]));
-  const week = WEEKDAYS.map((label, i) => {
+  const week = weekdays().map((label, i) => {
     const day = addDays(g.weekStart, i);
     const src = byDay.get(day);
     return { label, today: day === g.today, state: src ? (src === "workout" ? "workout" : "manual") : day > g.today ? "future" : "missed" } as const;

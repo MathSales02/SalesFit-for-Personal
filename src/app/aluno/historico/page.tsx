@@ -3,14 +3,14 @@ import Link from "next/link";
 import { historyCursorSchema } from "@/lib/validation/workouts";
 import { requirePageActor } from "@/server/http/next";
 import { HISTORY_PAGE, listHistory } from "@/server/workouts/service";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("Histórico") };
 }
 
-const fmtDay = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "numeric", month: "short", timeZone: "America/Sao_Paulo" });
+const fmtDay = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { weekday: "short", day: "numeric", month: "short", timeZone: "America/Sao_Paulo" }).format(d) };
 
 export default async function HistoryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const t = await getT();

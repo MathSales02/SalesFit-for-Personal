@@ -12,7 +12,7 @@ import { unreadConversationCount } from "@/server/messaging/service";
 import { unreadNotificationCount } from "@/server/notifications/service";
 import { assignableStudents, listPrograms } from "@/server/programs/service";
 import { getTrainerActivity, getTrainerOverview } from "@/server/workspace/overview";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -26,8 +26,8 @@ const STATUS_LABEL: Record<string, string> = {
   canceled: "Cancelada",
   expired: "Expirada",
 };
-const fmtDateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
-const fmtDay = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
+const fmtDateTime = { format: (d: Date | number) => new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(d) };
+const fmtDay = (iso: string) => new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T12:00:00Z`));
 
 function daysSince(d: Date) {
   return Math.floor((Date.now() - d.getTime()) / 86_400_000);

@@ -8,14 +8,14 @@ import { requirePageActor } from "@/server/http/next";
 import { AppError } from "@/server/lib/errors";
 import { getSessionSummary } from "@/server/workouts/service";
 import { ShareWorkoutForm } from "./share-form";
-import { getT } from "@/i18n/server";
+import { currentLocale, getT } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("Resumo do treino") };
 }
 
-const kg = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+const kg = (n: number) => n.toLocaleString(currentLocale(), { maximumFractionDigits: 1 });
 const minutes = (s: number | null) => (s == null ? "—" : s < 60 ? "<1" : String(Math.round(s / 60)));
 
 export default async function SummaryPage({ params }: { params: Promise<{ sessionId: string }> }) {
