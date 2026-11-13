@@ -96,6 +96,11 @@ jobs:
       S3_SECRET_KEY: ci-secret-key-0000
       S3_BUCKET: cadencia-media
       RATE_LIMIT_OVERRIDES: '{"register_ip":{"limit":500,"windowSec":3600},"token_redeem_ip":{"limit":500,"windowSec":900},"login_ip":{"limit":500,"windowSec":900}}'
+      # Shows the plan picker like production. Fake values: no test pays, and the address
+      # goes nowhere, so nothing ever reaches Asaas.
+      ASAAS_API_URL: http://127.0.0.1:9/v3
+      ASAAS_API_KEY: ci-only-fake-asaas-key-0000
+      ASAAS_WEBHOOK_TOKEN: ci-only-fake-webhook-token-00000000000000
       E2E_BASE_URL: http://localhost:3000
       E2E_MAILPIT_URL: http://127.0.0.1:8025
       NEXT_TELEMETRY_DISABLED: "1"
