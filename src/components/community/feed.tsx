@@ -6,6 +6,7 @@ import { Logo } from "@/components/ui/logo";
 import type { FeedCursor, FeedPost, FeedScope } from "@/server/community/service";
 import { PostCard, type Viewer } from "./post-card";
 import { PostSkeleton } from "./skeletons";
+import { useT } from "@/i18n/client";
 
 /**
  * Keyset-paginated feed. The next page loads by itself when the reader gets
@@ -28,6 +29,7 @@ export function Feed({
   authorMemberId?: string;
   empty: React.ReactNode;
 }) {
+  const t = useT();
   const [extra, setExtra] = useState<FeedPost[]>([]);
   const [cursor, setCursor] = useState(initialCursor);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +41,12 @@ export function Feed({
     if (!cursor || pending) return;
     startTransition(async () => {
       const res = await loadMoreAction({ scope, cursor, authorMemberId });
-      if (!res.ok || !res.data) return setError(res.ok ? "Não foi possível carregar." : res.message);
+      if (!res.ok || !res.data) return setError(res.ok ? t("Não foi possível carregar.") : t(res.message));
       setError(null);
       setExtra((e) => [...e, ...res.data!.posts]);
       setCursor(res.data.nextCursor);
     });
-  }, [cursor, pending, scope, authorMemberId]);
+  }, [cursor, pending, scope, authorMemberId, t]);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -65,12 +67,12 @@ export function Feed({
           {pending && <PostSkeleton />}
           {!pending && (
             <button type="button" className="h-11 self-center rounded-full border border-line-strong bg-paper px-6 text-sm font-semibold hover:border-turf/60" onClick={loadMore}>
-              Carregar mais
+              {t("Carregar mais")}
             </button>
           )}
         </div>
       )}
-      {!cursor && all.length > 5 && <p className="py-4 text-center text-sm text-muted">Você chegou ao fim. Bom treino!</p>}
+      {!cursor && all.length > 5 && <p className="py-4 text-center text-sm text-muted">{t("Você chegou ao fim. Bom treino!")}</p>}
       {error && (
         <p role="alert" className="text-center text-sm text-danger">
           {error}

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { followAction } from "@/app/_community/actions";
 import { CheckIcon, PlusIcon } from "./icons";
+import { useT } from "@/i18n/client";
 
 /** Follows or unfollows right away and rolls back if the server refuses. */
 export function FollowButton({
@@ -22,6 +23,7 @@ export function FollowButton({
   refresh?: boolean;
   onChange?: (following: boolean) => void;
 }) {
+  const t = useT();
   const router = useRouter();
   const [following, setFollowing] = useState(initial);
   const [pending, startTransition] = useTransition();
@@ -51,7 +53,7 @@ export function FollowButton({
       }`}
     >
       {following ? <CheckIcon className="size-3.5" /> : <PlusIcon className="size-3.5" />}
-      {following ? "Seguindo" : "Seguir"}
+      {following ? t("Seguindo") : t("Seguir")}
       <span className="sr-only"> {name}</span>
     </button>
   );

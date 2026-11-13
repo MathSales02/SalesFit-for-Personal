@@ -8,6 +8,7 @@ import { Avatar } from "./avatar";
 import { CloseIcon, SendIcon } from "./icons";
 import { ReportForm } from "./report-form";
 import { TimeAgo } from "./time-ago";
+import { useT } from "@/i18n/client";
 
 function CommentItem({
   c,
@@ -22,6 +23,7 @@ function CommentItem({
   onReply?: () => void;
   onRemoved: () => void;
 }) {
+  const t = useT();
   const [reporting, setReporting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -37,7 +39,7 @@ function CommentItem({
             <Link href={`${basePath}/membro/${c.author.memberId}`} className="hover:underline">
               {c.author.name}
             </Link>
-            {c.author.role === "trainer" && <span className="ml-1.5 text-xs font-semibold text-turf">Treinador</span>}
+            {c.author.role === "trainer" && <span className="ml-1.5 text-xs font-semibold text-turf">{t("Treinador")}</span>}
           </p>
           <p className="text-[0.92rem] leading-relaxed break-words whitespace-pre-line">{c.body}</p>
         </div>
@@ -45,12 +47,12 @@ function CommentItem({
           <TimeAgo iso={c.createdAt} />
           {onReply && (
             <button type="button" className="font-semibold hover:text-ink" onClick={onReply}>
-              Responder
+              {t("Responder")}
             </button>
           )}
           {!c.author.isMe && (
             <button type="button" className="font-semibold hover:text-ink" onClick={() => setReporting((r) => !r)}>
-              Denunciar
+              {t("Denunciar")}
             </button>
           )}
           {(c.author.isMe || canModerate) && (
@@ -62,11 +64,11 @@ function CommentItem({
                 startTransition(async () => {
                   const res = await removeCommentAction({ commentId: c.id });
                   if (res.ok) onRemoved();
-                  else setNotice(res.message);
+                  else setNotice(t(res.message));
                 })
               }
             >
-              {c.author.isMe ? "Apagar" : "Remover"}
+              {c.author.isMe ? t("Apagar") : t("Remover")}
             </button>
           )}
         </div>
@@ -126,6 +128,7 @@ export function CommentThread({
   autoFocus?: boolean;
   onCount?: (n: number) => void;
 }) {
+  const t = useT();
   const [list, setList] = useState<CommentView[] | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -145,12 +148,12 @@ export function CommentThread({
       if (res.ok && res.data) {
         setList(res.data.comments);
         report.current?.(res.data.commentCount);
-      } else setError(res.ok ? "Não foi possível carregar os comentários." : res.message);
+      } else setError(res.ok ? t("Não foi possível carregar os comentários.") : t(res.message));
     });
     return () => {
       alive = false;
     };
-  }, [postId, initial]);
+  }, [postId, initial, t]);
 
   useEffect(() => {
     if (autoFocus) input.current?.focus({ preventScroll: true });
@@ -167,7 +170,7 @@ export function CommentThread({
     setError(null);
     startSending(async () => {
       const res = await postCommentAction({ postId, parentCommentId: replyTo?.id ?? "", body: text });
-      if (!res.ok || !res.data) return setError(res.ok ? "Não foi possível comentar." : res.message);
+      if (!res.ok || !res.data) return setError(res.ok ? t("Não foi possível comentar.") : t(res.message));
       update([...(list ?? []), res.data]);
       setBody("");
       setReplyTo(null);
@@ -176,9 +179,9 @@ export function CommentThread({
 
   const top = (list ?? []).filter((c) => !c.parentCommentId);
   return (
-    <section aria-label="Comentários" className="flex flex-col gap-3.5">
+    <section aria-label={t("Comentários")} className="flex flex-col gap-3.5">
       {list === null && !error && <SkeletonRows />}
-      {list !== null && top.length === 0 && <p className="text-sm text-muted">{canComment ? "Ninguém comentou ainda. Comece a conversa." : "Sem comentários."}</p>}
+      {list !== null && top.length === 0 && <p className="text-sm text-muted">{canComment ? t("Ninguém comentou ainda. Comece a conversa.") : t("Sem comentários.")}</p>}
       {top.map((c) => (
         <div key={c.id} className="flex flex-col gap-2.5">
           <CommentItem
@@ -212,8 +215,8 @@ export function CommentThread({
         <div>
           {replyTo && (
             <p className="mb-1.5 flex items-center gap-1 pl-11 text-xs text-muted">
-              Respondendo a <strong className="font-semibold text-ink-soft">{replyTo.author.name}</strong>
-              <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancelar resposta" className="grid size-6 place-items-center rounded-full hover:bg-chalk">
+              {t("Respondendo a")} <strong className="font-semibold text-ink-soft">{replyTo.author.name}</strong>
+              <button type="button" onClick={() => setReplyTo(null)} aria-label={t("Cancelar resposta")} className="grid size-6 place-items-center rounded-full hover:bg-chalk">
                 <CloseIcon className="size-3.5" />
               </button>
             </p>
@@ -233,15 +236,15 @@ export function CommentThread({
                 }}
                 maxLength={1000}
                 rows={1}
-                placeholder={replyTo ? `Responder a ${replyTo.author.name}` : "Escreva um comentário"}
-                aria-label={replyTo ? `Responder a ${replyTo.author.name}` : "Escreva um comentário"}
+                placeholder={replyTo ? t("Responder a {0}", { 0: replyTo.author.name }) : t("Escreva um comentário")}
+                aria-label={replyTo ? t("Responder a {0}", { 0: replyTo.author.name }) : t("Escreva um comentário")}
                 className="field-sizing-content max-h-32 min-h-[2.6rem] flex-1 resize-none bg-transparent py-2.5 text-[0.95rem] outline-none placeholder:text-muted"
               />
               <button
                 type="button"
                 onClick={send}
                 disabled={sending || !body.trim()}
-                aria-label="Enviar comentário"
+                aria-label={t("Enviar comentário")}
                 className="mb-1 grid size-9 shrink-0 place-items-center rounded-full bg-signal text-on-accent transition-all active:scale-90 disabled:bg-surface-subtle disabled:text-ink-soft"
               >
                 <SendIcon className="size-[18px]" />

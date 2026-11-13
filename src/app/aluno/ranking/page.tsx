@@ -6,10 +6,15 @@ import { RankingTable } from "@/components/gamification/ranking-table";
 import { PageHeading } from "@/components/ui/page-heading";
 import { getMyGamification, getRanking, listCompetitions } from "@/server/gamification/service";
 import { requirePageActor } from "@/server/http/next";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Ranking" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Ranking") };
+}
 
 export default async function StudentRankingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const t = await getT();
   const actor = await requirePageActor("community.read", { feature: "ranking" });
   const p = periodFrom((await searchParams).periodo);
   const hasCompetitions = actorHasFeature(actor, "competitions");
@@ -17,24 +22,24 @@ export default async function StudentRankingPage({ searchParams }: { searchParam
 
   return (
     <>
-      <PageHeading title="Ranking" description="Pontos de constância: treinos concluídos, check-ins e metas semanais batidas. Um check-in por dia." />
+      <PageHeading title={t("Ranking")} description={t("Pontos de constância: treinos concluídos, check-ins e metas semanais batidas. Um check-in por dia.")} />
 
       {ranking.enabled ? (
-        <section aria-label="Classificação">
+        <section aria-label={t("Classificação")}>
           <PeriodTabs basePath="/aluno/ranking" current={p.key} />
-          <RankingTable rows={ranking.rows} empty="Ainda não há alunos no ranking." />
+          <RankingTable rows={ranking.rows} empty={t("Ainda não há alunos no ranking.")} />
           <div className="mt-3 flex flex-wrap items-center gap-x-3 text-sm text-muted">
-            {me.hidden && <span>Você está escondido: só você e seu treinador veem sua posição.</span>}
+            {me.hidden && <span>{t("Você está escondido: só você e seu treinador veem sua posição.")}</span>}
             <VisibilityForm hidden={me.hidden} />
           </div>
         </section>
       ) : (
-        <p className="rounded-[var(--radius-panel)] border border-line bg-paper p-4 text-sm text-muted">Seu treinador desativou o ranking.</p>
+        <p className="rounded-[var(--radius-panel)] border border-line bg-paper p-4 text-sm text-muted">{t("Seu treinador desativou o ranking.")}</p>
       )}
 
       {hasCompetitions && (
-        <section aria-label="Competições" className="mt-10">
-          <h2 className="mb-3 font-display text-2xl font-bold">Competições</h2>
+        <section aria-label={t("Competições")} className="mt-10">
+          <h2 className="mb-3 font-display text-2xl font-bold">{t("Competições")}</h2>
           <CompetitionList items={competitions} basePath="/aluno/ranking" showJoined />
         </section>
       )}

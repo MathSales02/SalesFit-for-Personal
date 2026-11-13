@@ -11,9 +11,11 @@ import { uploadCommunityPhoto } from "./composer";
 import { FollowButton } from "./follow-button";
 import { CameraIcon, CloseIcon, MoreIcon } from "./icons";
 import { ReportForm } from "./report-form";
+import { useT } from "@/i18n/client";
 
 /** Follow, message, and the quieter options (block, report) behind a menu. */
 export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMessage }: { memberId: string; name: string; isFollowing: boolean; blockedByMe: boolean; canMessage: boolean }) {
+  const t = useT();
   const router = useRouter();
   const [menu, setMenu] = useState(false);
   const reportDialog = useRef<HTMLDialogElement>(null);
@@ -22,11 +24,11 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
 
   function block() {
     setMenu(false);
-    if (!blockedByMe && !window.confirm(`Bloquear ${name}? Vocês deixam de ver as publicações um do outro.`)) return;
+    if (!blockedByMe && !window.confirm(t("Bloquear {0}? Vocês deixam de ver as publicações um do outro.", { 0: name }))) return;
     startTransition(async () => {
       const res = await blockAction({ memberId, block: !blockedByMe });
       if (res.ok) router.refresh();
-      else setNotice(res.message);
+      else setNotice(t(res.message));
     });
   }
 
@@ -36,7 +38,7 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
       <div className="flex flex-wrap items-center justify-end gap-2">
         {blockedByMe ? (
           <button type="button" disabled={pending} className={pill} onClick={block}>
-            Desbloquear
+            {t("Desbloquear")}
           </button>
         ) : (
           <FollowButton memberId={memberId} name={name} initial={isFollowing} refresh />
@@ -45,24 +47,24 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
           <form
             action={async (form) => {
               const res = await openConversationAction({ ok: true }, form);
-              if (res && !res.ok) setNotice(res.message);
+              if (res && !res.ok) setNotice(t(res.message));
             }}
           >
             <input type="hidden" name="memberId" value={memberId} />
             <button type="submit" className={pill}>
-              Mensagem
+              {t("Mensagem")}
             </button>
           </form>
         )}
         <div className="relative">
-          <button type="button" aria-haspopup="menu" aria-expanded={menu} aria-label={`Mais opções sobre ${name}`} onClick={() => setMenu((m) => !m)} className="grid size-10 place-items-center rounded-full border border-line-strong bg-paper text-ink-soft hover:border-turf/60">
+          <button type="button" aria-haspopup="menu" aria-expanded={menu} aria-label={t("Mais opções sobre {0}", { 0: name })} onClick={() => setMenu((m) => !m)} className="grid size-10 place-items-center rounded-full border border-line-strong bg-paper text-ink-soft hover:border-turf/60">
             <MoreIcon />
           </button>
           {menu && (
             <div role="menu" className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-2xl border border-line bg-paper py-1.5 text-[0.92rem] shadow-[var(--shadow-card)]">
               {!blockedByMe && (
                 <button type="button" role="menuitem" className="block w-full px-4 py-2.5 text-left hover:bg-chalk" onClick={block}>
-                  Bloquear
+                  {t("Bloquear")}
                 </button>
               )}
               <button
@@ -74,7 +76,7 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
                   reportDialog.current?.showModal();
                 }}
               >
-                Denunciar
+                {t("Denunciar")}
               </button>
             </div>
           )}
@@ -85,7 +87,7 @@ export function ProfileActions({ memberId, name, isFollowing, blockedByMe, canMe
           {notice}
         </p>
       )}
-      <dialog ref={reportDialog} aria-label={`Denunciar ${name}`} className="cm-sheet">
+      <dialog ref={reportDialog} aria-label={t("Denunciar {0}", { 0: name })} className="cm-sheet">
         <ReportForm
           targetType="member"
           targetId={memberId}
@@ -103,6 +105,7 @@ const GOALS = Object.entries(GOAL_LABELS) as [FitnessGoal, string][];
 
 /** The member's own card: photo, bio and training goal. */
 export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name: string; avatarUrl: string | null; bio: string | null; goal: FitnessGoal | null; cta?: boolean }) {
+  const t = useT();
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const [text, setText] = useState(bio ?? "");
@@ -120,8 +123,8 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
     setUploading(true);
     try {
       const res = await uploadCommunityPhoto(f);
-      if (!res.ok) return setError(res.message);
-      if (res.held) return setError("Esta foto não pode ser usada como foto de perfil. Escolha outra.");
+      if (!res.ok) return setError(t(res.message));
+      if (res.held) return setError(t("Esta foto não pode ser usada como foto de perfil. Escolha outra."));
       setPhoto({ assetId: res.assetId, preview: URL.createObjectURL(f) });
     } finally {
       setUploading(false);
@@ -131,7 +134,7 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
   function save() {
     startTransition(async () => {
       const res = await updateProfileAction({ bio: text, goal: chosen, ...(photo === undefined ? {} : { avatarAssetId: photo?.assetId ?? null }) });
-      if (!res.ok) return setError(res.message);
+      if (!res.ok) return setError(t(res.message));
       dialog.current?.close();
       setPhoto(undefined);
       router.refresh();
@@ -149,14 +152,14 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
             : "inline-flex h-10 items-center rounded-full border border-line-strong bg-paper px-4 text-sm font-semibold hover:border-turf/60"
         }
       >
-        {cta ? "Completar perfil" : "Editar perfil"}
+        {cta ? t("Completar perfil") : t("Editar perfil")}
       </button>
       <dialog ref={dialog} aria-labelledby="edit-profile-h" className="cm-sheet">
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
           <h2 id="edit-profile-h" className="font-display text-lg font-bold">
-            Editar perfil
+            {t("Editar perfil")}
           </h2>
-          <button type="button" onClick={() => dialog.current?.close()} aria-label="Fechar" className="grid size-10 place-items-center rounded-full text-ink-soft hover:bg-chalk">
+          <button type="button" onClick={() => dialog.current?.close()} aria-label={t("Fechar")} className="grid size-10 place-items-center rounded-full text-ink-soft hover:bg-chalk">
             <CloseIcon />
           </button>
         </div>
@@ -166,7 +169,7 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
             <div className="flex flex-col items-start gap-1.5">
               <label className={`inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line-strong px-4 text-sm font-semibold hover:border-turf/60 has-focus-visible:outline-2 has-focus-visible:outline-turf ${uploading ? "pointer-events-none opacity-60" : ""}`}>
                 <CameraIcon className="size-[18px]" />
-                {uploading ? "Conferindo foto…" : shown ? "Trocar foto" : "Adicionar foto"}
+                {uploading ? t("Conferindo foto…") : shown ? t("Trocar foto") : t("Adicionar foto")}
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -180,7 +183,7 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
               </label>
               {shown && (
                 <button type="button" className="px-1 text-sm font-semibold text-danger" onClick={() => setPhoto(null)}>
-                  Remover foto
+                  {t("Remover foto")}
                 </button>
               )}
             </div>
@@ -188,7 +191,7 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
 
           <label className="block">
             <span className="mb-1.5 flex items-baseline justify-between text-sm font-semibold">
-              Bio
+              {t("Bio")}
               <span className="text-xs font-medium text-muted tabular-nums">{text.length}/160</span>
             </span>
             <textarea
@@ -196,13 +199,13 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
               onChange={(e) => setText(e.target.value)}
               maxLength={160}
               rows={3}
-              placeholder="Conte em uma frase o que te move a treinar"
+              placeholder={t("Conte em uma frase o que te move a treinar")}
               className="w-full resize-none rounded-2xl border border-line-strong bg-paper px-3.5 py-3 outline-none placeholder:text-muted focus:border-turf"
             />
           </label>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-semibold">Objetivo</legend>
+            <legend className="mb-2 text-sm font-semibold">{t("Objetivo")}</legend>
             <div className="flex flex-wrap gap-2">
               {GOALS.map(([v, l]) => (
                 <label
@@ -216,7 +219,7 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-muted">Foto, bio e objetivo aparecem para as pessoas da sua consultoria.</p>
+            <p className="mt-2 text-xs text-muted">{t("Foto, bio e objetivo aparecem para as pessoas da sua consultoria.")}</p>
           </fieldset>
 
           {error && (
@@ -227,10 +230,10 @@ export function EditProfile({ name, avatarUrl, bio, goal, cta = false }: { name:
         </div>
         <div className="flex justify-end gap-2 border-t border-line px-4 py-3">
           <button type="button" className="h-11 rounded-full px-4 text-sm font-semibold text-ink-soft hover:bg-chalk" onClick={() => dialog.current?.close()}>
-            Cancelar
+            {t("Cancelar")}
           </button>
           <button type="button" disabled={pending || uploading} onClick={save} className="h-11 rounded-full bg-signal px-6 text-sm font-semibold text-on-accent active:scale-95 disabled:opacity-60">
-            {pending ? "Salvando…" : "Salvar"}
+            {pending ? t("Salvando…") : t("Salvar")}
           </button>
         </div>
       </dialog>

@@ -28,6 +28,7 @@ import { PersonCard, PersonRow, roleLabel, TrainedTodayRail } from "./people";
 import { PostCard, type Viewer } from "./post-card";
 import { EditProfile, ProfileActions } from "./profile-actions";
 import { PanelSkeleton } from "./skeletons";
+import { currentLocale, getT } from "@/i18n/server";
 
 /** Turns NOT_FOUND into a 404 and a disabled community into a friendly notice. */
 async function guard<T>(fn: () => Promise<T>): Promise<T | "disabled"> {
@@ -40,7 +41,10 @@ async function guard<T>(fn: () => Promise<T>): Promise<T | "disabled"> {
   }
 }
 
-const Disabled = () => <Notice tone="info">A comunidade está desativada pelo seu treinador.</Notice>;
+const Disabled = async () => {
+  const t = await getT();
+  return <Notice tone="info">{t("A comunidade está desativada pelo seu treinador.")}</Notice>;
+};
 
 const SCOPES: { scope: FeedScope; label: string; param: string | null }[] = [
   { scope: "all", label: "Para você", param: null },
@@ -55,23 +59,24 @@ const panelTitle = "text-caption text-muted";
 const backLink = "inline-flex h-10 items-center gap-1.5 self-start rounded-full pr-3 text-sm font-semibold text-turf hover:underline";
 
 /** Title and the three places of the community: feed, discover, own profile. */
-function CommunityHeader({ basePath, active, myMemberId, canModerate }: { basePath: string; active: "feed" | "discover" | "profile" | null; myMemberId: string; canModerate: boolean }) {
+async function CommunityHeader({ basePath, active, myMemberId, canModerate }: { basePath: string; active: "feed" | "discover" | "profile" | null; myMemberId: string; canModerate: boolean }) {
+  const t = await getT();
   const tabs = [
-    { key: "feed", label: "Feed", href: basePath },
-    { key: "discover", label: "Descobrir", href: `${basePath}/descobrir` },
-    { key: "profile", label: "Meu perfil", href: `${basePath}/membro/${myMemberId}` },
+    { key: "feed", label: t("Feed"), href: basePath },
+    { key: "discover", label: t("Descobrir"), href: `${basePath}/descobrir` },
+    { key: "profile", label: t("Meu perfil"), href: `${basePath}/membro/${myMemberId}` },
   ] as const;
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="font-display text-[2.2rem] leading-none font-extrabold tracking-tight sm:text-h1">Comunidade</h1>
+        <h1 className="font-display text-[2.2rem] leading-none font-extrabold tracking-tight sm:text-h1">{t("Comunidade")}</h1>
         {canModerate && (
           <Link href={`${basePath}/moderacao`} className="text-sm font-semibold text-turf underline-offset-4 hover:underline">
-            Moderação
+            {t("Moderação")}
           </Link>
         )}
       </div>
-      <nav aria-label="Áreas da comunidade" className="flex gap-1 self-start rounded-full bg-surface-subtle p-1">
+      <nav aria-label={t("Áreas da comunidade")} className="flex gap-1 self-start rounded-full bg-surface-subtle p-1">
         {tabs.map((t) => (
           <Link
             key={t.key}
@@ -100,11 +105,12 @@ const EMPTY: Record<FeedScope, { title: string; text: string }> = {
 };
 
 export async function CommunityFeedPage({ actor, basePath, scope }: { actor: Actor; basePath: string; scope: FeedScope }) {
+  const t = await getT();
   const data = await guard(() => Promise.all([listFeed(actor, { scope, cursor: null }), getMyCard(actor), listShareableWorkouts(actor)]));
   if (data === "disabled") {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-5">
-        <h1 className="font-display text-h1 font-extrabold">Comunidade</h1>
+        <h1 className="font-display text-h1 font-extrabold">{t("Comunidade")}</h1>
         <Disabled />
       </div>
     );
@@ -120,7 +126,7 @@ export async function CommunityFeedPage({ actor, basePath, scope }: { actor: Act
           <TrainedToday actor={actor} basePath={basePath} />
         </Suspense>
         {viewer.canComment && <Composer me={me} canAnnounce={can(actor, "community.announce")} workouts={workouts} />}
-        <nav aria-label="Filtrar publicações" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav aria-label={t("Filtrar publicações")} className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {SCOPES.map((s) => (
             <Link
               key={s.scope}
@@ -130,7 +136,7 @@ export async function CommunityFeedPage({ actor, basePath, scope }: { actor: Act
                 s.scope === scope ? "border-ink bg-ink text-paper" : "border-line-strong bg-paper text-ink-soft hover:border-ink-soft hover:text-ink"
               }`}
             >
-              {s.label}
+              {t(s.label)}
             </Link>
           ))}
         </nav>
@@ -143,21 +149,21 @@ export async function CommunityFeedPage({ actor, basePath, scope }: { actor: Act
           viewer={viewer}
           empty={
             <EmptyState
-              title={empty.title}
+              title={t(empty.title)}
               action={
                 scope === "following" ? (
                   <Link href={`${basePath}/descobrir`} className="inline-flex h-11 items-center rounded-full bg-signal px-6 text-sm font-semibold text-on-accent">
-                    Descobrir pessoas
+                    {t("Descobrir pessoas")}
                   </Link>
                 ) : undefined
               }
             >
-              {empty.text}
+              {t(empty.text)}
             </EmptyState>
           }
         />
       </div>
-      <aside aria-label="Na sua comunidade" className="hidden lg:block">
+      <aside aria-label={t("Na sua comunidade")} className="hidden lg:block">
         <div className="sticky top-6 flex flex-col gap-5">
           <Suspense
             fallback={
@@ -181,7 +187,7 @@ async function TrainedToday({ actor, basePath }: { actor: Actor; basePath: strin
 }
 
 const areaOf = (basePath: string) => basePath.replace(/\/comunidade$/, "");
-const dayMonth = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "short", timeZone: "UTC" });
+const dayMonth = new Intl.DateTimeFormat(currentLocale(), { day: "numeric", month: "short", timeZone: "UTC" });
 const fmtDay = (iso: string) => dayMonth.format(new Date(`${iso}T12:00:00Z`));
 
 async function activeChallenges(actor: Actor) {
@@ -189,7 +195,8 @@ async function activeChallenges(actor: Actor) {
   return all.filter((c) => c.status === "active" || c.status === "upcoming").slice(0, 3);
 }
 
-function Challenges({ items, basePath }: { items: Awaited<ReturnType<typeof activeChallenges>>; basePath: string }) {
+async function Challenges({ items, basePath }: { items: Awaited<ReturnType<typeof activeChallenges>>; basePath: string }) {
+  const t = await getT();
   if (items.length === 0) return null;
   return (
     <ul className="flex flex-col gap-2.5">
@@ -202,8 +209,8 @@ function Challenges({ items, basePath }: { items: Awaited<ReturnType<typeof acti
             <span className="min-w-0 flex-1">
               <span className="block truncate font-semibold group-hover:underline">{c.title}</span>
               <span className="block text-xs text-white/75">
-                {c.status === "active" ? `Até ${fmtDay(c.endsOn)}` : `Começa em ${fmtDay(c.startsOn)}`}
-                {c.joined ? " · você está dentro" : ""}
+                {c.status === "active" ? t("Até {0}", { 0: fmtDay(c.endsOn) }) : t("Começa em {0}", { 0: fmtDay(c.startsOn) })}
+                {c.joined ? t(" · você está dentro") : ""}
               </span>
             </span>
           </Link>
@@ -215,6 +222,7 @@ function Challenges({ items, basePath }: { items: Awaited<ReturnType<typeof acti
 
 /** Desktop column beside the feed: people to follow, what is hot, running challenges. */
 async function Sidebar({ actor, basePath }: { actor: Actor; basePath: string }) {
+  const t = await getT();
   const [discover, popular, challenges] = await Promise.all([
     getDiscover(actor).catch(() => null),
     listFeed(actor, { scope: "popular", cursor: null, limit: 3 }).catch(() => null),
@@ -226,10 +234,10 @@ async function Sidebar({ actor, basePath }: { actor: Actor; basePath: string }) 
         <section aria-labelledby="side-suggest-h" className={panel}>
           <div className="mb-4 flex items-baseline justify-between">
             <h2 id="side-suggest-h" className={panelTitle}>
-              Sugestões para seguir
+              {t("Sugestões para seguir")}
             </h2>
             <Link href={`${basePath}/descobrir`} className="text-xs font-semibold text-turf hover:underline">
-              Ver todas
+              {t("Ver todas")}
             </Link>
           </div>
           <ul className="flex flex-col gap-3.5">
@@ -242,17 +250,17 @@ async function Sidebar({ actor, basePath }: { actor: Actor; basePath: string }) 
       {popular && popular.posts.length > 0 && (
         <section aria-labelledby="side-hot-h" className={panel}>
           <h2 id="side-hot-h" className={`${panelTitle} mb-3`}>
-            Em alta
+            {t("Em alta")}
           </h2>
           <ol className="flex flex-col gap-3.5">
             {popular.posts.map((p) => (
               <li key={p.id}>
                 <Link href={`${basePath}/post/${p.id}`} className="group block">
                   <span className="line-clamp-2 text-[0.92rem] leading-snug font-semibold group-hover:underline">
-                    {p.body ?? (p.workout ? `${p.workout.dayName} concluído` : "Foto")}
+                    {p.body ?? (p.workout ? t("{0} concluído", { 0: p.workout.dayName }) : t("Foto"))}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted">
-                    {p.author.name} · {p.likeCount} {p.likeCount === 1 ? "curtida" : "curtidas"} · {p.commentCount} {p.commentCount === 1 ? "comentário" : "comentários"}
+                    {p.author.name} · {p.likeCount} {p.likeCount === 1 ? t("curtida") : t("curtidas")} · {p.commentCount} {p.commentCount === 1 ? t("comentário") : t("comentários")}
                   </span>
                 </Link>
               </li>
@@ -263,7 +271,7 @@ async function Sidebar({ actor, basePath }: { actor: Actor; basePath: string }) 
       {challenges.length > 0 && (
         <section aria-labelledby="side-ch-h">
           <h2 id="side-ch-h" className={`${panelTitle} mb-2.5 px-1`}>
-            Desafios
+            {t("Desafios")}
           </h2>
           <Challenges items={challenges} basePath={basePath} />
         </section>
@@ -277,6 +285,7 @@ function Carousel({ children }: { children: React.ReactNode }) {
 }
 
 export async function CommunityDiscoverPage({ actor, basePath, query }: { actor: Actor; basePath: string; query: string }) {
+  const t = await getT();
   const q = query.trim().slice(0, 60);
   const data = await guard(() =>
     Promise.all([getDiscover(actor), getMyCard(actor), listFeed(actor, { scope: "popular", cursor: null, limit: 6 }), q.length >= 2 ? searchPeople(actor, q) : null, listTrainedToday(actor), activeChallenges(actor)]),
@@ -291,9 +300,9 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
 
       <form role="search" action={`${basePath}/descobrir`} className="flex h-12 items-center gap-2 rounded-full border border-line-strong bg-paper pr-1.5 pl-4 focus-within:border-turf">
         <SearchIcon className="size-5 shrink-0 text-ink-soft" />
-        <input type="search" name="q" defaultValue={q} minLength={2} maxLength={60} placeholder="Buscar pessoas pelo nome" aria-label="Buscar pessoas pelo nome" className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" />
+        <input type="search" name="q" defaultValue={q} minLength={2} maxLength={60} placeholder={t("Buscar pessoas pelo nome")} aria-label={t("Buscar pessoas pelo nome")} className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" />
         <button type="submit" className="h-9 rounded-full bg-ink px-4 text-sm font-semibold text-paper">
-          Buscar
+          {t("Buscar")}
         </button>
       </form>
 
@@ -301,14 +310,14 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
         <section aria-labelledby="results-h">
           <div className="mb-3 flex items-baseline justify-between gap-3">
             <h2 id="results-h" className={sectionTitle}>
-              Resultados para “{q}”
+              {t("Resultados para “")}{q}”
             </h2>
             <Link href={`${basePath}/descobrir`} className="text-sm font-semibold text-turf hover:underline">
-              Limpar
+              {t("Limpar")}
             </Link>
           </div>
           {results.length === 0 ? (
-            <p className="text-muted">Ninguém com esse nome na sua comunidade.</p>
+            <p className="text-muted">{t("Ninguém com esse nome na sua comunidade.")}</p>
           ) : (
             <ul className={`${panel} flex flex-col gap-4`}>
               {results.map((p) => (
@@ -322,8 +331,8 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
       {!discover.me.hasProfile && (
         <section className="flex flex-wrap items-center gap-4 rounded-[var(--radius-panel)] bg-signal-tint p-5">
           <div className="min-w-0 flex-1 basis-56">
-            <p className="font-display text-lg font-bold">Complete seu perfil</p>
-            <p className="mt-0.5 text-sm text-ink-soft">Com foto, bio e objetivo, a turma te encontra e você descobre quem treina pelo mesmo motivo.</p>
+            <p className="font-display text-lg font-bold">{t("Complete seu perfil")}</p>
+            <p className="mt-0.5 text-sm text-ink-soft">{t("Com foto, bio e objetivo, a turma te encontra e você descobre quem treina pelo mesmo motivo.")}</p>
           </div>
           <EditProfile name={me.name} avatarUrl={me.avatarUrl} bio={null} goal={null} cta />
         </section>
@@ -334,7 +343,7 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
       {discover.suggestions.length > 0 && (
         <section aria-labelledby="suggest-h">
           <h2 id="suggest-h" className={`${sectionTitle} mb-3`}>
-            Sugestões para você
+            {t("Sugestões para você")}
           </h2>
           <Carousel>
             {discover.suggestions.map((p) => (
@@ -347,9 +356,9 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
       {discover.me.goal && discover.sameGoal.length > 0 && (
         <section aria-labelledby="goal-h">
           <h2 id="goal-h" className={`${sectionTitle} mb-1`}>
-            Mesmo objetivo que você
+            {t("Mesmo objetivo que você")}
           </h2>
-          <p className="mb-3 text-sm text-muted">{GOAL_LABELS[discover.me.goal]}</p>
+          <p className="mb-3 text-sm text-muted">{t(GOAL_LABELS[discover.me.goal])}</p>
           <Carousel>
             {discover.sameGoal.map((p) => (
               <PersonCard key={p.memberId} person={p} basePath={basePath} />
@@ -361,7 +370,7 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
       {challenges.length > 0 && (
         <section aria-labelledby="challenges-h">
           <h2 id="challenges-h" className={`${sectionTitle} mb-3`}>
-            Desafios
+            {t("Desafios")}
           </h2>
           <Challenges items={challenges} basePath={basePath} />
         </section>
@@ -369,10 +378,10 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
 
       <section aria-labelledby="hot-h">
         <h2 id="hot-h" className={`${sectionTitle} mb-3`}>
-          Em alta
+          {t("Em alta")}
         </h2>
         {popular.posts.length === 0 ? (
-          <EmptyState title="Nada em alta por enquanto">As publicações mais curtidas e comentadas dos últimos 30 dias aparecem aqui.</EmptyState>
+          <EmptyState title={t("Nada em alta por enquanto")}>{t("As publicações mais curtidas e comentadas dos últimos 30 dias aparecem aqui.")}</EmptyState>
         ) : (
           <div className="flex flex-col gap-4">
             {popular.posts.map((p) => (
@@ -383,19 +392,20 @@ export async function CommunityDiscoverPage({ actor, basePath, query }: { actor:
       </section>
 
       {discover.suggestions.length === 0 && discover.members <= 1 && (
-        <EmptyState title="Sua comunidade começa aqui">Assim que mais pessoas entrarem na consultoria, elas aparecem nesta página.</EmptyState>
+        <EmptyState title={t("Sua comunidade começa aqui")}>{t("Assim que mais pessoas entrarem na consultoria, elas aparecem nesta página.")}</EmptyState>
       )}
     </div>
   );
 }
 
 export async function CommunityPostPage({ actor, basePath, postId }: { actor: Actor; basePath: string; postId: string }) {
+  const t = await getT();
   if (!z.uuid().safeParse(postId).success) notFound();
   const data = await guard(() => Promise.all([getPost(actor, postId), getMyCard(actor)]));
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <Link href={basePath} className={backLink}>
-        <span aria-hidden="true">←</span> Comunidade
+        <span aria-hidden="true">←</span> {t("Comunidade")}
       </Link>
       {data === "disabled" ? <Disabled /> : <PostCard post={data[0].post} basePath={basePath} viewer={viewerOf(actor, data[1], true)} detail initialComments={data[0].comments} />}
     </div>
@@ -406,6 +416,7 @@ type ProfileTab = "posts" | "followers" | "following";
 export const profileTabFromParam = (aba: string | undefined): ProfileTab => (aba === "seguidores" ? "followers" : aba === "seguindo" ? "following" : "posts");
 
 export async function CommunityProfilePage({ actor, basePath, memberId, tab }: { actor: Actor; basePath: string; memberId: string; tab: ProfileTab }) {
+  const t = await getT();
   if (!z.uuid().safeParse(memberId).success) notFound();
   const data = await guard(() => Promise.all([getProfile(actor, memberId), getMyCard(actor)]));
   if (data === "disabled") return <Disabled />;
@@ -416,11 +427,11 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
     tab === "posts" && !profile.blockedByMe ? listFeed(actor, { scope: "all", cursor: null, authorMemberId: memberId }) : null,
     tab !== "posts" && !profile.blockedByMe ? listConnections(actor, memberId, tab) : null,
   ]);
-  const since = profile.joinedAt ? new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" }).format(profile.joinedAt) : null;
+  const since = profile.joinedAt ? new Intl.DateTimeFormat(currentLocale(), { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" }).format(profile.joinedAt) : null;
   const stats: { label: string; value: number; tab?: ProfileTab; param?: string }[] = [
-    { label: "Publicações", value: profile.posts, tab: "posts" },
-    { label: "Seguidores", value: profile.followers, tab: "followers", param: "seguidores" },
-    { label: "Seguindo", value: profile.following, tab: "following", param: "seguindo" },
+    { label: t("Publicações"), value: profile.posts, tab: "posts" },
+    { label: t("Seguidores"), value: profile.followers, tab: "followers", param: "seguidores" },
+    { label: t("Seguindo"), value: profile.following, tab: "following", param: "seguindo" },
   ];
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -428,7 +439,7 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
         <CommunityHeader basePath={basePath} active="profile" myMemberId={me.memberId} canModerate={viewer.canModerate} />
       ) : (
         <Link href={basePath} className={backLink}>
-          <span aria-hidden="true">←</span> Comunidade
+          <span aria-hidden="true">←</span> {t("Comunidade")}
         </Link>
       )}
 
@@ -454,16 +465,16 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
           </div>
           <h1 className="mt-3 font-display text-[1.7rem] leading-tight font-bold break-words">{profile.name}</h1>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-            <span className={profile.role === "trainer" ? "rounded-full bg-turf-solid px-2 py-0.5 text-xs font-semibold text-white" : ""}>{roleLabel(profile.role)}</span>
-            {since && <span>desde {since}</span>}
-            {profile.followsMe && !profile.isMe && <span className="rounded-full bg-surface-subtle px-2 py-0.5 text-xs font-semibold text-ink-soft">Segue você</span>}
+            <span className={profile.role === "trainer" ? "rounded-full bg-turf-solid px-2 py-0.5 text-xs font-semibold text-white" : ""}>{t(roleLabel(profile.role))}</span>
+            {since && <span>{t("desde")} {since}</span>}
+            {profile.followsMe && !profile.isMe && <span className="rounded-full bg-surface-subtle px-2 py-0.5 text-xs font-semibold text-ink-soft">{t("Segue você")}</span>}
           </p>
           {profile.bio && <p className="mt-3 leading-relaxed break-words whitespace-pre-line">{profile.bio}</p>}
-          {profile.isMe && !profile.bio && !profile.goal && <p className="mt-3 text-sm text-muted">Adicione uma foto, uma bio e seu objetivo para a turma te conhecer.</p>}
+          {profile.isMe && !profile.bio && !profile.goal && <p className="mt-3 text-sm text-muted">{t("Adicione uma foto, uma bio e seu objetivo para a turma te conhecer.")}</p>}
           {profile.goal && (
             <p className="mt-3">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-turf-tint px-3 py-1.5 text-sm font-semibold text-turf">
-                <FlameIcon className="size-4" /> {GOAL_LABELS[profile.goal]}
+                <FlameIcon className="size-4" /> {t(GOAL_LABELS[profile.goal])}
               </span>
             </p>
           )}
@@ -471,11 +482,11 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
           <dl className="mt-5 flex flex-wrap gap-x-7 gap-y-3 border-t border-line pt-4">
             {stats.map((s) => (
               <div key={s.label}>
-                <dt className="sr-only">{s.label}</dt>
+                <dt className="sr-only">{t(s.label)}</dt>
                 <dd>
                   <Link href={s.param ? `${href}?aba=${s.param}` : href} aria-current={tab === s.tab ? "page" : undefined} className="group block">
                     <span className="block font-display text-2xl leading-none font-extrabold tabular-nums">{s.value}</span>
-                    <span className={`mt-1 block text-sm group-hover:underline ${tab === s.tab ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
+                    <span className={`mt-1 block text-sm group-hover:underline ${tab === s.tab ? "font-semibold text-ink" : "text-muted"}`}>{t(s.label)}</span>
                   </Link>
                 </dd>
               </div>
@@ -484,11 +495,11 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
               <>
                 <div>
                   <dd className="font-display text-2xl leading-none font-extrabold tabular-nums">{profile.constancy.checkins}</dd>
-                  <dt className="mt-1 text-sm text-muted">Check-ins</dt>
+                  <dt className="mt-1 text-sm text-muted">{t("Check-ins")}</dt>
                 </div>
                 <div>
                   <dd className="font-display text-2xl leading-none font-extrabold text-turf tabular-nums">{profile.constancy.points}</dd>
-                  <dt className="mt-1 text-sm text-muted">Pontos de constância</dt>
+                  <dt className="mt-1 text-sm text-muted">{t("Pontos de constância")}</dt>
                 </div>
               </>
             )}
@@ -497,7 +508,7 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
       </header>
 
       {profile.blockedByMe ? (
-        <p className="text-sm text-muted">Você bloqueou esta pessoa. Desbloqueie para ver as publicações dela.</p>
+        <p className="text-sm text-muted">{t("Você bloqueou esta pessoa. Desbloqueie para ver as publicações dela.")}</p>
       ) : tab === "posts" ? (
         feed && (
           <Feed
@@ -507,13 +518,13 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
             authorMemberId={memberId}
             basePath={basePath}
             viewer={viewer}
-            empty={<EmptyState title="Nenhuma publicação ainda">{profile.isMe ? "Suas publicações aparecem aqui. Que tal contar como foi o treino de hoje?" : `${profile.name.split(" ")[0]} ainda não publicou.`}</EmptyState>}
+            empty={<EmptyState title={t("Nenhuma publicação ainda")}>{profile.isMe ? t("Suas publicações aparecem aqui. Que tal contar como foi o treino de hoje?") : t("{0} ainda não publicou.", { 0: profile.name.split(" ")[0] })}</EmptyState>}
           />
         )
       ) : (
         <section aria-labelledby="people-h">
           <h2 id="people-h" className="mb-3 font-display text-xl font-bold">
-            {tab === "followers" ? "Seguidores" : "Seguindo"}
+            {tab === "followers" ? t("Seguidores") : t("Seguindo")}
           </h2>
           {people && people.length > 0 ? (
             <ul className={`${panel} flex flex-col gap-4`}>
@@ -522,7 +533,7 @@ export async function CommunityProfilePage({ actor, basePath, memberId, tab }: {
               ))}
             </ul>
           ) : (
-            <p className="text-muted">{tab === "followers" ? "Ninguém segue este perfil ainda." : "Este perfil ainda não segue ninguém."}</p>
+            <p className="text-muted">{tab === "followers" ? t("Ninguém segue este perfil ainda.") : t("Este perfil ainda não segue ninguém.")}</p>
           )}
         </section>
       )}

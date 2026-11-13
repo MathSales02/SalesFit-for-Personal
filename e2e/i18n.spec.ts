@@ -92,6 +92,17 @@ test("a trainer switches the app to English and to Spanish: menus, screens and s
   await expect(page.getByText("Barbell and bench")).toBeVisible();
   await expectAccessible(page, "exercício da biblioteca (English)");
 
+  // Community and ranking.
+  await page.goto("/treinador/comunidade");
+  const tabs = page.getByRole("navigation", { name: "Filter posts" });
+  for (const name of ["For you", "Following", "Trending", "Saved"]) await expect(tabs.getByRole("link", { name, exact: true })).toBeVisible();
+  await expect(page.getByText("The feed starts with you")).toBeVisible();
+  await expectAccessible(page, "/treinador/comunidade (English)");
+  await page.goto("/treinador/ranking");
+  await expect(page.getByRole("heading", { name: "Ranking and competitions" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Period" }).getByRole("link", { name: "Week" })).toBeVisible();
+  await expect(page.getByText("Scoring rules")).toBeVisible();
+
   // Spanish.
   await page.goto("/conta");
   await page.getByRole("button", { name: "Español" }).click();

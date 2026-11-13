@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 /** Placeholder with the shape of a post while the feed loads. */
 export function PostSkeleton({ media = false }: { media?: boolean }) {
   return (
@@ -23,8 +26,9 @@ export function PostSkeleton({ media = false }: { media?: boolean }) {
 }
 
 export function FeedSkeleton() {
+  const t = useT();
   return (
-    <div role="status" aria-label="Carregando a comunidade" className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+    <div role="status" aria-label={t("Carregando a comunidade")} className="mx-auto flex w-full max-w-2xl flex-col gap-5">
       <span className="cm-skeleton h-10 w-56 rounded-full" />
       <span className="cm-skeleton h-11 w-full max-w-sm rounded-full" />
       <span className="cm-skeleton h-[4.5rem] rounded-[28px]" />

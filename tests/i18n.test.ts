@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/catalog/en";
 import { es } from "@/i18n/catalog/es";
@@ -64,5 +66,41 @@ describe("catalogues", () => {
         expect(text.trim(), `${name}: ${pt}`).not.toBe("");
       }
     }
+  });
+});
+
+describe("server-only translator", () => {
+  /** Every .ts/.tsx file under src, keyed by its path relative to the project. */
+  const files = new Map<string, string>();
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) walk(p);
+      else if (/\.tsx?$/.test(name)) files.set(relative(process.cwd(), p).split(sep).join("/"), readFileSync(p, "utf8"));
+    }
+  };
+  walk(join(process.cwd(), "src"));
+  const isClient = (src: string) => /^\s*(\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*["']use client["']/.test(src);
+  const resolveImport = (from: string, spec: string) => {
+    const base = spec.startsWith("@/") ? join("src", spec.slice(2)) : spec.startsWith(".") ? join(dirname(from), spec) : null;
+    if (!base) return null;
+    const norm = relative(process.cwd(), resolve(base)).split(sep).join("/");
+    return [`${norm}.tsx`, `${norm}.ts`, `${norm}/index.tsx`, `${norm}/index.ts`].find((c) => files.has(c)) ?? null;
+  };
+
+  it("no module that browser code imports reads the language on the server", () => {
+    // A file without "use client" is still bundled for the browser when a client component
+    // imports it; if it calls getT (server only) every page that uses it breaks.
+    const bad: string[] = [];
+    for (const [file, src] of files) {
+      if (!isClient(src)) continue;
+      for (const m of src.matchAll(/^import\s+(?!type\b)[^;]*?from\s+"([^"]+)"/gm)) {
+        const target = resolveImport(file, m[1]!);
+        if (!target) continue;
+        const code = files.get(target)!;
+        if (!isClient(code) && code.includes('from "@/i18n/server"')) bad.push(`${file} -> ${target}`);
+      }
+    }
+    expect(bad).toEqual([]);
   });
 });

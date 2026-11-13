@@ -3,8 +3,12 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { CompetitionDetail } from "@/components/gamification/competition-detail";
 import { requirePageActor } from "@/server/http/next";
+import { getT } from "@/i18n/server";
 
-export const metadata: Metadata = { title: "Competição" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return { title: t("Competição") };
+}
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const actor = await requirePageActor("challenges.manage", { feature: "competitions" });

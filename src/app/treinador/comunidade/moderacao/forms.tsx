@@ -4,18 +4,20 @@ import { moderatePostAction, resolveReportAction, updateSettingsAction } from "@
 import { ActionForm } from "@/components/ui/action-form";
 import { SubmitButton } from "@/components/ui/button";
 import type { CommunitySettings } from "@/server/community/service";
+import { useT } from "@/i18n/client";
 
 export function ModeratePostButtons({ postId }: { postId: string }) {
+  const t = useT();
   return (
     <ActionForm action={moderatePostAction} className="flex flex-col gap-2">
       {() => (
         <div className="flex gap-2">
           <input type="hidden" name="postId" value={postId} />
           <SubmitButton name="decision" value="approve">
-            Aprovar
+            {t("Aprovar")}
           </SubmitButton>
           <SubmitButton name="decision" value="remove" variant="danger">
-            Recusar
+            {t("Recusar")}
           </SubmitButton>
         </div>
       )}
@@ -24,6 +26,7 @@ export function ModeratePostButtons({ postId }: { postId: string }) {
 }
 
 export function ResolveReportButtons({ reportId, canRemove }: { reportId: string; canRemove: boolean }) {
+  const t = useT();
   return (
     <ActionForm action={resolveReportAction} className="flex flex-col gap-2">
       {() => (
@@ -31,11 +34,11 @@ export function ResolveReportButtons({ reportId, canRemove }: { reportId: string
           <input type="hidden" name="reportId" value={reportId} />
           {canRemove && (
             <SubmitButton name="decision" value="remove_content" variant="danger">
-              Remover conteúdo
+              {t("Remover conteúdo")}
             </SubmitButton>
           )}
           <SubmitButton name="decision" value="dismiss" variant="secondary">
-            Manter e arquivar
+            {t("Manter e arquivar")}
           </SubmitButton>
         </div>
       )}
@@ -50,6 +53,7 @@ const SWITCHES: { name: keyof CommunitySettings; label: string; hint: string }[]
 ];
 
 export function SettingsForm({ settings }: { settings: CommunitySettings }) {
+  const t = useT();
   return (
     <ActionForm action={updateSettingsAction} className="flex flex-col gap-4">
       {() => (
@@ -58,13 +62,13 @@ export function SettingsForm({ settings }: { settings: CommunitySettings }) {
             <label key={s.name} className="flex items-start gap-3">
               <input type="checkbox" name={s.name} defaultChecked={settings[s.name]} className="mt-1 size-4 accent-turf" />
               <span>
-                <span className="block font-semibold">{s.label}</span>
-                <span className="block text-sm text-muted">{s.hint}</span>
+                <span className="block font-semibold">{t(s.label)}</span>
+                <span className="block text-sm text-muted">{t(s.hint)}</span>
               </span>
             </label>
           ))}
           <div>
-            <SubmitButton pendingLabel="Salvando…">Salvar configurações</SubmitButton>
+            <SubmitButton pendingLabel={t("Salvando…")}>{t("Salvar configurações")}</SubmitButton>
           </div>
         </>
       )}
